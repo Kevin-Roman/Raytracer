@@ -1,11 +1,13 @@
+// The FrameBuffer creates a framebuffer with rgba and depth and can write them to a ppm file.
+
 use std::fs::File;
 use std::io::{self, Write};
 
 // Constants for maximum allowed dimensions.
-const MAX_WIDTH: usize = 2048;
-const MAX_HEIGHT: usize = 2048;
+const MAX_WIDTH: i32 = 2048;
+const MAX_HEIGHT: i32 = 2048;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 /// Represents a single pixel with color and depth information.
 struct Pixel {
     red: f32,
@@ -15,8 +17,8 @@ struct Pixel {
 }
 
 pub struct FrameBuffer {
-    width: usize,
-    height: usize,
+    width: i32,
+    height: i32,
     framebuffer: Vec<Pixel>,
 }
 
@@ -26,8 +28,8 @@ impl FrameBuffer {
     /// Creates a new FrameBuffer with the given width and height.
     ///
     /// Returns an error if the dimensions exceed the maximum allowed size.
-    pub fn new(w: usize, h: usize) -> Result<Self, &'static str> {
-        if w > MAX_WIDTH || h > MAX_HEIGHT {
+    pub fn new(w: i32, h: i32) -> Result<Self, &'static str> {
+        if w < 0 || w > MAX_WIDTH || h < 0 || h > MAX_HEIGHT {
             return Err("Invalid dimensions: exceeds maximum allowed size.");
         }
 
@@ -38,10 +40,10 @@ impl FrameBuffer {
                 blue: 0.0,
                 depth: 0.0,
             };
-            w * h
+            (w * h) as usize
         ];
 
-        Ok(FrameBuffer {
+        Ok(Self {
             width: w,
             height: h,
             framebuffer,
@@ -49,8 +51,8 @@ impl FrameBuffer {
     }
 
     /// Checks if the given coordinates are within the bounds of the framebuffer.
-    fn check_bounds(&self, x: usize, y: usize) -> Result<(), &'static str> {
-        if x >= self.width || y >= self.height {
+    fn check_bounds(&self, x: i32, y: i32) -> Result<(), &'static str> {
+        if x < 0 || x >= self.width || y < 0 || y >= self.height {
             Err("Pixel out of bounds")
         } else {
             Ok(())
@@ -62,15 +64,15 @@ impl FrameBuffer {
     /// Returns an error if the coordinates are out of bounds.
     pub fn plot_pixel(
         &mut self,
-        x: usize,
-        y: usize,
+        x: i32,
+        y: i32,
         red: f32,
         green: f32,
         blue: f32,
     ) -> Result<(), &'static str> {
         self.check_bounds(x, y)?;
 
-        let index = y * self.width + x;
+        let index = (y * self.width + x) as usize;
         self.framebuffer[index].red = red;
         self.framebuffer[index].green = green;
         self.framebuffer[index].blue = blue;
@@ -81,10 +83,10 @@ impl FrameBuffer {
     /// Sets the depth value of a pixel at the specified coordinates.
     ///
     /// Returns an error if the coordinates are out of bounds.
-    pub fn plot_depth(&mut self, x: usize, y: usize, depth: f32) -> Result<(), &'static str> {
+    pub fn plot_depth(&mut self, x: i32, y: i32, depth: f32) -> Result<(), &'static str> {
         self.check_bounds(x, y)?;
 
-        let index = y * self.width + x;
+        let index = (y * self.width + x) as usize;
         self.framebuffer[index].depth = depth;
 
         Ok(())
@@ -93,20 +95,20 @@ impl FrameBuffer {
     /// Gets the depth value of a pixel at the specified coordinates.
     ///
     /// Returns an error if the coordinates are out of bounds.
-    pub fn get_depth(&self, x: usize, y: usize) -> Result<f32, &'static str> {
+    pub fn get_depth(&self, x: i32, y: i32) -> Result<f32, &'static str> {
         self.check_bounds(x, y)?;
 
-        let index = y * self.width + x;
+        let index = (y * self.width + x) as usize;
         Ok(self.framebuffer[index].depth)
     }
 
     /// Gets the color of a pixel at the specified coordinates.
     ///
     /// Returns an error if the coordinates are out of bounds.
-    pub fn get_pixel(&self, x: usize, y: usize) -> Result<(f32, f32, f32), &'static str> {
+    pub fn get_pixel(&self, x: i32, y: i32) -> Result<(f32, f32, f32), &'static str> {
         self.check_bounds(x, y)?;
 
-        let index = y * self.width + x;
+        let index = (y * self.width + x) as usize;
         Ok((
             self.framebuffer[index].red,
             self.framebuffer[index].green,
