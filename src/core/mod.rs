@@ -1,1 +1,10 @@
+pub mod colour;
 pub mod framebuffer;
+pub mod hit;
+pub mod material;
+pub mod object;
+pub mod ray;
+pub mod tex_coords;
+pub mod transform;
+pub mod vector;
+pub mod vertex;
