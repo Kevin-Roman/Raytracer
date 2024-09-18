@@ -1,8 +1,5 @@
-mod core;
-mod graphics;
-
-use core::framebuffer::FrameBuffer;
-use graphics::linedrawer::draw_line;
+use raytracer::core::framebuffer::FrameBuffer;
+use raytracer::graphics::linedrawer::draw_line;
 use std::{
     error::Error,
     f32::consts::PI,
@@ -11,7 +8,7 @@ use std::{
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Create a framebuffer
+    // Create a framebuffer.
     let mut fb = FrameBuffer::new(512, 512)
         .map_err(|err| Box::new(io::Error::new(ErrorKind::Other, err)))?;
 
