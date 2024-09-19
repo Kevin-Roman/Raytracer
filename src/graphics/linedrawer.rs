@@ -1,4 +1,4 @@
-use crate::core::framebuffer::FrameBuffer;
+use crate::core::framebuffer::{FrameBuffer, FrameBufferError};
 
 /// Draws a line on the framebuffer where the X axis is the longer axis.
 fn draw_x_line(
@@ -7,7 +7,7 @@ fn draw_x_line(
     sy: i32, // Start Y coordinate.
     ex: i32, // End X coordinate.
     ey: i32, // End Y coordinate.
-) -> Result<(), &'static str> {
+) -> Result<(), FrameBufferError> {
     let dir = if sx <= ex { 1 } else { -1 };
 
     let mut x = sx;
@@ -30,7 +30,7 @@ fn draw_y_line(
     sy: i32, // Start Y coordinate.
     ex: i32, // End X coordinate.
     ey: i32, // End Y coordinate.
-) -> Result<(), &'static str> {
+) -> Result<(), FrameBufferError> {
     let dir = if sy <= ey { 1 } else { -1 };
 
     let mut y = sy;
@@ -53,7 +53,7 @@ pub fn draw_line(
     sy: i32, // Start Y coordinate.
     ex: i32, // End X coordinate.
     ey: i32, // End Y coordinate.
-) -> Result<(), &'static str> {
+) -> Result<(), FrameBufferError> {
     if sx == ex && sy == ey {
         fb.plot_pixel(sx, sy, 1.0, 1.0, 1.0)
     } else if (ex - sx).pow(2) >= (ey - sy).pow(2) {

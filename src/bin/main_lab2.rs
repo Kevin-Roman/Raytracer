@@ -1,16 +1,18 @@
-use raytracer::core::{framebuffer::FrameBuffer, object::Object, transform::Transform};
-use raytracer::graphics::linedrawer::draw_line;
-use raytracer::objects::polymesh::PolyMesh;
-use std::{
-    error::Error,
-    io::{self, ErrorKind},
-    result::Result,
+use raytracer::{
+    core::{framebuffer::FrameBuffer, object::Object, transform::Transform},
+    graphics::linedrawer::draw_line,
+    objects::polymesh::PolyMesh,
 };
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     // Create a framebuffer.
-    let mut fb = FrameBuffer::new(512, 512)
-        .map_err(|err| Box::new(io::Error::new(ErrorKind::Other, err)))?;
+    let mut fb = match FrameBuffer::new(512, 512) {
+        Ok(fb) => fb,
+        Err(e) => {
+            eprintln!("Error creating framebuffer: {}", e);
+            return;
+        }
+    };
 
     let transform: Transform = Transform::new([
         [1.0, 0.0, 0.0, 0.0],
@@ -44,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         print!(".");
     }
 
-    fb.write_rgb_file("test.ppm")?;
-
-    Ok(())
+    if let Err(e) = fb.write_rgb_file("./output/lab2.ppm") {
+        eprintln!("Error writing RGB file: {}", e);
+    };
 }

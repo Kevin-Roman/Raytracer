@@ -1,16 +1,15 @@
-use raytracer::core::framebuffer::FrameBuffer;
-use raytracer::graphics::linedrawer::draw_line;
-use std::{
-    error::Error,
-    f32::consts::PI,
-    io::{self, ErrorKind},
-    result::Result,
-};
+use raytracer::{core::framebuffer::FrameBuffer, graphics::linedrawer::draw_line};
+use std::f32::consts::PI;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     // Create a framebuffer.
-    let mut fb = FrameBuffer::new(512, 512)
-        .map_err(|err| Box::new(io::Error::new(ErrorKind::Other, err)))?;
+    let mut fb = match FrameBuffer::new(512, 512) {
+        Ok(fb) => fb,
+        Err(e) => {
+            eprintln!("Error creating framebuffer: {}", e);
+            return;
+        }
+    };
 
     for i in (0..64).map(|i| i as f32 * PI / 32.0) {
         let sx = 256 + (i.cos() * 48.0) as i32;
@@ -21,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let _ = draw_line(&mut fb, sx, sy, ex, ey);
     }
 
-    fb.write_rgb_file("test.ppm")?;
-
-    Ok(())
+    if let Err(e) = fb.write_rgb_file("./output/lab1.ppm") {
+        eprintln!("Error writing RGB file: {}", e);
+    };
 }
