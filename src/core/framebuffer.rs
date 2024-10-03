@@ -151,8 +151,8 @@ impl FrameBuffer {
         for pixel in &self.framebuffer {
             // TODO: why subtract min only for red channel?
             let red = (((pixel.red - min) / diff) * 255.0) as u8;
-            let green = (((pixel.green) / diff) * 255.0) as u8;
-            let blue = (((pixel.blue) / diff) * 255.0) as u8;
+            let green = (((pixel.green - min) / diff) * 255.0) as u8;
+            let blue = (((pixel.blue - min) / diff) * 255.0) as u8;
             outfile.write_all(&[red, green, blue])?;
         }
 
