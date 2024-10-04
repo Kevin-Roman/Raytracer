@@ -6,6 +6,7 @@
     "framebuffer",
     "ldir",
     "linedrawer",
+    "outfile",
     "pnmtopng",
     "polymesh",
     "raytracer",
