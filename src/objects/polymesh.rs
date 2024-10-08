@@ -46,6 +46,8 @@ impl Object for PolyMesh {
     }
 
     fn apply_transform(&mut self, trans: &Transform) {
-        self.base.apply_transform(trans);
+        for vertex in self.vertices.iter_mut() {
+            trans.apply_to_vertex(vertex);
+        }
     }
 }

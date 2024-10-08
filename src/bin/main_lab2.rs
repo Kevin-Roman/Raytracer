@@ -16,13 +16,13 @@ fn main() {
 
     let transform: Transform = Transform::new([
         [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, -55.0],
+        [0.0, 0.0, 1.0, -10.0],
         [0.0, 1.0, 0.0, 20.0],
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
     let mut pm: PolyMesh = match PolyMesh::new(
-        "D:/Other Documents/Programming/Raytracer/src/assets/teapot-low.obj",
+        "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         false,
     ) {
         Ok(pm) => pm,
