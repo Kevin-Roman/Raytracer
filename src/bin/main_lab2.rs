@@ -21,21 +21,28 @@ fn main() {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    let mut pm: PolyMesh = PolyMesh::new("teapot.obj", false);
+    let mut pm: PolyMesh = match PolyMesh::new(
+        "D:/Other Documents/Programming/Raytracer/src/assets/teapot-low.obj",
+        false,
+    ) {
+        Ok(pm) => pm,
+        Err(e) => {
+            eprintln!("Error reading poly mesh object: {}", e);
+            return;
+        }
+    };
     pm.apply_transform(&transform);
 
+    let vertices = &pm.vertices;
     // For each triangle in the model.
-    for i in 0..pm.triangle_count {
+    for triangle in pm.triangles.iter() {
         // The following lines project the point onto the 2D image from 3D space.
-        let triangle = &pm.triangle[i];
-        let vertices = &pm.vertex;
-
-        let x0 = (vertices[triangle[0]].x / vertices[triangle[0]].z) * 256.0 + 256.0;
-        let y0 = -(vertices[triangle[0]].y / vertices[triangle[0]].z) * 256.0 + 256.0;
-        let x1 = (vertices[triangle[1]].x / vertices[triangle[1]].z) * 256.0 + 256.0;
-        let y1 = -(vertices[triangle[1]].y / vertices[triangle[1]].z) * 256.0 + 256.0;
-        let x2 = (vertices[triangle[2]].x / vertices[triangle[2]].z) * 256.0 + 256.0;
-        let y2 = -(vertices[triangle[2]].y / vertices[triangle[2]].z) * 256.0 + 256.0;
+        let x0 = (vertices[triangle[0]].vector.x / vertices[triangle[0]].vector.z) * 256.0 + 256.0;
+        let y0 = -(vertices[triangle[0]].vector.y / vertices[triangle[0]].vector.z) * 256.0 + 256.0;
+        let x1 = (vertices[triangle[1]].vector.x / vertices[triangle[1]].vector.z) * 256.0 + 256.0;
+        let y1 = -(vertices[triangle[1]].vector.y / vertices[triangle[1]].vector.z) * 256.0 + 256.0;
+        let x2 = (vertices[triangle[2]].vector.x / vertices[triangle[2]].vector.z) * 256.0 + 256.0;
+        let y2 = -(vertices[triangle[2]].vector.y / vertices[triangle[2]].vector.z) * 256.0 + 256.0;
 
         // Draw the three edges.
         let _ = draw_line(&mut fb, x0 as i32, y0 as i32, x1 as i32, y1 as i32);
