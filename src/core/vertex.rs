@@ -3,6 +3,7 @@
 use super::vector::Vector;
 use std::ops::{Add, Neg, Sub};
 
+#[derive(Copy, Clone)]
 pub struct Vertex {
     pub vector: Vector,
     pub w: f32,
