@@ -1,0 +1,78 @@
+use crate::core::{
+    hit::Hit,
+    material::Material,
+    object::{BaseObject, Object},
+    ray::Ray,
+    transform::Transform,
+    vertex::Vertex,
+};
+
+pub struct Sphere {
+    base: BaseObject,
+    center: Vertex,
+    radius: f32,
+}
+
+impl Sphere {
+    pub fn new(c: Vertex, r: f32) -> Self {
+        Self {
+            base: BaseObject::new(),
+            center: c,
+            radius: r,
+        }
+    }
+
+    fn add_hit(&mut self, ray: &Ray, t: f32, entering: bool) {
+        // Compute hit position and normal at t
+        let hit_position = ray.position + &(ray.direction * t);
+        let mut hit_normal = hit_position.vector - &self.center.vector;
+        hit_normal.normalise();
+
+        // Orient normal if exiting.
+        if hit_normal.dot(&ray.direction) > 0.0 {
+            hit_normal.negate();
+        }
+
+        // Add the hit to the hitpool
+        self.base.hitpool.push(Hit::new(
+            t,
+            entering,
+            Some(hit_position),
+            Some(hit_normal),
+            None,
+        ));
+    }
+}
+
+impl Object for Sphere {
+    fn set_material(&mut self, material: Option<Box<dyn Material>>) {
+        self.base.set_material(material);
+    }
+
+    fn intersection(&mut self, ray: &Ray) {
+        let ray_to_sphere = ray.position.vector - &self.center.vector;
+
+        // Quadratic equation.
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * ray.direction.dot(&ray_to_sphere);
+        let c = ray_to_sphere.dot(&ray_to_sphere) - self.radius.powi(2);
+
+        let discriminant = b.powi(2) - 4.0 * a * c;
+
+        if discriminant < 0.0 {
+            // No intersection if the discriminant is negative.
+            return;
+        }
+
+        let sqrt_discriminant = discriminant.sqrt();
+        let t0 = (-b - sqrt_discriminant) / 2.0;
+        let t1 = (-b + sqrt_discriminant) / 2.0;
+
+        self.add_hit(ray, t0, true);
+        self.add_hit(ray, t1, false);
+    }
+
+    fn apply_transform(&mut self, trans: &Transform) {
+        trans.apply_to_vertex(&mut self.center);
+    }
+}
