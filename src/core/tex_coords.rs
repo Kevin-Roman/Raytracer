@@ -1,5 +1,6 @@
 // TexCoords stores the texture coordinates.
 
+#[derive(Debug)]
 pub struct TexCoords {
     pub u: f32,
     pub v: f32,

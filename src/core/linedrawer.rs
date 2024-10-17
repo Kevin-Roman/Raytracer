@@ -1,4 +1,4 @@
-use crate::core::framebuffer::{FrameBuffer, FrameBufferError};
+use super::framebuffer::{FrameBuffer, FrameBufferError};
 
 /// Draws a line on the framebuffer where the X axis is the longer axis.
 fn draw_x_line(

@@ -7,22 +7,22 @@ pub trait Object {
 
     // Given a ray, if this object intersects it, return all points of intersection.
     // Return None if no intersections.
-    fn intersection(&self, ray: Ray) -> Option<Hit>;
+    fn intersection(&mut self, ray: &Ray);
 
     // Apply a transform to this object.
     fn apply_transform(&mut self, trans: &Transform);
 }
 
 pub struct BaseObject {
-    pub next: Option<Box<dyn Object>>,
     pub material: Option<Box<dyn Material>>,
+    pub hitpool: Vec<Hit>,
 }
 
 impl BaseObject {
     pub fn new() -> Self {
         Self {
-            next: None,
             material: None,
+            hitpool: Vec::new(),
         }
     }
 }
@@ -32,9 +32,7 @@ impl Object for BaseObject {
         self.material = material;
     }
 
-    fn intersection(&self, _: Ray) -> Option<Hit> {
-        None
-    }
+    fn intersection(&mut self, _: &Ray) {}
 
     fn apply_transform(&mut self, _: &Transform) {}
 }

@@ -1,6 +1,5 @@
 use crate::{
     core::{
-        hit::Hit,
         material::Material,
         object::{BaseObject, Object},
         ray::Ray,
@@ -41,7 +40,7 @@ impl Object for PolyMesh {
         self.base.set_material(material);
     }
 
-    fn intersection(&self, ray: Ray) -> Option<Hit> {
+    fn intersection(&mut self, ray: &Ray) {
         self.base.intersection(ray)
     }
 
