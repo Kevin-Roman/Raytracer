@@ -1,5 +1,6 @@
 use crate::{
     core::{
+        hit::Hit,
         material::Material,
         object::{BaseObject, Object},
         ray::Ray,
@@ -36,8 +37,12 @@ impl PolyMesh {
 }
 
 impl Object for PolyMesh {
-    fn set_material(&mut self, material: Option<Box<dyn Material>>) {
-        self.base.set_material(material);
+    fn get_material(&self) -> Option<&Box<dyn Material>> {
+        self.base.get_material()
+    }
+
+    fn set_material(&mut self, material: Box<dyn Material>) {
+        self.base.set_material(material)
     }
 
     fn intersection(&mut self, ray: &Ray) {
@@ -48,5 +53,9 @@ impl Object for PolyMesh {
         for vertex in self.vertices.iter_mut() {
             trans.apply_to_vertex(vertex);
         }
+    }
+
+    fn select_first_hit(&mut self) -> Option<Hit> {
+        self.base.select_first_hit()
     }
 }

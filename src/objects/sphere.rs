@@ -46,8 +46,12 @@ impl Sphere {
 }
 
 impl Object for Sphere {
-    fn set_material(&mut self, material: Option<Box<dyn Material>>) {
-        self.base.set_material(material);
+    fn get_material(&self) -> Option<&Box<dyn Material>> {
+        self.base.get_material()
+    }
+
+    fn set_material(&mut self, material: Box<dyn Material>) {
+        self.base.set_material(material)
     }
 
     fn intersection(&mut self, ray: &Ray) {
@@ -75,5 +79,9 @@ impl Object for Sphere {
 
     fn apply_transform(&mut self, trans: &Transform) {
         trans.apply_to_vertex(&mut self.center);
+    }
+
+    fn select_first_hit(&mut self) -> Option<Hit> {
+        self.base.select_first_hit()
     }
 }
