@@ -1,6 +1,5 @@
 use super::framebuffer::{FrameBuffer, FrameBufferError};
 
-/// Draws a line on the framebuffer where the X axis is the longer axis.
 fn draw_x_line(
     fb: &mut FrameBuffer,
     x0: i32,
@@ -13,24 +12,23 @@ fn draw_x_line(
     let dy = direction * (y1 - y0);
 
     // Difference parameter.
-    let mut p = 2 * dy - dx;
+    let mut p = 2 * dy;
     let mut y = y0;
 
     for x in x0..x1 {
         fb.plot_pixel(x, y, 1.0, 1.0, 1.0)?;
 
+        p += 2 * dy;
+
         if p > 0 {
             y += direction;
-            p += 2 * (dy - dx);
-        } else {
-            p += 2 * dy;
+            p -= 2 * dx;
         }
     }
 
     Ok(())
 }
 
-/// Draws a line on the framebuffer where the Y axis is the longer axis.
 fn draw_y_line(
     fb: &mut FrameBuffer,
     x0: i32,
@@ -43,24 +41,23 @@ fn draw_y_line(
     let dy = y1 - y0;
 
     // Difference parameter.
-    let mut p = 2 * dx - dy;
+    let mut p = 2 * dx;
     let mut x = x0;
 
     for y in y0..y1 {
         fb.plot_pixel(x, y, 1.0, 1.0, 1.0)?;
 
+        p += 2 * dx;
+
         if p > 0 {
             x += direction;
-            p += 2 * (dx - dy);
-        } else {
-            p += 2 * dx;
+            p -= 2 * dy;
         }
     }
 
     Ok(())
 }
 
-/// Draws a line on the framebuffer based on the line's orientation.
 pub fn draw_line(
     fb: &mut FrameBuffer,
     x0: i32,

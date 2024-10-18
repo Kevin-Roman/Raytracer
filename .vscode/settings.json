@@ -3,17 +3,22 @@
     "Bresenhams",
     "consts",
     "derivitive",
+    "falsecolour",
     "framebuffer",
     "hitpool",
     "hitpools",
     "ldir",
+    "lightpool",
     "linedrawer",
+    "normalisation",
     "outfile",
     "pnmtopng",
     "polymesh",
     "powi",
+    "raytrace",
     "raytracer",
     "raytracing",
+    "shadowtrace",
     "thiserror"
   ]
 }

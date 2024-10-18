@@ -11,7 +11,6 @@ const MAX_WIDTH: i32 = 2048;
 const MAX_HEIGHT: i32 = 2048;
 
 #[derive(Clone)]
-/// Represents a single pixel with color and depth information.
 struct Pixel {
     red: f32,
     green: f32,
@@ -66,7 +65,6 @@ impl FrameBuffer {
         })
     }
 
-    /// Sets the color of a pixel at the specified coordinates.
     pub fn plot_pixel(
         &mut self,
         x: i32,
@@ -85,7 +83,6 @@ impl FrameBuffer {
         Ok(())
     }
 
-    /// Sets the depth value of a pixel at the specified coordinates.
     pub fn plot_depth(&mut self, x: i32, y: i32, depth: f32) -> Result<(), FrameBufferError> {
         self.check_bounds(x, y)?;
 
@@ -95,7 +92,6 @@ impl FrameBuffer {
         Ok(())
     }
 
-    /// Gets the depth value of a pixel at the specified coordinates.
     pub fn get_depth(&self, x: i32, y: i32) -> Result<f32, FrameBufferError> {
         self.check_bounds(x, y)?;
 

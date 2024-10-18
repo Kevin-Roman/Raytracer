@@ -82,6 +82,6 @@ impl ObjReader {
             triangles.push([face[0], face[i], face[i + 1]]);
         }
 
-        return triangles;
+        triangles
     }
 }

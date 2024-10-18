@@ -1,6 +1,5 @@
 use raytracer::{
-    core::{framebuffer::FrameBuffer, object::Object, transform::Transform},
-    graphics::linedrawer::draw_line,
+    core::{framebuffer::FrameBuffer, linedrawer::draw_line, object::Object, transform::Transform},
     objects::polymesh::PolyMesh,
 };
 
