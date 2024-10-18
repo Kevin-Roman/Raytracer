@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod colour;
 pub mod environment;
 pub mod framebuffer;
