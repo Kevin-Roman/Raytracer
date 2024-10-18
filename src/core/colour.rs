@@ -2,6 +2,7 @@
 
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
+#[derive(Clone, Copy)]
 pub struct Colour {
     pub r: f32,
     pub g: f32,
@@ -29,10 +30,21 @@ impl Colour {
     }
 }
 
-impl Mul<&Self> for Colour {
+impl Default for Colour {
+    fn default() -> Self {
+        Self {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            a: 1.0,
+        }
+    }
+}
+
+impl Mul<Self> for Colour {
     type Output = Self;
 
-    fn mul(self, other: &Self) -> Self::Output {
+    fn mul(self, other: Self) -> Self::Output {
         Self {
             r: self.r * other.r,
             g: self.g * other.g,
@@ -42,10 +54,10 @@ impl Mul<&Self> for Colour {
     }
 }
 
-impl Add<&Self> for Colour {
+impl Add<Self> for Colour {
     type Output = Self;
 
-    fn add(self, other: &Self) -> Self::Output {
+    fn add(self, other: Self) -> Self::Output {
         Self {
             r: self.r + other.r,
             g: self.g + other.g,
@@ -68,8 +80,8 @@ impl Mul<f32> for Colour {
     }
 }
 
-impl AddAssign<&Self> for Colour {
-    fn add_assign(&mut self, other: &Self) {
+impl AddAssign<Self> for Colour {
+    fn add_assign(&mut self, other: Self) {
         self.r += other.r;
         self.g += other.g;
         self.b += other.b;
@@ -77,8 +89,8 @@ impl AddAssign<&Self> for Colour {
     }
 }
 
-impl MulAssign<&Self> for Colour {
-    fn mul_assign(&mut self, other: &Self) {
+impl MulAssign<Self> for Colour {
+    fn mul_assign(&mut self, other: Self) {
         self.r *= other.r;
         self.g *= other.g;
         self.b *= other.b;

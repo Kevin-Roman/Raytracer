@@ -17,14 +17,6 @@ impl Vector {
         Self { x, y, z }
     }
 
-    pub fn zero() -> Self {
-        Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }
-    }
-
     pub fn len_sqr(&self) -> f32 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
@@ -67,16 +59,26 @@ impl Vector {
     }
 }
 
+impl Default for Vector {
+    fn default() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
+}
+
 impl PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y && self.z == other.z
     }
 }
 
-impl Mul<&Self> for Vector {
+impl Mul<Self> for Vector {
     type Output = Self;
 
-    fn mul(self, other: &Self) -> Self::Output {
+    fn mul(self, other: Self) -> Self::Output {
         Self {
             x: self.x * other.x,
             y: self.y * other.y,
@@ -85,10 +87,10 @@ impl Mul<&Self> for Vector {
     }
 }
 
-impl Sub<&Self> for Vector {
+impl Sub<Self> for Vector {
     type Output = Self;
 
-    fn sub(self, other: &Self) -> Self::Output {
+    fn sub(self, other: Self) -> Self::Output {
         Self {
             x: self.x - other.x,
             y: self.y - other.y,
@@ -97,10 +99,10 @@ impl Sub<&Self> for Vector {
     }
 }
 
-impl Add<&Self> for Vector {
+impl Add<Self> for Vector {
     type Output = Self;
 
-    fn add(self, other: &Self) -> Self::Output {
+    fn add(self, other: Self) -> Self::Output {
         Self {
             x: self.x + other.x,
             y: self.y + other.y,
@@ -109,14 +111,14 @@ impl Add<&Self> for Vector {
     }
 }
 
-impl Mul<f32> for Vector {
-    type Output = Self;
+impl Mul<Vector> for f32 {
+    type Output = Vector;
 
-    fn mul(self, scalar: f32) -> Self::Output {
-        Self {
-            x: self.x * scalar,
-            y: self.y * scalar,
-            z: self.z * scalar,
+    fn mul(self, vector: Vector) -> Self::Output {
+        Vector {
+            x: self * vector.x,
+            y: self * vector.y,
+            z: self * vector.z,
         }
     }
 }

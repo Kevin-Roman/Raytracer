@@ -16,8 +16,10 @@ impl Vertex {
             w,
         }
     }
+}
 
-    pub fn origin() -> Self {
+impl Default for Vertex {
+    fn default() -> Self {
         Self {
             vector: Vector::new(0.0, 0.0, 0.0),
             w: 1.0,
@@ -25,10 +27,10 @@ impl Vertex {
     }
 }
 
-impl Add<&Vector> for Vertex {
+impl Add<Vector> for Vertex {
     type Output = Self;
 
-    fn add(self, other: &Vector) -> Self::Output {
+    fn add(self, other: Vector) -> Self::Output {
         Self {
             vector: Vector::new(
                 self.vector.x + other.x,
@@ -40,10 +42,10 @@ impl Add<&Vector> for Vertex {
     }
 }
 
-impl Sub<&Vector> for Vertex {
+impl Sub<Vector> for Vertex {
     type Output = Self;
 
-    fn sub(self, other: &Vector) -> Self::Output {
+    fn sub(self, other: Vector) -> Self::Output {
         Self {
             vector: Vector::new(
                 self.vector.x - other.x,

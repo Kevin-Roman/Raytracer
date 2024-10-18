@@ -3,6 +3,7 @@ use crate::core::{
     material::Material,
     object::{BaseObject, Object},
     ray::Ray,
+    tex_coords::TexCoords,
     transform::Transform,
     vector::Vector,
     vertex::Vertex,
@@ -29,8 +30,12 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn set_material(&mut self, material: Option<Box<dyn Material>>) {
-        self.base.set_material(material);
+    fn get_material(&self) -> Option<&Box<dyn Material>> {
+        self.base.get_material()
+    }
+
+    fn set_material(&mut self, material: Box<dyn Material>) {
+        self.base.set_material(material)
     }
 
     fn intersection(&mut self, ray: &Ray) {
@@ -46,19 +51,27 @@ impl Object for Plane {
             // Ray is parallel to the plane.
             if distance_to_plane < 0.0 {
                 // The ray starts outside the plane and will never intersect.
-                self.base
-                    .hitpool
-                    .push(Hit::new(-f32::INFINITY, true, None, None, None));
-                self.base
-                    .hitpool
-                    .push(Hit::new(f32::INFINITY, false, None, None, None));
+                self.base.hitpool.push(Hit::new(
+                    f32::NEG_INFINITY,
+                    true,
+                    Vertex::default(),
+                    Vector::default(),
+                    TexCoords::default(),
+                ));
+                self.base.hitpool.push(Hit::new(
+                    f32::INFINITY,
+                    false,
+                    Vertex::default(),
+                    Vector::default(),
+                    TexCoords::default(),
+                ));
             }
 
             return;
         }
 
         let t = distance_to_plane / -direction_dot_normal;
-        let hit_position = ray.position + &(ray.direction * t);
+        let hit_position = ray.position + t * ray.direction;
         let mut hit_normal = Vector::new(self.a, self.b, self.c);
 
         // Normal must face against the ray's direction.
@@ -68,28 +81,36 @@ impl Object for Plane {
 
         if direction_dot_normal > 0.0 {
             // Ray comes from outside to inside.
-            self.base
-                .hitpool
-                .push(Hit::new(-f32::INFINITY, true, None, None, None));
+            self.base.hitpool.push(Hit::new(
+                f32::NEG_INFINITY,
+                true,
+                Vertex::default(),
+                Vector::default(),
+                TexCoords::default(),
+            ));
             self.base.hitpool.push(Hit::new(
                 t,
                 false,
-                Some(hit_position),
-                Some(hit_normal),
-                None,
+                hit_position,
+                hit_normal,
+                TexCoords::default(),
             ));
         } else {
             // Ray comes from inside to outside.
             self.base.hitpool.push(Hit::new(
                 t,
                 true,
-                Some(hit_position),
-                Some(hit_normal),
-                None,
+                hit_position,
+                hit_normal,
+                TexCoords::default(),
             ));
-            self.base
-                .hitpool
-                .push(Hit::new(f32::INFINITY, false, None, None, None));
+            self.base.hitpool.push(Hit::new(
+                f32::INFINITY,
+                false,
+                Vertex::default(),
+                Vector::default(),
+                TexCoords::default(),
+            ));
         }
     }
 
@@ -103,5 +124,9 @@ impl Object for Plane {
         self.b = v.vector.y;
         self.c = v.vector.z;
         self.d = v.w;
+    }
+
+    fn select_first_hit(&mut self) -> Option<Hit> {
+        self.base.select_first_hit()
     }
 }

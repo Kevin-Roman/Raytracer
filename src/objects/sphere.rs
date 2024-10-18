@@ -3,6 +3,7 @@ use crate::core::{
     material::Material,
     object::{BaseObject, Object},
     ray::Ray,
+    tex_coords::TexCoords,
     transform::Transform,
     vertex::Vertex,
 };
@@ -24,8 +25,8 @@ impl Sphere {
 
     fn add_hit(&mut self, ray: &Ray, t: f32, entering: bool) {
         // Compute hit position and normal at t
-        let hit_position = ray.position + &(ray.direction * t);
-        let mut hit_normal = hit_position.vector - &self.center.vector;
+        let hit_position = ray.position + t * ray.direction;
+        let mut hit_normal = hit_position.vector - self.center.vector;
         hit_normal.normalise();
 
         // Orient normal if exiting.
@@ -37,9 +38,9 @@ impl Sphere {
         self.base.hitpool.push(Hit::new(
             t,
             entering,
-            Some(hit_position),
-            Some(hit_normal),
-            None,
+            hit_position,
+            hit_normal,
+            TexCoords::default(),
         ));
     }
 }
@@ -50,7 +51,7 @@ impl Object for Sphere {
     }
 
     fn intersection(&mut self, ray: &Ray) {
-        let ray_to_sphere = ray.position.vector - &self.center.vector;
+        let ray_to_sphere = ray.position.vector - self.center.vector;
 
         // Quadratic equation.
         let a = ray.direction.dot(&ray.direction);
