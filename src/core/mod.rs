@@ -1,4 +1,5 @@
 pub mod colour;
+pub mod environment;
 pub mod framebuffer;
 pub mod hit;
 pub mod light;
@@ -6,6 +7,7 @@ pub mod linedrawer;
 pub mod material;
 pub mod object;
 pub mod ray;
+pub mod scene;
 pub mod tex_coords;
 pub mod transform;
 pub mod vector;
