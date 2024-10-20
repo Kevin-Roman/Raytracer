@@ -1,5 +1,5 @@
 use raytracer::{
-    cameras::simple_camera::SimpleCamera,
+    cameras::{full_camera::FullCamera, simple_camera::SimpleCamera},
     core::{
         camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene, vertex::Vertex,
     },
@@ -29,7 +29,7 @@ fn main() {
     let mut scene = Scene::new();
     build_scene(&mut scene);
 
-    let mut camera = SimpleCamera::new(0.5);
+    let mut camera = FullCamera::default();
     camera.render(&mut scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/lab34_rgb.ppm") {
