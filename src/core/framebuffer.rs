@@ -11,7 +11,6 @@ const MAX_WIDTH: i32 = 2048;
 const MAX_HEIGHT: i32 = 2048;
 
 #[derive(Clone)]
-/// Represents a single pixel with color and depth information.
 struct Pixel {
     red: f32,
     green: f32,
@@ -32,8 +31,8 @@ pub enum FrameBufferError {
 }
 
 pub struct FrameBuffer {
-    width: i32,
-    height: i32,
+    pub width: i32,
+    pub height: i32,
     framebuffer: Vec<Pixel>,
 }
 
@@ -66,16 +65,6 @@ impl FrameBuffer {
         })
     }
 
-    /// Checks if the given coordinates are within the bounds of the framebuffer.
-    fn check_bounds(&self, x: i32, y: i32) -> Result<(), FrameBufferError> {
-        if x < 0 || x >= self.width || y < 0 || y >= self.height {
-            Err(FrameBufferError::PixelOutOfBounds { x, y })
-        } else {
-            Ok(())
-        }
-    }
-
-    /// Sets the color of a pixel at the specified coordinates.
     pub fn plot_pixel(
         &mut self,
         x: i32,
@@ -94,7 +83,6 @@ impl FrameBuffer {
         Ok(())
     }
 
-    /// Sets the depth value of a pixel at the specified coordinates.
     pub fn plot_depth(&mut self, x: i32, y: i32, depth: f32) -> Result<(), FrameBufferError> {
         self.check_bounds(x, y)?;
 
@@ -104,7 +92,6 @@ impl FrameBuffer {
         Ok(())
     }
 
-    /// Gets the depth value of a pixel at the specified coordinates.
     pub fn get_depth(&self, x: i32, y: i32) -> Result<f32, FrameBufferError> {
         self.check_bounds(x, y)?;
 
@@ -124,20 +111,9 @@ impl FrameBuffer {
         ))
     }
 
-    /// Computes the min and max values for normalization.
-    fn compute_min_max(&self) -> (f32, f32) {
-        self.framebuffer
-            .iter()
-            .fold((f32::INFINITY, f32::NEG_INFINITY), |(min, max), pixel| {
-                let pixel_min = pixel.red.min(pixel.green).min(pixel.blue).min(pixel.depth);
-                let pixel_max = pixel.red.max(pixel.green).max(pixel.blue).max(pixel.depth);
-                (min.min(pixel_min), max.max(pixel_max))
-            })
-    }
-
     /// Writes RGB data to a PPM file.
     pub fn write_rgb_file(&self, filename: &str) -> Result<(), FrameBufferError> {
-        let (min, max) = self.compute_min_max();
+        let (min, max) = self.compute_min_max_rgb();
         let diff = if max - min == 0.0 { 1.0 } else { max - min };
 
         let mut outfile = File::create(filename)?;
@@ -161,7 +137,7 @@ impl FrameBuffer {
 
     /// Writes depth data to a PPM file.
     pub fn write_depth_file(&self, filename: &str) -> Result<(), FrameBufferError> {
-        let (min, max) = self.compute_min_max();
+        let (min, max) = self.compute_min_max_depth();
         let diff = if max - min == 0.0 { 1.0 } else { max - min };
 
         let mut outfile = File::create(filename)?;
@@ -174,9 +150,38 @@ impl FrameBuffer {
         // Write pixel data
         for pixel in &self.framebuffer {
             let depth = (((pixel.depth - min) / diff) * 255.0) as u8;
-            outfile.write_all(&[depth])?;
+            outfile.write_all(&[depth, depth, depth])?;
         }
 
         Ok(())
+    }
+
+    /// Checks if the given coordinates are within the bounds of the framebuffer.
+    fn check_bounds(&self, x: i32, y: i32) -> Result<(), FrameBufferError> {
+        if x < 0 || x >= self.width || y < 0 || y >= self.height {
+            Err(FrameBufferError::PixelOutOfBounds { x, y })
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Computes the min and max RGB values for normalisation.
+    fn compute_min_max_rgb(&self) -> (f32, f32) {
+        self.framebuffer
+            .iter()
+            .fold((f32::INFINITY, f32::NEG_INFINITY), |(min, max), pixel| {
+                let pixel_min = pixel.red.min(pixel.green).min(pixel.blue);
+                let pixel_max = pixel.red.max(pixel.green).max(pixel.blue);
+                (min.min(pixel_min), max.max(pixel_max))
+            })
+    }
+
+    /// Computes the min and max depth values for normalisation.
+    fn compute_min_max_depth(&self) -> (f32, f32) {
+        self.framebuffer
+            .iter()
+            .fold((f32::INFINITY, f32::NEG_INFINITY), |(min, max), pixel| {
+                (min.min(pixel.depth), max.max(pixel.depth))
+            })
     }
 }

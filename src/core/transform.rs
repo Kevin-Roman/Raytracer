@@ -211,10 +211,10 @@ impl Transform {
     }
 }
 
-impl Mul<&Self> for Transform {
+impl Mul<Self> for Transform {
     type Output = Self;
 
-    fn mul(self, rhs: &Self) -> Self::Output {
+    fn mul(self, rhs: Self) -> Self::Output {
         let mut result = Transform::identity();
 
         for x in 0..4 {

@@ -1,4 +1,6 @@
+pub mod cameras;
 pub mod core;
-pub mod graphics;
+pub mod lights;
+pub mod materials;
 pub mod objects;
 pub mod utilities;
