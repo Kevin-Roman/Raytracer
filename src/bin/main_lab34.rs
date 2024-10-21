@@ -1,18 +1,36 @@
 use raytracer::{
     cameras::full_camera::FullCamera,
     core::{
-        camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene, vector::Vector,
-        vertex::Vertex,
+        camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene,
+        transform::Transform, vector::Vector, vertex::Vertex,
     },
     materials::falsecolour::FalseColourMaterial,
-    objects::sphere::Sphere,
+    objects::polymesh::PolyMesh,
 };
 
 fn build_scene(scene: &mut Scene) {
-    let mut sphere = Box::new(Sphere::new(Vertex::new(0.0, 0.0, 2.0, 1.0), 1.0));
-    let material = Box::new(FalseColourMaterial::new());
-    sphere.set_material(material);
-    scene.objects.push(sphere);
+    let transform: Transform = Transform::new([
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, -10.0],
+        [0.0, 1.0, 0.0, 20.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]);
+
+    let mut pm = match PolyMesh::new(
+        "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
+        false,
+    ) {
+        Ok(pm) => Box::new(pm),
+        Err(e) => {
+            eprintln!("Error reading poly mesh object: {}", e);
+            return;
+        }
+    };
+    pm.apply_transform(&transform);
+
+    let material: Box<FalseColourMaterial> = Box::new(FalseColourMaterial::new());
+    pm.set_material(material);
+    scene.objects.push(pm);
 }
 
 fn main() {
@@ -30,6 +48,12 @@ fn main() {
     let mut scene = Scene::new();
     build_scene(&mut scene);
 
+    // let mut camera = FullCamera::new(
+    //     0.5,
+    //     Vertex::new(-1.0, 0.0, 1.0, 1.0),
+    //     Vector::new(1.0, 0.0, 0.0),
+    //     Vector::new(0.0, 1.0, 0.0),
+    // );
     let mut camera = FullCamera::new(
         0.5,
         Vertex::new(0.0, 7.0, 0.0, 1.0),
