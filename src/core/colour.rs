@@ -32,12 +32,7 @@ impl Colour {
 
 impl Default for Colour {
     fn default() -> Self {
-        Self {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-            a: 1.0,
-        }
+        Self::new(0.0, 0.0, 0.0, 1.0)
     }
 }
 
@@ -45,12 +40,12 @@ impl Mul<Self> for Colour {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
-        Self {
-            r: self.r * other.r,
-            g: self.g * other.g,
-            b: self.b * other.b,
-            a: self.a * other.a,
-        }
+        Self::new(
+            self.r * other.r,
+            self.g * other.g,
+            self.b * other.b,
+            self.a * other.a,
+        )
     }
 }
 
@@ -58,12 +53,12 @@ impl Add<Self> for Colour {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        Self {
-            r: self.r + other.r,
-            g: self.g + other.g,
-            b: self.b + other.b,
-            a: self.a + other.a,
-        }
+        Self::new(
+            self.r + other.r,
+            self.g + other.g,
+            self.b + other.b,
+            self.a + other.a,
+        )
     }
 }
 
@@ -71,12 +66,7 @@ impl Mul<f32> for Colour {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Self {
-            r: self.r * rhs,
-            g: self.g * rhs,
-            b: self.b * rhs,
-            a: self.a,
-        }
+        Self::new(self.r * rhs, self.g * rhs, self.b * rhs, self.a)
     }
 }
 

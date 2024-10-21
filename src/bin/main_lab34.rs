@@ -1,7 +1,8 @@
 use raytracer::{
-    cameras::{full_camera::FullCamera, simple_camera::SimpleCamera},
+    cameras::full_camera::FullCamera,
     core::{
-        camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene, vertex::Vertex,
+        camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene, vector::Vector,
+        vertex::Vertex,
     },
     materials::falsecolour::FalseColourMaterial,
     objects::sphere::Sphere,
@@ -15,8 +16,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 512;
-    let height = 512;
+    let width = 128;
+    let height = 128;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -29,7 +30,12 @@ fn main() {
     let mut scene = Scene::new();
     build_scene(&mut scene);
 
-    let mut camera = FullCamera::default();
+    let mut camera = FullCamera::new(
+        0.5,
+        Vertex::new(0.0, 7.0, 0.0, 1.0),
+        Vector::new(0.0, -5.0, 20.0),
+        Vector::new(0.0, 1.5, 1.0),
+    );
     camera.render(&mut scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/lab34_rgb.ppm") {

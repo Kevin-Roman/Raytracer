@@ -2,7 +2,7 @@
 
 use std::{
     cmp::PartialEq,
-    ops::{Add, Mul, Neg, Sub},
+    ops::{Add, Div, Mul, Neg, Sub},
 };
 
 #[derive(Copy, Clone, Debug)]
@@ -25,12 +25,12 @@ impl Vector {
         self.len_sqr().sqrt()
     }
 
-    pub fn normalise(&mut self) {
+    pub fn normalise(&self) -> Self {
         let len = self.length();
         if len > 0.0 {
-            self.x /= len;
-            self.y /= len;
-            self.z /= len;
+            Self::new(self.x / len, self.y / len, self.z / len)
+        } else {
+            Self::default()
         }
     }
 
@@ -38,34 +38,32 @@ impl Vector {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn reflection(&mut self, initial: &Self) {
+    pub fn reflection(&mut self, initial: &Self) -> Self {
         let d = 2.0 * self.dot(initial);
 
-        self.x = initial.x - d * self.x;
-        self.y = initial.y - d * self.y;
-        self.z = initial.z - d * self.z;
+        Self::new(
+            initial.x - d * self.x,
+            initial.y - d * self.y,
+            initial.z - d * self.z,
+        )
     }
 
-    pub fn negate(&mut self) {
-        self.x = -self.x;
-        self.y = -self.y;
-        self.z = -self.z;
+    pub fn negate(&self) -> Self {
+        Self::new(-self.x, -self.y, -self.z)
     }
 
-    pub fn cross(&mut self, other: &Self) {
-        self.x = self.y * other.z - self.z * other.y;
-        self.y = self.z * other.x - self.x * other.z;
-        self.z = self.x * other.y - self.y * other.x;
+    pub fn cross(&self, other: &Self) -> Self {
+        Self::new(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
+        )
     }
 }
 
 impl Default for Vector {
     fn default() -> Self {
-        Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }
+        Self::new(0.0, 0.0, 0.0)
     }
 }
 
@@ -79,11 +77,7 @@ impl Mul<Self> for Vector {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
+        Self::new(self.x * other.x, self.y * other.y, self.z * other.z)
     }
 }
 
@@ -91,11 +85,7 @@ impl Sub<Self> for Vector {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
+        Self::new(self.x - other.x, self.y - other.y, self.z - other.z)
     }
 }
 
@@ -103,11 +93,7 @@ impl Add<Self> for Vector {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
+        Self::new(self.x + other.x, self.y + other.y, self.z + other.z)
     }
 }
 
@@ -123,14 +109,18 @@ impl Mul<Vector> for f32 {
     }
 }
 
+impl Div<f32> for Vector {
+    type Output = Self;
+
+    fn div(self, scalar: f32) -> Self::Output {
+        Self::new(self.x / scalar, self.y / scalar, self.z / scalar)
+    }
+}
+
 impl Neg for Vector {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
+        Self::new(-self.x, -self.y, -self.z)
     }
 }

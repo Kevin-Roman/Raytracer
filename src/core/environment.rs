@@ -8,23 +8,3 @@ pub trait Environment {
 
     fn raytrace(&mut self, ray: &Ray, recurse: i32) -> (Colour, f32);
 }
-
-pub struct BaseEnvironment {}
-
-impl BaseEnvironment {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl Environment for BaseEnvironment {
-    fn shadowtrace(&mut self, _ray: &Ray, _limit: f32) -> bool {
-        false
-    }
-
-    fn raytrace(&mut self, _ray: &Ray, _recurse: i32) -> (Colour, f32) {
-        let colour = Colour::default();
-        let depth = f32::INFINITY;
-        (colour, depth)
-    }
-}

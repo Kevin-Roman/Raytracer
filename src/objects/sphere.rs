@@ -27,11 +27,11 @@ impl Sphere {
         // Compute hit position and normal at t
         let hit_position = ray.position + t * ray.direction;
         let mut hit_normal = hit_position.vector - self.center.vector;
-        hit_normal.normalise();
+        hit_normal = hit_normal.normalise();
 
         // Orient normal if exiting.
         if hit_normal.dot(&ray.direction) > 0.0 {
-            hit_normal.negate();
+            hit_normal = hit_normal.negate();
         }
 
         // Add the hit to the hitpool
