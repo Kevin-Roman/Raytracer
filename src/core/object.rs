@@ -1,3 +1,5 @@
+use sortedlist_rs::SortedList;
+
 use super::{hit::Hit, material::Material, ray::Ray, transform::Transform};
 
 // Object is the base trait for objects.
@@ -20,14 +22,17 @@ pub trait Object {
 
 pub struct BaseObject {
     pub material: Option<Box<dyn Material>>,
-    pub hitpool: Vec<Hit>,
+    // SortedList is implemented through two vectors, a key and a value vector.
+    // The sort order is tracked on the vector of keys.
+    // The index to insert a new element in is found using binary search.
+    pub hitpool: SortedList<Hit>,
 }
 
 impl BaseObject {
     pub fn new() -> Self {
         Self {
             material: None,
-            hitpool: Vec::new(),
+            hitpool: SortedList::new(),
         }
     }
 }
@@ -46,8 +51,8 @@ impl Object for BaseObject {
     fn apply_transform(&mut self, _: &Transform) {}
 
     fn select_first_hit(&mut self) -> Option<Hit> {
-        if let Some(index) = self.hitpool.iter().position(|&hit| hit.t >= 0.0) {
-            let hit = self.hitpool.swap_remove(index);
+        if let Some(index) = self.hitpool.flatten().iter().position(|&hit| hit.t >= 0.0) {
+            let hit = self.hitpool.remove(index);
             self.hitpool.clear();
             Some(hit)
         } else {

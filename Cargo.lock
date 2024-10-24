@@ -24,8 +24,15 @@ dependencies = [
 name = "raytracer"
 version = "0.1.0"
 dependencies = [
+ "sortedlist-rs",
  "thiserror",
 ]
+
+[[package]]
+name = "sortedlist-rs"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "645f2720bb5c8ea51fba1282ffc9af6aef9b8a2117dfc204ec8957a985ce6888"
 
 [[package]]
 name = "syn"

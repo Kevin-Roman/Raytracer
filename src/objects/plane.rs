@@ -51,14 +51,14 @@ impl Object for Plane {
             // Ray is parallel to the plane.
             if distance_to_plane < 0.0 {
                 // The ray starts outside the plane and will never intersect.
-                self.base.hitpool.push(Hit::new(
+                self.base.hitpool.insert(Hit::new(
                     f32::NEG_INFINITY,
                     true,
                     Vertex::default(),
                     Vector::default(),
                     TexCoords::default(),
                 ));
-                self.base.hitpool.push(Hit::new(
+                self.base.hitpool.insert(Hit::new(
                     f32::INFINITY,
                     false,
                     Vertex::default(),
@@ -81,14 +81,14 @@ impl Object for Plane {
 
         if direction_dot_normal > 0.0 {
             // Ray comes from outside to inside.
-            self.base.hitpool.push(Hit::new(
+            self.base.hitpool.insert(Hit::new(
                 f32::NEG_INFINITY,
                 true,
                 Vertex::default(),
                 Vector::default(),
                 TexCoords::default(),
             ));
-            self.base.hitpool.push(Hit::new(
+            self.base.hitpool.insert(Hit::new(
                 t,
                 false,
                 hit_position,
@@ -97,14 +97,14 @@ impl Object for Plane {
             ));
         } else {
             // Ray comes from inside to outside.
-            self.base.hitpool.push(Hit::new(
+            self.base.hitpool.insert(Hit::new(
                 t,
                 true,
                 hit_position,
                 hit_normal,
                 TexCoords::default(),
             ));
-            self.base.hitpool.push(Hit::new(
+            self.base.hitpool.insert(Hit::new(
                 f32::INFINITY,
                 false,
                 Vertex::default(),

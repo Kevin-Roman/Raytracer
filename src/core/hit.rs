@@ -1,6 +1,8 @@
 // Hit is stores and manipulates information about an intersection
 // between a ray and an object.
 
+use std::cmp::Ordering;
+
 use super::{tex_coords::TexCoords, vector::Vector, vertex::Vertex};
 
 #[derive(Clone, Copy, Debug)]
@@ -29,3 +31,23 @@ impl Hit {
         }
     }
 }
+
+impl Ord for Hit {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.t.total_cmp(&other.t)
+    }
+}
+
+impl PartialOrd for Hit {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Hit {
+    fn eq(&self, other: &Self) -> bool {
+        self.t == other.t
+    }
+}
+
+impl Eq for Hit {}
