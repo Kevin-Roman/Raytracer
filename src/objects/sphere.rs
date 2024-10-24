@@ -28,7 +28,7 @@ impl Sphere {
         let mut hit_normal = hit_position.vector - self.center.vector;
         hit_normal = hit_normal.normalise();
 
-        // Orient normal if exiting.
+        // Orient normal to point outwards.
         if hit_normal.dot(&ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }

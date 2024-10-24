@@ -34,8 +34,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 128;
-    let height = 128;
+    let width = 256;
+    let height = 256;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -48,12 +48,6 @@ fn main() {
     let mut scene = Scene::new();
     build_scene(&mut scene);
 
-    // let mut camera = FullCamera::new(
-    //     0.5,
-    //     Vertex::new(-1.0, 0.0, 1.0, 1.0),
-    //     Vector::new(1.0, 0.0, 0.0),
-    //     Vector::new(0.0, 1.0, 0.0),
-    // );
     let mut camera = FullCamera::new(
         0.5,
         Vertex::new(0.0, 7.0, 0.0, 1.0),
