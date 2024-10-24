@@ -6,10 +6,9 @@ use crate::{
         ray::Ray,
         tex_coords::TexCoords,
         transform::Transform,
-        vector::Vector,
         vertex::Vertex,
     },
-    utilities::obj_reader::{ObjReader, VertexAndNormalIndices},
+    utilities::obj_reader::{ObjReader, Triangle},
 };
 use std::{f32::consts::E, io};
 
@@ -20,12 +19,8 @@ pub struct PolyMesh {
     smooth: bool,
 
     pub vertices: Vec<Vertex>,
-    pub vertices_normals: Vec<Vertex>,
-
-    /// A vector of triangles represented as arrays of vertex indices.
-    /// Each triangle is defined by three indices corresponding to the vertices in the `vertices` vector.
-    /// For example, a triangle defined as `[0, 1, 2]` refers to the first three vertices.
-    pub triangles: Vec<[VertexAndNormalIndices; 3]>,
+    pub vertex_normals: Vec<Vertex>,
+    pub triangles: Vec<Triangle>,
 }
 
 impl PolyMesh {
@@ -36,23 +31,9 @@ impl PolyMesh {
             base: BaseObject::new(),
             smooth,
             vertices: obj_reader.vertices(),
-            vertices_normals: obj_reader.vertices_normals(),
+            vertex_normals: obj_reader.vertex_normals(),
             triangles: obj_reader.triangles(),
         })
-    }
-
-    /// Face normal of a triangle is the normalised cross product of its two edge vectors.
-    fn face_normal(&self, triangle_index: usize) -> Vector {
-        let triangle = self.triangles[triangle_index];
-
-        let vert0 = self.vertices[triangle[0].v_i];
-        let vert1 = self.vertices[triangle[1].v_i];
-        let vert2 = self.vertices[triangle[2].v_i];
-
-        let edge1 = vert1.vector - vert0.vector;
-        let edge2 = vert2.vector - vert0.vector;
-
-        return edge1.cross(&edge2).normalise();
     }
 
     fn add_hit(
@@ -67,15 +48,15 @@ impl PolyMesh {
         let hit_position = ray.position + t * ray.direction;
 
         let mut hit_normal = if self.smooth {
-            let triangle = self.triangles[triangle_index];
+            let triangle = &self.triangles[triangle_index];
 
             // Interpolate using N(t) = (1 - u - v)N_0 + uN_1 + vN_2
             // to get the normal at the specific point inside the triangle.
-            (1.0 - u - v) * self.vertices_normals[triangle[0].vn_i].vector
-                + u * self.vertices_normals[triangle[1].vn_i].vector
-                + v * self.vertices_normals[triangle[2].vn_i].vector
+            (1.0 - u - v) * self.vertex_normals[triangle.vertex_normal_indices[0]].vector
+                + u * self.vertex_normals[triangle.vertex_normal_indices[1]].vector
+                + v * self.vertex_normals[triangle.vertex_normal_indices[2]].vector
         } else {
-            self.face_normal(triangle_index)
+            self.triangles[triangle_index].face_normal
         };
 
         hit_normal = hit_normal.normalise();
@@ -105,10 +86,10 @@ impl PolyMesh {
         ray: &Ray,
         triangle_index: usize,
     ) -> Option<((f32, f32, f32), bool)> {
-        let triangle = self.triangles[triangle_index];
-        let vert0 = self.vertices[triangle[0].v_i];
-        let vert1 = self.vertices[triangle[1].v_i];
-        let vert2 = self.vertices[triangle[2].v_i];
+        let triangle = &self.triangles[triangle_index];
+        let vert0 = self.vertices[triangle.vertex_indices[0]];
+        let vert1 = self.vertices[triangle.vertex_indices[1]];
+        let vert2 = self.vertices[triangle.vertex_indices[2]];
 
         let edge1 = vert1.vector - vert0.vector;
         let edge2 = vert2.vector - vert0.vector;
@@ -163,14 +144,21 @@ impl Object for PolyMesh {
     }
 
     fn apply_transform(&mut self, trans: &Transform) {
-        for vertex in self.vertices.iter_mut() {
+        for vertex in &mut self.vertices {
             trans.apply_to_vertex(vertex);
         }
 
-        for vertex_normal in self.vertices_normals.iter_mut() {
+        for vertex_normal in &mut self.vertex_normals {
             // 1. Inverse - undo scaling.
             // 2. Transpose - preserve perpendicular relationship to the surface.
             trans.inverse().transpose().apply_to_vertex(vertex_normal);
+        }
+
+        for triangle in &mut self.triangles {
+            trans
+                .inverse()
+                .transpose()
+                .apply_to_vector(&mut triangle.face_normal)
         }
     }
 

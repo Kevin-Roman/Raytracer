@@ -36,17 +36,29 @@ fn main() {
     // For each triangle in the model.
     for triangle in pm.triangles.iter() {
         // The following lines project the point onto the 2D image from 3D space.
-        let x0 = (vertices[triangle[0].v_i].vector.x / vertices[triangle[0].v_i].vector.z) * 256.0
+        let x0 = (vertices[triangle.vertex_indices[0]].vector.x
+            / vertices[triangle.vertex_indices[0]].vector.z)
+            * 256.0
             + 256.0;
-        let y0 = -(vertices[triangle[0].v_i].vector.y / vertices[triangle[0].v_i].vector.z) * 256.0
+        let y0 = -(vertices[triangle.vertex_indices[0]].vector.y
+            / vertices[triangle.vertex_indices[0]].vector.z)
+            * 256.0
             + 256.0;
-        let x1 = (vertices[triangle[1].v_i].vector.x / vertices[triangle[1].v_i].vector.z) * 256.0
+        let x1 = (vertices[triangle.vertex_indices[1]].vector.x
+            / vertices[triangle.vertex_indices[1]].vector.z)
+            * 256.0
             + 256.0;
-        let y1 = -(vertices[triangle[1].v_i].vector.y / vertices[triangle[1].v_i].vector.z) * 256.0
+        let y1 = -(vertices[triangle.vertex_indices[1]].vector.y
+            / vertices[triangle.vertex_indices[1]].vector.z)
+            * 256.0
             + 256.0;
-        let x2 = (vertices[triangle[2].v_i].vector.x / vertices[triangle[2].v_i].vector.z) * 256.0
+        let x2 = (vertices[triangle.vertex_indices[2]].vector.x
+            / vertices[triangle.vertex_indices[2]].vector.z)
+            * 256.0
             + 256.0;
-        let y2 = -(vertices[triangle[2].v_i].vector.y / vertices[triangle[2].v_i].vector.z) * 256.0
+        let y2 = -(vertices[triangle.vertex_indices[2]].vector.y
+            / vertices[triangle.vertex_indices[2]].vector.z)
+            * 256.0
             + 256.0;
 
         // Draw the three edges.
