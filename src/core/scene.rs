@@ -1,6 +1,12 @@
+use core::f32;
+
 use super::{
     colour::Colour, environment::Environment, hit::Hit, light::Light, object::Object, ray::Ray,
 };
+
+/// Small rounding error used to move start point of shadow ray along ray by a small amount
+/// in case the shadow position is behind the hit (due to floating point precision).
+const SMALL_ROUNDING_ERROR: f32 = 0.0001;
 
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
@@ -33,7 +39,7 @@ impl Scene {
 
 impl Environment for Scene {
     fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool {
-        for object in self.objects.iter_mut() {
+        for object in &mut self.objects {
             object.intersection(ray);
             if let Some(hit) = object.select_first_hit() {
                 if 0.00000001 < hit.t && hit.t < limit {
@@ -52,26 +58,39 @@ impl Environment for Scene {
         if let Some((hit, object_index)) = self.trace(ray) {
             depth = hit.t;
 
-            let material = self.objects[object_index].get_material().unwrap();
+            if let Some(material) = self.objects[object_index].get_material() {
+                colour += material.compute_once(ray, &hit, recurse);
+            }
 
-            colour += material.compute_once(ray, &hit, recurse);
-
-            for light in &self.lights {
+            for light_index in 0..self.lights.len() {
                 let viewer = (-hit.position.vector).normalise();
 
-                let (light_direction, mut lit) = light.get_direction(hit.position);
+                let (light_direction, mut lit) =
+                    self.lights[light_index].get_direction(hit.position);
 
                 if light_direction.dot(&hit.normal) > 0.0 {
                     // Light is facing wrong way.
                     lit = false;
                 }
 
-                // Put the shadow check here, if lit==true and in shadow, set lit=false.
+                if lit {
+                    let shadow_ray = Ray::new(
+                        hit.position + SMALL_ROUNDING_ERROR * -light_direction,
+                        -light_direction,
+                    );
+
+                    if self.shadowtrace(&shadow_ray, f32::INFINITY) {
+                        lit = false;
+                    }
+                }
 
                 if lit {
-                    let intensity = light.get_intensity(hit.position);
-                    colour +=
-                        intensity * material.compute_per_light(&viewer, &light_direction, &hit);
+                    let intensity = self.lights[light_index].get_intensity(hit.position);
+
+                    if let Some(material) = self.objects[object_index].get_material() {
+                        colour +=
+                            intensity * material.compute_per_light(&viewer, &light_direction, &hit);
+                    }
                 }
             }
         }
