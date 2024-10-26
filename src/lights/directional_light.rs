@@ -2,15 +2,9 @@
 // given direction. The light has no position and can be treated as
 // infinitely far away.
 
-use crate::core::{
-    colour::Colour,
-    light::{BaseLight, Light},
-    vector::Vector,
-    vertex::Vertex,
-};
+use crate::core::{colour::Colour, light::Light, vector::Vector, vertex::Vertex};
 
-struct DirectionalLight {
-    base: BaseLight,
+pub struct DirectionalLight {
     direction: Vector,
     intensity: Colour,
 }
@@ -20,7 +14,6 @@ impl DirectionalLight {
         direction = direction.normalise();
 
         Self {
-            base: BaseLight::new(),
             direction,
             intensity: colour,
         }

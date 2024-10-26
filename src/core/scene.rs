@@ -59,9 +59,9 @@ impl Environment for Scene {
             for light in &self.lights {
                 let viewer = (-hit.position.vector).normalise();
 
-                let (ldir, mut lit) = light.get_direction(hit.position);
+                let (light_direction, mut lit) = light.get_direction(hit.position);
 
-                if ldir.dot(&hit.normal) > 0.0 {
+                if light_direction.dot(&hit.normal) > 0.0 {
                     // Light is facing wrong way.
                     lit = false;
                 }
@@ -70,7 +70,8 @@ impl Environment for Scene {
 
                 if lit {
                     let intensity = light.get_intensity(hit.position);
-                    colour += intensity + material.compute_per_light(viewer, &hit, ldir);
+                    colour +=
+                        intensity + material.compute_per_light(&viewer, &light_direction, &hit);
                 }
             }
         }
