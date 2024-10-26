@@ -5,8 +5,8 @@ use raytracer::{
         transform::Transform, vector::Vector, vertex::Vertex,
     },
     lights::directional_light::DirectionalLight,
-    materials::phong::PhongMaterial,
-    objects::{polymesh::PolyMesh, sphere::Sphere},
+    materials::phong_material::PhongMaterial,
+    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
 };
 
 fn build_scene(scene: &mut Scene) {
