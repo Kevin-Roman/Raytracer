@@ -71,7 +71,7 @@ impl Environment for Scene {
                 if lit {
                     let intensity = light.get_intensity(hit.position);
                     colour +=
-                        intensity + material.compute_per_light(&viewer, &light_direction, &hit);
+                        intensity * material.compute_per_light(&viewer, &light_direction, &hit);
                 }
             }
         }
