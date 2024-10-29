@@ -62,11 +62,11 @@ impl Add<Self> for Colour {
     }
 }
 
-impl Mul<f32> for Colour {
-    type Output = Self;
+impl Mul<Colour> for f32 {
+    type Output = Colour;
 
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::new(self.r * rhs, self.g * rhs, self.b * rhs, self.a)
+    fn mul(self, colour: Colour) -> Self::Output {
+        Colour::new(self * colour.r, self * colour.g, self * colour.b, colour.a)
     }
 }
 

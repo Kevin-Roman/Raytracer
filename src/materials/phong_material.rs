@@ -1,6 +1,9 @@
 // Phong is Material and implements the simple Phong surface illumination model.
 
-use crate::core::{colour::Colour, hit::Hit, material::Material, ray::Ray, vector::Vector};
+use crate::core::{
+    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
+    vector::Vector,
+};
 
 pub struct PhongMaterial {
     ambient: Colour,
@@ -27,18 +30,24 @@ impl PhongMaterial {
     fn calculate_diffuse(&self, light_direction: &Vector, hit: &Hit) -> Colour {
         let cosine_angle_of_incidence = hit.normal.dot(&light_direction.negate());
 
-        self.diffuse * cosine_angle_of_incidence
+        cosine_angle_of_incidence * self.diffuse
     }
 
     fn calculate_specular(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
         let reflection = hit.normal.reflection(&light_direction.negate());
 
-        self.specular * reflection.dot(&viewer).powf(self.control_factor)
+        reflection.dot(&viewer).powf(self.control_factor) * self.specular
     }
 }
 
 impl Material for PhongMaterial {
-    fn compute_once(&self, _viewer: &Ray, _hit: &Hit, _recurse: i32) -> Colour {
+    fn compute_once(
+        &self,
+        _environment: &mut dyn Environment,
+        _viewer: &Ray,
+        _hit: &Hit,
+        _recurse: i32,
+    ) -> Colour {
         self.calculate_ambient()
     }
 
