@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::core::{
     hit::Hit,
     material::Material,
@@ -30,11 +32,11 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn get_material(&self) -> Option<&Box<dyn Material>> {
+    fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Box<dyn Material>) {
+    fn set_material(&mut self, material: Rc<dyn Material>) {
         self.base.set_material(material)
     }
 
