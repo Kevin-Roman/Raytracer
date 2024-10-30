@@ -17,7 +17,7 @@ struct DirectionalLight {
 
 impl DirectionalLight {
     pub fn new(mut direction: Vector, colour: Colour) -> Self {
-        direction.normalise();
+        direction = direction.normalise();
 
         Self {
             base: BaseLight::new(),

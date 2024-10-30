@@ -76,7 +76,7 @@ impl Object for Plane {
 
         // Normal must face against the ray's direction.
         if hit_normal.dot(&ray.direction) > 0.0 {
-            hit_normal.negate();
+            hit_normal = hit_normal.negate();
         }
 
         if direction_dot_normal > 0.0 {

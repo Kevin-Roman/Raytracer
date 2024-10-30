@@ -16,11 +16,6 @@ impl TexCoords {
 
 impl Default for TexCoords {
     fn default() -> Self {
-        Self {
-            u: 0.0,
-            v: 0.0,
-            s: 0.0,
-            t: 0.0,
-        }
+        Self::new(0.0, 0.0, 0.0, 0.0)
     }
 }

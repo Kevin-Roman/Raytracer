@@ -10,7 +10,9 @@
     "ldir",
     "lightpool",
     "linedrawer",
+    "lookat",
     "normalisation",
+    "normalised",
     "outfile",
     "pnmtopng",
     "polymesh",
@@ -20,5 +22,6 @@
     "raytracing",
     "shadowtrace",
     "thiserror"
-  ]
+  ],
+  "cmake.sourceDirectory": "D:/Other Documents/Programming/Raytracer/cpp"
 }

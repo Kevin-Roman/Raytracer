@@ -57,8 +57,7 @@ impl Environment for Scene {
             colour += material.compute_once(ray, &hit, recurse);
 
             for light in &self.lights {
-                let mut viewer = -hit.position.vector;
-                viewer.normalise();
+                let viewer = (-hit.position.vector).normalise();
 
                 let (ldir, mut lit) = light.get_direction(hit.position);
 

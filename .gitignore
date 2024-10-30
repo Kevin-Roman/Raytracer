@@ -2,3 +2,5 @@
 *.ppm
 /cpp
 /output
+*.pdf
+launch.json

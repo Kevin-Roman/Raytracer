@@ -9,17 +9,16 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new() -> Self {
-        Self {
-            position: Vertex::default(),
-            direction: Vector::default(),
-        }
-    }
-
-    pub fn from(position: Vertex, direction: Vector) -> Self {
+    pub fn new(position: Vertex, direction: Vector) -> Self {
         Self {
             position,
             direction,
         }
+    }
+}
+
+impl Default for Ray {
+    fn default() -> Self {
+        Self::new(Vertex::default(), Vector::default())
     }
 }
