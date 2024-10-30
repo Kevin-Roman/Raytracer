@@ -10,7 +10,7 @@ use crate::{
     },
     utilities::obj_reader::{ObjReader, Triangle},
 };
-use std::{f32::consts::E, io};
+use std::io;
 
 const EPSILON: f32 = 0.000001;
 

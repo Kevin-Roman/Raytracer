@@ -20,7 +20,7 @@ impl Material for FalseColourMaterial {
         return result;
     }
 
-    fn compute_per_light(&self, _viewer: Vector, _hit: &Hit, _ldir: Vector) -> Colour {
+    fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
         Colour::default()
     }
 }

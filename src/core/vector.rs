@@ -38,7 +38,7 @@ impl Vector {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn reflection(&mut self, initial: &Self) -> Self {
+    pub fn reflection(&self, initial: &Self) -> Self {
         let d = 2.0 * self.dot(initial);
 
         Self::new(

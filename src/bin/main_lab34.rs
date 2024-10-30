@@ -1,10 +1,11 @@
 use raytracer::{
     cameras::full_camera::FullCamera,
     core::{
-        camera::Camera, framebuffer::FrameBuffer, object::Object, scene::Scene,
+        camera::Camera, colour::Colour, framebuffer::FrameBuffer, object::Object, scene::Scene,
         transform::Transform, vector::Vector, vertex::Vertex,
     },
-    materials::falsecolour::FalseColourMaterial,
+    lights::directional_light::DirectionalLight,
+    materials::phong::PhongMaterial,
     objects::polymesh::PolyMesh,
 };
 
@@ -16,21 +17,32 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    let mut pm = match PolyMesh::new(
+    let mut polymesh_object = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
-        false,
+        true,
     ) {
-        Ok(pm) => Box::new(pm),
+        Ok(polymesh_object) => Box::new(polymesh_object),
         Err(e) => {
             eprintln!("Error reading poly mesh object: {}", e);
             return;
         }
     };
-    pm.apply_transform(&transform);
+    polymesh_object.apply_transform(&transform);
 
-    let material: Box<FalseColourMaterial> = Box::new(FalseColourMaterial::new());
-    pm.set_material(material);
-    scene.objects.push(pm);
+    let directional_light = Box::new(DirectionalLight::new(
+        Vector::new(1.0, 1.0, 1.0),
+        Colour::new(1.0, 1.0, 1.0, 0.0),
+    ));
+    scene.lights.push(directional_light);
+
+    let material = Box::new(PhongMaterial::new(
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        Colour::new(0.5, 0.0, 0.0, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        20.0,
+    ));
+    polymesh_object.set_material(material);
+    scene.objects.push(polymesh_object);
 }
 
 fn main() {
