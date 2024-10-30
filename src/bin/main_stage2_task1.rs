@@ -10,10 +10,24 @@ use raytracer::{
     },
     lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
-    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
+    objects::{plane_object::Plane, polymesh_object::PolyMesh, sphere_object::Sphere},
 };
 
 fn build_scene(scene: &mut Scene) {
+    // Floor.
+    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
+    let floor_plane_material = Rc::new(PhongMaterial::new(
+        Colour::new(0.8, 0.8, 0.8, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        20.0,
+    ));
+
+    floor_plane_object.set_material(floor_plane_material);
+
+    scene.objects.push(floor_plane_object);
+
+    // Main teapot object.
     let transform: Transform = Transform::new([
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 1.0, -10.0],
@@ -21,7 +35,6 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    // Main object.
     let mut polymesh_object = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
@@ -46,9 +59,9 @@ fn build_scene(scene: &mut Scene) {
     // Object used for shadow.
     let mut sphere_object = Box::new(Sphere::new(Vertex::new(-10.0, 0.0, 10.0, 1.0), 3.0));
     let sphere_material = Rc::new(GlobalMaterial::new(
-        Colour::new(1.0, 1.0, 1.0, 1.0),
-        Colour::default(),
-        0.0,
+        Colour::new(0.5, 0.5, 0.5, 0.5),
+        Colour::new(0.5, 0.5, 0.5, 0.5),
+        1.52,
     ));
 
     sphere_object.set_material(sphere_material);

@@ -8,7 +8,7 @@ use crate::core::{
 };
 use std::io::{self, Write};
 
-const RAYTRACE_RECURSE: i32 = 2;
+const RAYTRACE_RECURSE: i32 = 5;
 
 pub struct FullCamera {
     pub width: i32,

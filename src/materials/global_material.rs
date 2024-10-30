@@ -29,15 +29,28 @@ impl Material for GlobalMaterial {
         hit: &Hit,
         recurse: i32,
     ) -> Colour {
+        let mut colour = Colour::default();
+
         if recurse == 0 {
-            return Colour::default();
+            return colour;
         }
 
         let mut reflection_ray = Ray::default();
-        reflection_ray.direction = viewer.direction.reflection(&hit.normal);
+        reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
         reflection_ray.position = hit.position + SMALL_ROUNDING_ERROR * reflection_ray.direction;
 
-        self.reflect_weight * environment.raytrace(&reflection_ray, recurse - 1).0
+        colour += self.reflect_weight * environment.raytrace(&reflection_ray, recurse - 1).0;
+
+        let mut refract_ray = Ray::default();
+        refract_ray.direction = viewer
+            .direction
+            .refraction(&hit.normal, self.index_of_refraction)
+            .normalise();
+        refract_ray.position = hit.position + SMALL_ROUNDING_ERROR * refract_ray.direction;
+
+        colour += self.refract_weight * environment.raytrace(&refract_ray, recurse - 1).0;
+
+        colour
     }
 
     fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
