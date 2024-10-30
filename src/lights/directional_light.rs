@@ -10,11 +10,9 @@ pub struct DirectionalLight {
 }
 
 impl DirectionalLight {
-    pub fn new(mut direction: Vector, colour: Colour) -> Self {
-        direction = direction.normalise();
-
+    pub fn new(direction: Vector, colour: Colour) -> Self {
         Self {
-            direction,
+            direction: direction.normalise(),
             intensity: colour,
         }
     }
@@ -22,22 +20,10 @@ impl DirectionalLight {
 
 impl Light for DirectionalLight {
     fn get_direction(&self, _surface: Vertex) -> (Vector, bool) {
-        (
-            Vector {
-                x: self.direction.x,
-                y: self.direction.y,
-                z: self.direction.z,
-            },
-            true,
-        )
+        (self.direction, true)
     }
 
     fn get_intensity(&self, _surface: Vertex) -> Colour {
-        Colour {
-            a: self.intensity.r,
-            r: self.intensity.g,
-            g: self.intensity.b,
-            b: self.intensity.a,
-        }
+        self.intensity
     }
 }

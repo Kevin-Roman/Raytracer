@@ -15,11 +15,11 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(c: Vertex, r: f32) -> Self {
+    pub fn new(center: Vertex, radius: f32) -> Self {
         Self {
             base: BaseObject::new(),
-            center: c,
-            radius: r,
+            center,
+            radius,
         }
     }
 

@@ -1,2 +1,2 @@
-pub mod falsecolour;
-pub mod phong;
+pub mod falsecolour_material;
+pub mod phong_material;
