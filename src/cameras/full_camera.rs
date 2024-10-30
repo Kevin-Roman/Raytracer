@@ -8,6 +8,8 @@ use crate::core::{
 };
 use std::io::{self, Write};
 
+const RAYTRACE_RECURSE: i32 = 2;
+
 pub struct FullCamera {
     pub width: i32,
     pub height: i32,
@@ -74,7 +76,7 @@ impl Camera for FullCamera {
                 let mut ray = Ray::default();
                 self.get_ray_pixel(x, y, 0.0, 0.0, &mut ray);
 
-                let (colour, depth) = env.raytrace(&ray, 5);
+                let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
                 let _ = fb.plot_pixel(x, y, colour.r, colour.g, colour.b);
                 let _ = fb.plot_depth(x, y, depth);

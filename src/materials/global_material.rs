@@ -34,7 +34,7 @@ impl Material for GlobalMaterial {
         }
 
         let mut reflection_ray = Ray::default();
-        reflection_ray.direction = viewer.direction.negate().reflection(&hit.normal);
+        reflection_ray.direction = viewer.direction.reflection(&hit.normal);
         reflection_ray.position = hit.position + SMALL_ROUNDING_ERROR * reflection_ray.direction;
 
         self.reflect_weight * environment.raytrace(&reflection_ray, recurse - 1).0

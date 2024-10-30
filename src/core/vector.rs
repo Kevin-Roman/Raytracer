@@ -38,13 +38,13 @@ impl Vector {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn reflection(&self, initial: &Self) -> Self {
-        let d = 2.0 * self.dot(initial);
+    pub fn reflection(&self, other: &Self) -> Self {
+        let d = 2.0 * self.dot(other);
 
         Self::new(
-            initial.x - d * self.x,
-            initial.y - d * self.y,
-            initial.z - d * self.z,
+            self.x - d * other.x,
+            self.y - d * other.y,
+            self.z - d * other.z,
         )
     }
 
