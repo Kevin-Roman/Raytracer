@@ -24,18 +24,16 @@ impl Sphere {
     }
 
     fn add_hit(&mut self, ray: &Ray, t: f32, entering: bool) {
-        // Compute hit position and normal at t
         let hit_position = ray.position + t * ray.direction;
         let mut hit_normal = hit_position.vector - self.center.vector;
         hit_normal = hit_normal.normalise();
 
-        // Orient normal if exiting.
+        // Orient normal to point outwards.
         if hit_normal.dot(&ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
 
-        // Add the hit to the hitpool
-        self.base.hitpool.push(Hit::new(
+        self.base.hitpool.insert(Hit::new(
             t,
             entering,
             hit_position,
