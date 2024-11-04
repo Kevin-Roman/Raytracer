@@ -6,6 +6,8 @@ use super::{hit::Hit, material::Material, ray::Ray, transform::Transform};
 
 // Object is the base trait for objects.
 pub trait Object {
+    fn get_hitpool(&mut self) -> &mut SortedList<Hit>;
+
     fn get_material(&self) -> Option<&Rc<dyn Material>>;
 
     // Specify the material this object uses.
@@ -40,6 +42,10 @@ impl BaseObject {
 }
 
 impl Object for BaseObject {
+    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
+        &mut self.hitpool
+    }
+
     fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.material.as_ref()
     }
@@ -47,10 +53,6 @@ impl Object for BaseObject {
     fn set_material(&mut self, material: Rc<dyn Material>) {
         self.material = Some(material);
     }
-
-    fn intersection(&mut self, _: &Ray) {}
-
-    fn apply_transform(&mut self, _: &Transform) {}
 
     fn select_first_hit(&mut self) -> Option<Hit> {
         if let Some(index) = self.hitpool.flatten().iter().position(|&hit| hit.t >= 0.0) {
@@ -61,4 +63,8 @@ impl Object for BaseObject {
             None
         }
     }
+
+    fn intersection(&mut self, _: &Ray) {}
+
+    fn apply_transform(&mut self, _: &Transform) {}
 }

@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use sortedlist_rs::SortedList;
+
 use crate::core::{
     hit::Hit,
     material::Material,
@@ -30,7 +32,7 @@ impl Sphere {
         let mut hit_normal = hit_position.vector - self.center.vector;
         hit_normal = hit_normal.normalise();
 
-        // Orient normal to point outwards.
+        // Flip normal if pointing away from the surface we are looking at.
         if hit_normal.dot(&ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
@@ -46,6 +48,14 @@ impl Sphere {
 }
 
 impl Object for Sphere {
+    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
+        self.base.get_hitpool()
+    }
+
+    fn select_first_hit(&mut self) -> Option<Hit> {
+        self.base.select_first_hit()
+    }
+
     fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
@@ -79,9 +89,5 @@ impl Object for Sphere {
 
     fn apply_transform(&mut self, trans: &Transform) {
         trans.apply_to_vertex(&mut self.center);
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
     }
 }
