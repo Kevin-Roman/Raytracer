@@ -3,8 +3,9 @@
 use super::{vector::Vector, vertex::Vertex};
 use std::ops::Mul;
 
+#[derive(Clone, Copy)]
 pub struct Transform {
-    matrix: [[f32; 4]; 4],
+    pub matrix: [[f32; 4]; 4],
 }
 
 impl Transform {
