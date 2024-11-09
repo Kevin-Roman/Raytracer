@@ -6,7 +6,6 @@ use crate::core::{
     camera::Camera, environment::Environment, framebuffer::FrameBuffer, ray::Ray, vector::Vector,
     vertex::Vertex,
 };
-use std::io::{self, Write};
 
 const RAYTRACE_RECURSE: i32 = 5;
 
@@ -38,7 +37,7 @@ impl FullCamera {
         }
     }
 
-    fn get_ray_pixel(&self, x: i32, y: i32, x_offset: f32, y_offset: f32, ray: &mut Ray) {
+    fn pixel_ray(&self, x: i32, y: i32, x_offset: f32, y_offset: f32) -> Ray {
         // Add 0.5 to pixel's x and y coordinates to get middle of the pixel.
         // The camera (eye) is centred with the centre of the image, so we need
         // to shift the pixels up and left by half the width/height) to get the pixel
@@ -50,8 +49,16 @@ impl FullCamera {
         x_v /= self.width as f32;
         y_v /= self.height as f32;
 
-        ray.position = self.position;
-        ray.direction = (x_v * self.u + y_v * self.v - self.fov * self.w).normalise();
+        Ray::new(
+            self.position,
+            (x_v * self.u + y_v * self.v - self.fov * self.w).normalise(),
+        )
+    }
+
+    fn print_progress(&self, x: i32, y: i32) {
+        let percentage =
+            ((y * self.width + x + 1) as f64 / (self.height * self.width) as f64) * 100.0;
+        print!("\rProgress: {:.2}%", percentage);
     }
 }
 
@@ -73,17 +80,15 @@ impl Camera for FullCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let mut ray = Ray::default();
-                self.get_ray_pixel(x, y, 0.0, 0.0, &mut ray);
+                let ray = self.pixel_ray(x, y, 0.0, 0.0);
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
                 let _ = fb.plot_pixel(x, y, colour.r, colour.g, colour.b);
                 let _ = fb.plot_depth(x, y, depth);
-            }
 
-            print!("#");
-            let _ = io::stdout().flush();
+                self.print_progress(x, y);
+            }
         }
     }
 }

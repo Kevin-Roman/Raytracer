@@ -57,10 +57,10 @@ fn build_scene(scene: &mut Scene) {
     scene.objects.push(polymesh_object);
 
     // Object used for shadow.
-    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-10.0, 0.0, 10.0, 1.0), 3.0));
+    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-4.0, 4.0, 10.0, 1.0), 3.0));
     let sphere_material = Rc::new(GlobalMaterial::new(
-        Colour::new(0.5, 0.5, 0.5, 0.5),
-        Colour::new(0.5, 0.5, 0.5, 0.5),
+        Colour::new(1.0, 1.0, 1.0, 0.0),
+        Colour::new(1.0, 1.0, 1.0, 0.0),
         1.52,
     ));
 
@@ -77,8 +77,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 512;
-    let height = 512;
+    let width = 128;
+    let height = 128;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -108,5 +108,5 @@ fn main() {
         eprintln!("Error writing Depth file: {}", e);
     };
 
-    println!("Done")
+    println!(" Done")
 }

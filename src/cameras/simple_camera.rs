@@ -1,8 +1,6 @@
 // simple Camera has a 90 degree field of view along the z axis.
 
-use crate::core::{
-    camera::Camera, environment::Environment, framebuffer::FrameBuffer, ray::Ray, vertex::Vertex,
-};
+use crate::core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, ray::Ray};
 use std::io::{self, Write};
 
 pub struct SimpleCamera {
@@ -20,16 +18,18 @@ impl SimpleCamera {
         }
     }
 
-    fn get_ray_pixel(&self, x: i32, y: i32, ray: &mut Ray) {
+    fn pixel_ray(&self, x: i32, y: i32) -> Ray {
         let fx = (x as f32 + 0.5) / (self.width as f32);
         let fy = (y as f32 + 0.5) / (self.height as f32);
 
-        ray.position = Vertex::default();
+        let mut ray = Ray::default();
 
         ray.direction.x = fx - 0.5;
         ray.direction.y = 0.5 - fy;
         ray.direction.z = self.fov;
         ray.direction = ray.direction.normalise();
+
+        return ray;
     }
 }
 
@@ -46,8 +46,7 @@ impl Camera for SimpleCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let mut ray = Ray::default();
-                self.get_ray_pixel(x, y, &mut ray);
+                let ray = self.pixel_ray(x, y);
 
                 let (colour, depth) = env.raytrace(&ray, 5);
 

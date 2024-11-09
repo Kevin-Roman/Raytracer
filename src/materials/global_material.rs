@@ -5,6 +5,7 @@ use crate::core::{
     scene::SMALL_ROUNDING_ERROR, vector::Vector,
 };
 
+#[derive(Clone, Copy)]
 pub struct GlobalMaterial {
     reflect_weight: Colour,
     refract_weight: Colour,
@@ -18,6 +19,42 @@ impl GlobalMaterial {
             refract_weight,
             index_of_refraction,
         }
+    }
+
+    /// Calculates the Fresnel reflection and transmission coefficients for the interaction
+    /// between an incident vector and a surface normal based on the material's index of refraction.
+    ///
+    /// Returns (reflection_coefficient, transmission_coefficient)
+    fn fresnel_coefficients(self, incident: &Vector, normal: &Vector) -> (f32, f32) {
+        // Cosine of the angle of incidence.
+        let cos_i = normal.dot(incident).abs();
+
+        // Cosine of the angle of transmission.
+        let cos_t = (1.0 - (1.0 / self.index_of_refraction.powi(2)) * (1.0 - cos_i.powi(2))).sqrt();
+
+        // Total internal reflection occurs when the term that will be square rooted is a negative number.
+        if cos_t.is_nan() {
+            return (1.0, 1.0);
+        }
+
+        // Reflection parallel coefficient.
+        let r_par =
+            (self.index_of_refraction * cos_i - cos_t) / (self.index_of_refraction * cos_i + cos_t);
+        // Reflection perpendicular coefficient.
+        let r_per =
+            (cos_i - self.index_of_refraction * cos_t) / (cos_i + self.index_of_refraction * cos_t);
+
+        // Fresnel reflection coefficient.
+        let reflection_coefficient: f32 = (r_par.powi(2) + r_per.powi(2)) / 2.0;
+        // Fresnel transmission coefficient.
+        let transmission_coefficient = 1.0 - reflection_coefficient;
+
+        assert!(
+            0.0 <= reflection_coefficient && reflection_coefficient <= 1.0,
+            "Invalid Fresnel coefficient."
+        );
+
+        (reflection_coefficient, transmission_coefficient)
     }
 }
 
@@ -39,8 +76,6 @@ impl Material for GlobalMaterial {
         reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
         reflection_ray.position = hit.position + SMALL_ROUNDING_ERROR * reflection_ray.direction;
 
-        colour += self.reflect_weight * environment.raytrace(&reflection_ray, recurse - 1).0;
-
         let mut refract_ray = Ray::default();
         refract_ray.direction = viewer
             .direction
@@ -48,7 +83,15 @@ impl Material for GlobalMaterial {
             .normalise();
         refract_ray.position = hit.position + SMALL_ROUNDING_ERROR * refract_ray.direction;
 
-        colour += self.refract_weight * environment.raytrace(&refract_ray, recurse - 1).0;
+        let (reflection_coefficient, transmission_coefficient) =
+            self.fresnel_coefficients(&viewer.direction, &hit.normal);
+
+        colour += reflection_coefficient
+            * self.reflect_weight
+            * environment.raytrace(&reflection_ray, recurse - 1).0;
+        colour += transmission_coefficient
+            * self.refract_weight
+            * environment.raytrace(&refract_ray, recurse - 1).0;
 
         colour
     }
