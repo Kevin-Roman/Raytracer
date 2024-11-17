@@ -3,9 +3,10 @@ use std::rc::Rc;
 use raytracer::{
     cameras::full_camera::FullCamera,
     core::{
-        camera::Camera, colour::Colour, framebuffer::FrameBuffer, object::Object, scene::Scene,
+        camera::Camera, colour::Colour, framebuffer::FrameBuffer, object::Object,
         transform::Transform, vector::Vector, vertex::Vertex,
     },
+    environments::scene::Scene,
     lights::directional_light::DirectionalLight,
     materials::phong_material::PhongMaterial,
     objects::{polymesh_object::PolyMesh, sphere_object::Sphere},

@@ -1,6 +1,6 @@
 use core::f32;
 
-use super::{
+use crate::core::{
     colour::Colour, environment::Environment, hit::Hit, light::Light, object::Object, ray::Ray,
 };
 
