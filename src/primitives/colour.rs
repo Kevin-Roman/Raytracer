@@ -72,18 +72,12 @@ impl Mul<Colour> for f32 {
 
 impl AddAssign<Self> for Colour {
     fn add_assign(&mut self, other: Self) {
-        self.r += other.r;
-        self.g += other.g;
-        self.b += other.b;
-        self.a += other.a;
+        self.add(&other);
     }
 }
 
 impl MulAssign<Self> for Colour {
     fn mul_assign(&mut self, other: Self) {
-        self.r *= other.r;
-        self.g *= other.g;
-        self.b *= other.b;
-        self.a *= other.a;
+        self.scale(&other);
     }
 }
