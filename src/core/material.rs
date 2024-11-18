@@ -6,7 +6,7 @@ pub trait Material {
         environment: &mut dyn Environment,
         viewer: &Ray,
         hit: &Hit,
-        recurse: i32,
+        recurse: u8,
     ) -> Colour;
 
     fn compute_per_light(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour;

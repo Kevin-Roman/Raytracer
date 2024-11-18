@@ -20,7 +20,7 @@ impl Material for FalseColourMaterial {
         _environment: &mut dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
         let mut result = Colour::default();
         result.r = (hit.normal.x + 1.0) * 0.5;

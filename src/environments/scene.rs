@@ -52,7 +52,7 @@ impl Environment for Scene {
         false
     }
 
-    fn raytrace(&mut self, ray: &Ray, recurse: i32) -> (Colour, f32) {
+    fn raytrace(&mut self, ray: &Ray, recurse: u8) -> (Colour, f32) {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
         let mut depth = 0.0;
 

@@ -46,7 +46,7 @@ impl Material for PhongMaterial {
         _environment: &mut dyn Environment,
         _viewer: &Ray,
         _hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
         self.calculate_ambient()
     }

@@ -6,5 +6,5 @@ use crate::primitives::{colour::Colour, ray::Ray};
 pub trait Environment {
     fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool;
 
-    fn raytrace(&mut self, ray: &Ray, recurse: i32) -> (Colour, f32);
+    fn raytrace(&mut self, ray: &Ray, recurse: u8) -> (Colour, f32);
 }
