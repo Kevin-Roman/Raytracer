@@ -7,21 +7,21 @@ use crate::{
 use std::io::{self, Write};
 
 pub struct SimpleCamera {
-    pub width: i32,
-    pub height: i32,
+    pub width: u16,
+    pub height: u16,
     pub fov: f32,
 }
 
 impl SimpleCamera {
     pub fn new(fov: f32) -> Self {
         Self {
-            width: i32::default(),
-            height: i32::default(),
+            width: u16::default(),
+            height: u16::default(),
             fov,
         }
     }
 
-    fn pixel_ray(&self, x: i32, y: i32) -> Ray {
+    fn get_pixel_ray(&self, x: u16, y: u16) -> Ray {
         let fx = (x as f32 + 0.5) / (self.width as f32);
         let fy = (y as f32 + 0.5) / (self.height as f32);
 
@@ -32,7 +32,7 @@ impl SimpleCamera {
         ray.direction.z = self.fov;
         ray.direction = ray.direction.normalise();
 
-        return ray;
+        ray
     }
 }
 
@@ -49,12 +49,12 @@ impl Camera for SimpleCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let ray = self.pixel_ray(x, y);
+                let ray = self.get_pixel_ray(x, y);
 
                 let (colour, depth) = env.raytrace(&ray, 5);
 
-                let _ = fb.plot_pixel(x, y, colour.r, colour.g, colour.b);
-                let _ = fb.plot_depth(x, y, depth);
+                let _ = fb.plot_pixel(x as i32, y as i32, colour.r, colour.g, colour.b);
+                let _ = fb.plot_depth(x as i32, y as i32, depth);
             }
 
             print!("#");

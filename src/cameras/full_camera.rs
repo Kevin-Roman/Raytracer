@@ -10,8 +10,8 @@ use crate::{
 const RAYTRACE_RECURSE: i32 = 5;
 
 pub struct FullCamera {
-    pub width: i32,
-    pub height: i32,
+    pub width: u16,
+    pub height: u16,
     pub fov: f32,
 
     position: Vertex,
@@ -27,8 +27,8 @@ impl FullCamera {
         let v = u.cross(&w);
 
         Self {
-            width: i32::default(),
-            height: i32::default(),
+            width: u16::default(),
+            height: u16::default(),
             fov,
             position,
             w,
@@ -37,7 +37,7 @@ impl FullCamera {
         }
     }
 
-    fn pixel_ray(&self, x: i32, y: i32, x_offset: f32, y_offset: f32) -> Ray {
+    fn get_pixel_ray(&self, x: i32, y: i32, x_offset: f32, y_offset: f32) -> Ray {
         // Add 0.5 to pixel's x and y coordinates to get middle of the pixel.
         // The camera (eye) is centred with the centre of the image, so we need
         // to shift the pixels up and left by half the width/height) to get the pixel
@@ -56,8 +56,9 @@ impl FullCamera {
     }
 
     fn print_progress(&self, x: i32, y: i32) {
-        let percentage =
-            ((y * self.width + x + 1) as f64 / (self.height * self.width) as f64) * 100.0;
+        let percentage = ((y * (self.width as i32) + x + 1) as f64
+            / ((self.height as u32) * (self.width as u32)) as f64)
+            * 100.0;
         print!("\rProgress: {:.2}%", percentage);
     }
 }
@@ -80,12 +81,12 @@ impl Camera for FullCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let ray = self.pixel_ray(x, y, 0.0, 0.0);
+                let ray = self.get_pixel_ray(x as i32, y as i32, 0.0, 0.0);
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
-                let _ = fb.plot_pixel(x, y, colour.r, colour.g, colour.b);
-                let _ = fb.plot_depth(x, y, depth);
+                let _ = fb.plot_pixel(x as i32, y as i32, colour.r, colour.g, colour.b);
+                let _ = fb.plot_depth(x as i32, y as i32, depth);
 
                 self.print_progress(x, y);
             }
