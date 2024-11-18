@@ -7,7 +7,6 @@ use crate::core::{
     material::Material,
     object::{BaseObject, Object},
     ray::Ray,
-    tex_coords::TexCoords,
     transform::Transform,
     vector::Vector,
     vertex::Vertex,
@@ -69,14 +68,12 @@ impl Object for Plane {
                     true,
                     Vertex::default(),
                     Vector::default(),
-                    TexCoords::default(),
                 ));
                 self.base.hitpool.insert(Hit::new(
                     f32::INFINITY,
                     false,
                     Vertex::default(),
                     Vector::default(),
-                    TexCoords::default(),
                 ));
             }
 
@@ -99,30 +96,20 @@ impl Object for Plane {
                 true,
                 Vertex::default(),
                 Vector::default(),
-                TexCoords::default(),
             ));
-            self.base.hitpool.insert(Hit::new(
-                t,
-                false,
-                hit_position,
-                hit_normal,
-                TexCoords::default(),
-            ));
+            self.base
+                .hitpool
+                .insert(Hit::new(t, false, hit_position, hit_normal));
         } else {
             // Ray comes from inside to outside.
-            self.base.hitpool.insert(Hit::new(
-                t,
-                true,
-                hit_position,
-                hit_normal,
-                TexCoords::default(),
-            ));
+            self.base
+                .hitpool
+                .insert(Hit::new(t, true, hit_position, hit_normal));
             self.base.hitpool.insert(Hit::new(
                 f32::INFINITY,
                 false,
                 Vertex::default(),
                 Vector::default(),
-                TexCoords::default(),
             ));
         }
     }

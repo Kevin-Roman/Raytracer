@@ -7,7 +7,6 @@ use crate::core::{
     material::Material,
     object::{BaseObject, Object},
     ray::Ray,
-    tex_coords::TexCoords,
     transform::Transform,
     vertex::Vertex,
 };
@@ -37,13 +36,9 @@ impl Sphere {
             hit_normal = hit_normal.negate();
         }
 
-        self.base.hitpool.insert(Hit::new(
-            t,
-            entering,
-            hit_position,
-            hit_normal,
-            TexCoords::default(),
-        ));
+        self.base
+            .hitpool
+            .insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 }
 
