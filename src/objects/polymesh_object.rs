@@ -4,13 +4,10 @@ use sortedlist_rs::SortedList;
 
 use crate::{
     core::{
-        hit::Hit,
         material::Material,
         object::{BaseObject, Object},
-        ray::Ray,
-        transform::Transform,
-        vertex::Vertex,
     },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
     utilities::obj_reader::{ObjReader, Triangle},
 };
 

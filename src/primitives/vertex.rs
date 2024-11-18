@@ -1,7 +1,8 @@
 // A four element vector with lots of operators and common functions.
 
-use super::vector::Vector;
 use std::ops::{Add, Neg, Sub};
+
+use super::vector::Vector;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {

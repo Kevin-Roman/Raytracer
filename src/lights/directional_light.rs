@@ -2,7 +2,10 @@
 // given direction. The light has no position and can be treated as
 // infinitely far away.
 
-use crate::core::{colour::Colour, light::Light, vector::Vector, vertex::Vertex};
+use crate::{
+    core::light::Light,
+    primitives::{colour::Colour, vector::Vector, vertex::Vertex},
+};
 
 pub struct DirectionalLight {
     direction: Vector,

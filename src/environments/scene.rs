@@ -1,7 +1,8 @@
 use core::f32;
 
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, light::Light, object::Object, ray::Ray,
+use crate::{
+    core::{environment::Environment, light::Light, object::Object},
+    primitives::{colour::Colour, hit::Hit, ray::Ray},
 };
 
 /// Small rounding error used to move start point of shadow ray along ray by a small amount

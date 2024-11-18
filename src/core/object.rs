@@ -2,7 +2,10 @@ use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use super::{hit::Hit, material::Material, ray::Ray, transform::Transform};
+use crate::{
+    core::material::Material,
+    primitives::{hit::Hit, ray::Ray, transform::Transform},
+};
 
 // Object is the base trait for objects.
 pub trait Object {

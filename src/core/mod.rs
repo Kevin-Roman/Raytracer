@@ -1,12 +1,6 @@
 pub mod camera;
-pub mod colour;
 pub mod environment;
 pub mod framebuffer;
-pub mod hit;
 pub mod light;
 pub mod material;
 pub mod object;
-pub mod ray;
-pub mod transform;
-pub mod vector;
-pub mod vertex;

@@ -1,4 +1,4 @@
-use super::{colour::Colour, vector::Vector, vertex::Vertex};
+use crate::primitives::{colour::Colour, vector::Vector, vertex::Vertex};
 
 pub trait Light {
     fn get_direction(&self, surface: Vertex) -> (Vector, bool);

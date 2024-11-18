@@ -2,9 +2,9 @@
 // as well as the field of view. It loops over the pixels in a framebuffer and computes
 // a ray that is then passed to the environment.
 
-use crate::core::{
-    camera::Camera, environment::Environment, framebuffer::FrameBuffer, ray::Ray, vector::Vector,
-    vertex::Vertex,
+use crate::{
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
+    primitives::{ray::Ray, vector::Vector, vertex::Vertex},
 };
 
 const RAYTRACE_RECURSE: i32 = 5;

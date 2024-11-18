@@ -1,4 +1,4 @@
-use crate::core::{vector::Vector, vertex::Vertex};
+use crate::primitives::{vector::Vector, vertex::Vertex};
 use std::{
     fs::File,
     io::{self, BufRead},

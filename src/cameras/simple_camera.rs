@@ -1,6 +1,9 @@
 // simple Camera has a 90 degree field of view along the z axis.
 
-use crate::core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, ray::Ray};
+use crate::{
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
+    primitives::{ray::Ray, vertex::Vertex},
+};
 use std::io::{self, Write};
 
 pub struct SimpleCamera {

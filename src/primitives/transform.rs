@@ -1,7 +1,8 @@
 // Transform stores, manipulates, and applies transforms.
 
-use super::{vector::Vector, vertex::Vertex};
 use std::ops::Mul;
+
+use super::{vector::Vector, vertex::Vertex};
 
 #[derive(Clone, Copy)]
 pub struct Transform {

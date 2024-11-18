@@ -1,4 +1,4 @@
-use super::{colour::Colour, environment::Environment, hit::Hit, ray::Ray, vector::Vector};
+use crate::primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector};
 
 pub trait Material {
     fn compute_once(

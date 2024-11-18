@@ -2,13 +2,12 @@ use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    transform::Transform,
-    vertex::Vertex,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
 };
 
 pub struct Sphere {
