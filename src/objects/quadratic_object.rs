@@ -4,15 +4,12 @@ use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    tex_coords::TexCoords,
-    transform::Transform,
-    vector::Vector,
-    vertex::Vertex,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 pub struct Quadratic {
@@ -81,13 +78,9 @@ impl Quadratic {
             hit_normal = hit_normal.negate();
         }
 
-        self.base.hitpool.insert(Hit::new(
-            t,
-            entering,
-            hit_position,
-            hit_normal,
-            TexCoords::default(),
-        ));
+        self.base
+            .hitpool
+            .insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 }
 

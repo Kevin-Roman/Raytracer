@@ -1,4 +1,7 @@
-use crate::primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector};
+use crate::{
+    core::environment::Environment,
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
+};
 
 pub trait Material {
     fn compute_once(

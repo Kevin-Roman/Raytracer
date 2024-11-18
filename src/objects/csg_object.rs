@@ -4,12 +4,12 @@
 use sortedlist_rs::SortedList;
 use std::rc::Rc;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    transform::Transform,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform},
 };
 
 #[derive(Clone, Copy)]

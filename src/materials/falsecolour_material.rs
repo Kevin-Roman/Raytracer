@@ -2,7 +2,7 @@
 // of the returned colour. A useful debug tool.
 
 use crate::{
-    core::material::Material,
+    core::{environment::Environment, material::Material},
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 

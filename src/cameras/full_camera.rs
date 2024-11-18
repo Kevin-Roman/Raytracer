@@ -7,7 +7,7 @@ use crate::{
     primitives::{ray::Ray, vector::Vector, vertex::Vertex},
 };
 
-const RAYTRACE_RECURSE: i32 = 5;
+const RAYTRACE_RECURSE: u8 = 5;
 
 pub struct FullCamera {
     pub width: u16,
@@ -37,7 +37,7 @@ impl FullCamera {
         }
     }
 
-    fn get_pixel_ray(&self, x: i32, y: i32, x_offset: f32, y_offset: f32) -> Ray {
+    fn get_pixel_ray(&self, x: u16, y: u16, x_offset: f32, y_offset: f32) -> Ray {
         // Add 0.5 to pixel's x and y coordinates to get middle of the pixel.
         // The camera (eye) is centred with the centre of the image, so we need
         // to shift the pixels up and left by half the width/height) to get the pixel
@@ -81,14 +81,14 @@ impl Camera for FullCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let ray = self.get_pixel_ray(x as i32, y as i32, 0.0, 0.0);
+                let ray = self.get_pixel_ray(x, y, 0.0, 0.0);
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
                 let _ = fb.plot_pixel(x as i32, y as i32, colour.r, colour.g, colour.b);
                 let _ = fb.plot_depth(x as i32, y as i32, depth);
 
-                self.print_progress(x, y);
+                self.print_progress(x as i32, y as i32);
             }
         }
     }

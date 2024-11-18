@@ -4,13 +4,12 @@ use std::rc::Rc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{
-        camera::Camera, colour::Colour, framebuffer::FrameBuffer, material::Material,
-        object::Object, scene::Scene, transform::Transform, vector::Vector, vertex::Vertex,
-    },
+    core::{camera::Camera, framebuffer::FrameBuffer, material::Material, object::Object},
+    environments::scene::Scene,
     lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{plane_object::Plane, polymesh_object::PolyMesh, sphere_object::Sphere},
+    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 fn build_scene(scene: &mut Scene) {

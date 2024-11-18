@@ -2,7 +2,7 @@
 
 use crate::{
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
-    primitives::{ray::Ray, vertex::Vertex},
+    primitives::ray::Ray,
 };
 use std::io::{self, Write};
 

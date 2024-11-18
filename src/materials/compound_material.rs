@@ -1,9 +1,9 @@
 // CompoundMaterial is a Material that applies multiple other materials to a surface.
 // it can be used to combine a PhongMaterial and a GlobalMaterial on a single surface.
 
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
 pub struct CompoundMaterial {
@@ -34,7 +34,7 @@ impl Material for CompoundMaterial {
         environment: &mut dyn Environment,
         viewer: &Ray,
         hit: &Hit,
-        recurse: i32,
+        recurse: u8,
     ) -> Colour {
         self.materials
             .iter()

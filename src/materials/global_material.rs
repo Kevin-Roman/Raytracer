@@ -1,8 +1,9 @@
 // The global material generates a reflection/refraction layer.
 
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    scene::SMALL_ROUNDING_ERROR, vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    environments::scene::SMALL_ROUNDING_ERROR,
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
 #[derive(Clone, Copy)]
@@ -64,7 +65,7 @@ impl Material for GlobalMaterial {
         environment: &mut dyn Environment,
         viewer: &Ray,
         hit: &Hit,
-        recurse: i32,
+        recurse: u8,
     ) -> Colour {
         let mut colour = Colour::default();
 

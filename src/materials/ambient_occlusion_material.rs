@@ -3,9 +3,10 @@ use rand::Rng;
 use core::f32;
 use std::f32::consts::PI;
 
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    scene::SMALL_ROUNDING_ERROR, vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    environments::scene::SMALL_ROUNDING_ERROR,
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
 const SHADOW_DISTANCE_LIMIT: f32 = 10.0;
@@ -96,13 +97,15 @@ impl AmbientOcclusionMaterial {
 
         hemisphere_samples
     }
+}
 
-    fn calculate_ambient_occlusion(
+impl Material for AmbientOcclusionMaterial {
+    fn compute_once(
         &self,
         environment: &mut dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
         let samples = self.hemisphere_sampler(1.0);
 
@@ -124,18 +127,6 @@ impl AmbientOcclusionMaterial {
         let ambient_occlusion = (ambient_occlusion_sum as f32) / (samples.len() as f32);
 
         ambient_occlusion * self.ambient
-    }
-}
-
-impl Material for AmbientOcclusionMaterial {
-    fn compute_once(
-        &self,
-        environment: &mut dyn Environment,
-        viewer: &Ray,
-        hit: &Hit,
-        recurse: i32,
-    ) -> Colour {
-        self.calculate_ambient_occlusion(environment, viewer, hit, recurse)
     }
 
     fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
