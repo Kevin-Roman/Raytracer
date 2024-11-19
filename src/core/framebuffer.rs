@@ -5,7 +5,6 @@ use thiserror::Error as ThiserrorError;
 
 use crate::{primitives::pixel::Pixel, utilities::ppm_writer::PPMWriter};
 
-// Constants for maximum allowed dimensions.
 const MAX_WIDTH: u16 = 2048;
 const MAX_HEIGHT: u16 = 2048;
 
@@ -30,7 +29,7 @@ pub struct FrameBuffer {
 impl FrameBuffer {
     /// Creates a new FrameBuffer with the given width and height.
     ///
-    /// Returns an error if the dimensions exceed the maximum allowed size.
+    /// Returns an error if the dimensions exceeds the maximum allowed size.
     pub fn new(w: u16, h: u16) -> Result<Self, FrameBufferError> {
         if w > MAX_WIDTH || h > MAX_HEIGHT {
             return Err(FrameBufferError::DimensionError {
@@ -75,23 +74,11 @@ impl FrameBuffer {
         Ok(())
     }
 
-    pub fn get_depth(&self, x: i32, y: i32) -> Result<f32, FrameBufferError> {
+    pub fn get_pixel(&self, x: i32, y: i32) -> Result<&Pixel, FrameBufferError> {
         self.check_bounds(x, y)?;
 
         let index = (y * (self.width as i32) + x) as usize;
-        Ok(self.framebuffer[index].depth)
-    }
-
-    /// Gets the color of a pixel at the specified coordinates.
-    pub fn get_pixel(&self, x: i32, y: i32) -> Result<(f32, f32, f32), FrameBufferError> {
-        self.check_bounds(x, y)?;
-
-        let index = (y * (self.width as i32) + x) as usize;
-        Ok((
-            self.framebuffer[index].colour.r,
-            self.framebuffer[index].colour.g,
-            self.framebuffer[index].colour.b,
-        ))
+        Ok(&self.framebuffer[index])
     }
 
     /// Writes RGB data to a PPM file.
