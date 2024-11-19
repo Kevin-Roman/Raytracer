@@ -16,32 +16,36 @@ pub struct Point2D {
     pub y: f32,
 }
 
+/// AmbientOcclusionMaterial is a Material that computes ambient occlusion.
 pub struct AmbientOcclusionMaterial {
     ambient: Colour,
-    samples: usize,
-    min_amount: f32,
+    /// Number of samples to take for ambient occlusion.
+    num_samples: u8,
+    /// Minimum amount of ambient light to be considered.
+    /// Value between 0.0 and 1.0.
+    min_ambient_amount: f32,
 }
 
 impl AmbientOcclusionMaterial {
-    pub fn new(ambient: Colour, samples: usize, min_amount: f32) -> Self {
+    pub fn new(ambient: Colour, num_samples: u8, min_ambient_amount: f32) -> Self {
         assert!(
-            ((samples as f64).sqrt() as u32).pow(2) == samples as u32,
+            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples as u32,
             "Number of samples must be a square number."
         );
 
         Self {
             ambient,
-            samples,
-            min_amount,
+            num_samples,
+            min_ambient_amount,
         }
     }
 
     fn multi_jitter(&self) -> Vec<Point2D> {
         let mut rng = rand::thread_rng();
-        let sqrt_samples = (self.samples as f32).sqrt() as i32;
+        let sqrt_samples = (self.num_samples as f32).sqrt() as u32;
 
-        let mut points: Vec<Point2D> = Vec::with_capacity(self.samples as usize);
-        let subcell_width = 1.0 / (self.samples as f32);
+        let mut points: Vec<Point2D> = Vec::with_capacity(self.num_samples as usize);
+        let subcell_width = 1.0 / (self.num_samples as f32);
 
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
@@ -81,7 +85,7 @@ impl AmbientOcclusionMaterial {
 
     fn hemisphere_sampler(&self, e: f32) -> Vec<Vector> {
         let samples: Vec<Point2D> = self.multi_jitter();
-        let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(self.samples as usize);
+        let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(self.num_samples as usize);
 
         for sample in &samples {
             let cos_phi = f32::cos(2.0 * PI * sample.x);
@@ -117,7 +121,8 @@ impl Material for AmbientOcclusionMaterial {
             if !environment.shadowtrace(&shadow_ray, SHADOW_DISTANCE_LIMIT) {
                 ambient_occlusion_sum += 1.0;
             } else {
-                ambient_occlusion_sum += self.min_amount;
+                // If ray hits object, add only the minimum amount of ambient light.
+                ambient_occlusion_sum += self.min_ambient_amount;
             }
         }
 

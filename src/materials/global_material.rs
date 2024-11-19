@@ -1,11 +1,10 @@
-// The global material generates a reflection/refraction layer.
-
 use crate::{
     core::{environment::Environment, material::Material},
     environments::scene::ROUNDING_ERROR,
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
+/// GlobalMaterial is a Material that computes a reflection/refraction layer.
 #[derive(Clone, Copy, Debug)]
 pub struct GlobalMaterial {
     reflect_weight: Colour,
@@ -73,6 +72,7 @@ impl Material for GlobalMaterial {
             return colour;
         }
 
+        // Calculate reflection and refraction rays.
         let mut reflection_ray = Ray::default();
         reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
         reflection_ray.position = hit.position + ROUNDING_ERROR * reflection_ray.direction;
@@ -84,9 +84,11 @@ impl Material for GlobalMaterial {
             .normalise();
         refract_ray.position = hit.position + ROUNDING_ERROR * refract_ray.direction;
 
+        // Calculate reflection and refraction coefficients.
         let (reflection_coefficient, transmission_coefficient) =
             self.fresnel_coefficients(&viewer.direction, &hit.normal);
 
+        // Recurse on reflection and refraction rays.
         colour += reflection_coefficient
             * self.reflect_weight
             * environment.raytrace(&reflection_ray, recurse - 1).0;
