@@ -3,19 +3,11 @@
 use std::io;
 use thiserror::Error as ThiserrorError;
 
-use crate::utilities::ppm_writer::PPMWriter;
+use crate::{primitives::pixel::Pixel, utilities::ppm_writer::PPMWriter};
 
 // Constants for maximum allowed dimensions.
 const MAX_WIDTH: u16 = 2048;
 const MAX_HEIGHT: u16 = 2048;
-
-#[derive(Clone, Copy, Debug)]
-pub struct Pixel {
-    red: f32,
-    green: f32,
-    blue: f32,
-    depth: f32,
-}
 
 #[derive(Debug, ThiserrorError)]
 pub enum FrameBufferError {
@@ -47,15 +39,7 @@ impl FrameBuffer {
             });
         }
 
-        let framebuffer = vec![
-            Pixel {
-                red: 0.0,
-                green: 0.0,
-                blue: 0.0,
-                depth: 0.0,
-            };
-            (w as usize) * (h as usize)
-        ];
+        let framebuffer = vec![Pixel::default(); (w as usize) * (h as usize)];
 
         Ok(Self {
             width: w,
@@ -75,9 +59,9 @@ impl FrameBuffer {
         self.check_bounds(x, y)?;
 
         let index = (y * (self.width as i32) + x) as usize;
-        self.framebuffer[index].red = red;
-        self.framebuffer[index].green = green;
-        self.framebuffer[index].blue = blue;
+        self.framebuffer[index].colour.r = red;
+        self.framebuffer[index].colour.g = green;
+        self.framebuffer[index].colour.b = blue;
 
         Ok(())
     }
@@ -104,9 +88,9 @@ impl FrameBuffer {
 
         let index = (y * (self.width as i32) + x) as usize;
         Ok((
-            self.framebuffer[index].red,
-            self.framebuffer[index].green,
-            self.framebuffer[index].blue,
+            self.framebuffer[index].colour.r,
+            self.framebuffer[index].colour.g,
+            self.framebuffer[index].colour.b,
         ))
     }
 
@@ -115,8 +99,8 @@ impl FrameBuffer {
         let (min, max) = self.framebuffer.iter().fold(
             (f32::INFINITY, f32::NEG_INFINITY),
             |(min, max), pixel| {
-                let pixel_min = pixel.red.min(pixel.green).min(pixel.blue);
-                let pixel_max = pixel.red.max(pixel.green).max(pixel.blue);
+                let pixel_min = pixel.colour.r.min(pixel.colour.g).min(pixel.colour.b);
+                let pixel_max = pixel.colour.r.max(pixel.colour.g).max(pixel.colour.b);
                 (min.min(pixel_min), max.max(pixel_max))
             },
         );
@@ -124,9 +108,9 @@ impl FrameBuffer {
 
         let ppm_writer = PPMWriter::new(self.width as u16, self.height as u16);
         ppm_writer.write_file(filename, &self.framebuffer, |pixel| {
-            let red = (((pixel.red - min) / diff) * 255.0) as u8;
-            let green = (((pixel.green - min) / diff) * 255.0) as u8;
-            let blue = (((pixel.blue - min) / diff) * 255.0) as u8;
+            let red = (((pixel.colour.r - min) / diff) * 255.0) as u8;
+            let green = (((pixel.colour.g - min) / diff) * 255.0) as u8;
+            let blue = (((pixel.colour.b - min) / diff) * 255.0) as u8;
             (red, green, blue)
         })?;
 

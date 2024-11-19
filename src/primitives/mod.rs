@@ -1,5 +1,6 @@
 pub mod colour;
 pub mod hit;
+pub mod pixel;
 pub mod ray;
 pub mod transform;
 pub mod vector;

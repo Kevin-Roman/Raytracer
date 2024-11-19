@@ -1,6 +1,7 @@
-use crate::core::framebuffer::Pixel;
 use std::fs::File;
 use std::io::{Result as IoResult, Write};
+
+use crate::primitives::pixel::Pixel;
 
 pub struct PPMWriter {
     width: u16,
