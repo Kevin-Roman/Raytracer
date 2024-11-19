@@ -12,11 +12,15 @@ const RAYTRACE_RECURSE: u8 = 5;
 pub struct FullCamera {
     pub width: u16,
     pub height: u16,
+    /// Field of view. Distance from the camera to the image plane.
     pub fov: f32,
 
     position: Vertex,
+    /// Camera's forward vector.
     w: Vector,
+    /// Camera's right vector.
     u: Vector,
+    /// Camera's up vector.
     v: Vector,
 }
 
@@ -37,13 +41,13 @@ impl FullCamera {
         }
     }
 
-    fn get_pixel_ray(&self, x: u16, y: u16, x_offset: f32, y_offset: f32) -> Ray {
+    fn get_pixel_ray(&self, x: u16, y: u16) -> Ray {
         // Add 0.5 to pixel's x and y coordinates to get middle of the pixel.
         // The camera (eye) is centred with the centre of the image, so we need
         // to shift the pixels up and left by half the width/height) to get the pixel
         // coordinates in respect to the camera.
-        let mut x_v = (x_offset + (x as f32) + 0.5) - ((self.width as f32) / 2.0);
-        let mut y_v = ((self.height as f32) / 2.0) - (y_offset + (y as f32) + 0.5);
+        let mut x_v = ((x as f32) + 0.5) - ((self.width as f32) / 2.0);
+        let mut y_v = ((self.height as f32) / 2.0) - ((y as f32) + 0.5);
 
         // Normalise.
         x_v /= self.width as f32;
@@ -81,7 +85,7 @@ impl Camera for FullCamera {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let ray = self.get_pixel_ray(x, y, 0.0, 0.0);
+                let ray = self.get_pixel_ray(x, y);
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 

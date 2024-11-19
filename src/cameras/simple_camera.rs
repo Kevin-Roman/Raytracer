@@ -9,6 +9,7 @@ use std::io::{self, Write};
 pub struct SimpleCamera {
     pub width: u16,
     pub height: u16,
+    /// Field of view. Distance from the camera to the image plane.
     pub fov: f32,
 }
 
