@@ -2,7 +2,7 @@
 
 use crate::{
     core::{environment::Environment, material::Material},
-    environments::scene::SMALL_ROUNDING_ERROR,
+    environments::scene::ROUNDING_ERROR,
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
@@ -75,14 +75,14 @@ impl Material for GlobalMaterial {
 
         let mut reflection_ray = Ray::default();
         reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
-        reflection_ray.position = hit.position + SMALL_ROUNDING_ERROR * reflection_ray.direction;
+        reflection_ray.position = hit.position + ROUNDING_ERROR * reflection_ray.direction;
 
         let mut refract_ray = Ray::default();
         refract_ray.direction = viewer
             .direction
             .refraction(&hit.normal, self.index_of_refraction)
             .normalise();
-        refract_ray.position = hit.position + SMALL_ROUNDING_ERROR * refract_ray.direction;
+        refract_ray.position = hit.position + ROUNDING_ERROR * refract_ray.direction;
 
         let (reflection_coefficient, transmission_coefficient) =
             self.fresnel_coefficients(&viewer.direction, &hit.normal);

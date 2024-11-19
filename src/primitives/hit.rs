@@ -6,7 +6,7 @@ use super::{vector::Vector, vertex::Vertex};
 #[derive(Clone, Copy, Debug)]
 pub struct Hit {
     /// The intersection distance.
-    pub t: f32,
+    pub distance: f32,
     /// Whether the ray is entering the object.
     pub entering: bool,
     /// The position of intersection.
@@ -16,9 +16,9 @@ pub struct Hit {
 }
 
 impl Hit {
-    pub fn new(t: f32, entering: bool, position: Vertex, normal: Vector) -> Self {
+    pub fn new(distance: f32, entering: bool, position: Vertex, normal: Vector) -> Self {
         Self {
-            t,
+            distance,
             entering,
             position,
             normal,
@@ -29,7 +29,7 @@ impl Hit {
 // Compare hits by their intersection distance.
 impl Ord for Hit {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.t.total_cmp(&other.t)
+        self.distance.total_cmp(&other.distance)
     }
 }
 
@@ -41,7 +41,7 @@ impl PartialOrd for Hit {
 
 impl PartialEq for Hit {
     fn eq(&self, other: &Self) -> bool {
-        self.t == other.t
+        self.distance == other.distance
     }
 }
 

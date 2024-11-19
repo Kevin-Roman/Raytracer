@@ -20,7 +20,7 @@ pub trait Object {
     fn select_first_hit(&mut self) -> Option<Hit>;
 
     /// Computes and stores the intersections of a ray with this object.
-    fn intersection(&mut self, ray: &Ray);
+    fn add_intersections(&mut self, ray: &Ray);
 
     /// Applies a transformation to the object.
     fn apply_transform(&mut self, trans: &Transform);
@@ -62,7 +62,12 @@ impl Object for BaseObject {
     }
 
     fn select_first_hit(&mut self) -> Option<Hit> {
-        if let Some(index) = self.hitpool.flatten().iter().position(|&hit| hit.t >= 0.0) {
+        if let Some(index) = self
+            .hitpool
+            .flatten()
+            .iter()
+            .position(|&hit| hit.distance >= 0.0)
+        {
             let hit = self.hitpool.remove(index);
             self.hitpool.clear();
             Some(hit)
@@ -71,7 +76,7 @@ impl Object for BaseObject {
         }
     }
 
-    fn intersection(&mut self, _: &Ray) {}
+    fn add_intersections(&mut self, _: &Ray) {}
 
     fn apply_transform(&mut self, _: &Transform) {}
 }

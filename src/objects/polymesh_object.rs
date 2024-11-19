@@ -137,7 +137,7 @@ impl Object for PolyMesh {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         // For each triangle in the model.
         for i in 0..self.triangles.len() {
             if let Some(((t, u, v), entering)) = self.triangle_intersection(ray, i) {

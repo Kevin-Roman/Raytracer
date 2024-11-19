@@ -101,7 +101,7 @@ impl Object for Quadratic {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let (dir_x, dir_y, dir_z) = (ray.direction.x, ray.direction.y, ray.direction.z);
         let (pos_x, pos_y, pos_z) = (
             ray.position.vector.x,

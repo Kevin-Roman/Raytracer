@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 
 use crate::{
     core::{environment::Environment, material::Material},
-    environments::scene::SMALL_ROUNDING_ERROR,
+    environments::scene::ROUNDING_ERROR,
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
@@ -113,10 +113,7 @@ impl Material for AmbientOcclusionMaterial {
         for sample in &samples {
             let sample_direction = (hit.normal + *sample).normalise();
 
-            let shadow_ray = Ray::new(
-                hit.position + SMALL_ROUNDING_ERROR * hit.normal,
-                sample_direction,
-            );
+            let shadow_ray = Ray::new(hit.position + ROUNDING_ERROR * hit.normal, sample_direction);
             if !environment.shadowtrace(&shadow_ray, SHADOW_DISTANCE_LIMIT) {
                 ambient_occlusion_sum += 1.0;
             } else {

@@ -58,7 +58,7 @@ impl Object for Sphere {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let ray_to_sphere = ray.position.vector - self.center.vector;
 
         // Quadratic equation.

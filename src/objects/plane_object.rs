@@ -48,7 +48,7 @@ impl Object for Plane {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let distance_to_plane = self.a * ray.position.vector.x
             + self.b * ray.position.vector.y
             + self.c * ray.position.vector.z
