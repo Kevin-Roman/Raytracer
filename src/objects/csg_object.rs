@@ -12,7 +12,7 @@ use crate::{
     primitives::{hit::Hit, ray::Ray, transform::Transform},
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Mode {
     CsgUnion = 0,
     CsgInter,

@@ -9,7 +9,7 @@ use crate::utilities::ppm_writer::PPMWriter;
 const MAX_WIDTH: u16 = 2048;
 const MAX_HEIGHT: u16 = 2048;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct Pixel {
     red: f32,
     green: f32,

@@ -1,12 +1,12 @@
-// A four element vector with lots of operators and common functions.
-
 use std::ops::{Add, Neg, Sub};
 
 use super::vector::Vector;
 
+/// A 3D vertex (homogeneous coordinate).
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
     pub vector: Vector,
+    /// Weight.
     pub w: f32,
 }
 

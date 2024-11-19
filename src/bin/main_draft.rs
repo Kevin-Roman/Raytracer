@@ -89,8 +89,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 1024;
-    let height = 1024;
+    let width = 64;
+    let height = 64;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,

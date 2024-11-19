@@ -1,16 +1,18 @@
-// Hit is stores and manipulates information about an intersection
-// between a ray and an object.
-
 use std::cmp::Ordering;
 
 use super::{vector::Vector, vertex::Vertex};
 
+/// Hit stores information about an intersection between a ray and an object.
 #[derive(Clone, Copy, Debug)]
 pub struct Hit {
-    pub t: f32,           // The intersection distance.
-    pub entering: bool,   // True if entering an object, false if leaving.
-    pub position: Vertex, // The position of intersection.
-    pub normal: Vector,   // The normal at the point of intersection.
+    /// The intersection distance.
+    pub t: f32,
+    /// Whether the ray is entering the object.
+    pub entering: bool,
+    /// The position of intersection.
+    pub position: Vertex,
+    /// The normal at the point of intersection.
+    pub normal: Vector,
 }
 
 impl Hit {
@@ -24,6 +26,7 @@ impl Hit {
     }
 }
 
+// Compare hits by their intersection distance.
 impl Ord for Hit {
     fn cmp(&self, other: &Self) -> Ordering {
         self.t.total_cmp(&other.t)

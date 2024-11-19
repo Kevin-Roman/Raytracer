@@ -1,10 +1,9 @@
-// Transform stores, manipulates, and applies transforms.
-
 use std::ops::Mul;
 
 use super::{vector::Vector, vertex::Vertex};
 
-#[derive(Clone, Copy)]
+/// A 4x4 transformation matrix.
+#[derive(Clone, Copy, Debug)]
 pub struct Transform {
     pub matrix: [[f32; 4]; 4],
 }
@@ -66,6 +65,8 @@ impl Transform {
         vector.z = z;
     }
 
+    /// MESA (https://www.mesa3d.org/) implementation of the inverse of a 4x4 matrix.
+    /// Based on Minors, Cofactors and the Adjugate Matrix.
     pub fn inverse(&self) -> Transform {
         let mut r = Transform::identity();
 

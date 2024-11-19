@@ -6,7 +6,7 @@ use crate::{
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct GlobalMaterial {
     reflect_weight: Colour,
     refract_weight: Colour,

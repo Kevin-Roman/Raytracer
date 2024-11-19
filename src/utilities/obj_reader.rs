@@ -34,7 +34,7 @@ impl Triangle {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct VertexAndNormalIndices {
     /// Vertex index;
     pub vertex_index: usize,
