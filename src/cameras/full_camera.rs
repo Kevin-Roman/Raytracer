@@ -89,7 +89,7 @@ impl Camera for FullCamera {
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
-                let _ = fb.plot_pixel(x as i32, y as i32, colour.r, colour.g, colour.b);
+                let _ = fb.plot_pixel(x as i32, y as i32, colour);
                 let _ = fb.plot_depth(x as i32, y as i32, depth);
 
                 self.print_progress(x as i32, y as i32);

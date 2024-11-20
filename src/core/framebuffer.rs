@@ -3,7 +3,10 @@
 use std::io;
 use thiserror::Error as ThiserrorError;
 
-use crate::{primitives::pixel::Pixel, utilities::ppm_writer::PPMWriter};
+use crate::{
+    primitives::{colour::Colour, pixel::Pixel},
+    utilities::ppm_writer::PPMWriter,
+};
 
 const MAX_WIDTH: u16 = 2048;
 const MAX_HEIGHT: u16 = 2048;
@@ -47,20 +50,13 @@ impl FrameBuffer {
         })
     }
 
-    pub fn plot_pixel(
-        &mut self,
-        x: i32,
-        y: i32,
-        red: f32,
-        green: f32,
-        blue: f32,
-    ) -> Result<(), FrameBufferError> {
+    pub fn plot_pixel(&mut self, x: i32, y: i32, colour: Colour) -> Result<(), FrameBufferError> {
         self.check_bounds(x, y)?;
 
         let index = (y * (self.width as i32) + x) as usize;
-        self.framebuffer[index].colour.r = red;
-        self.framebuffer[index].colour.g = green;
-        self.framebuffer[index].colour.b = blue;
+        self.framebuffer[index].colour.r = colour.r;
+        self.framebuffer[index].colour.g = colour.g;
+        self.framebuffer[index].colour.b = colour.b;
 
         Ok(())
     }

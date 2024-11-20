@@ -54,7 +54,7 @@ impl Camera for SimpleCamera {
 
                 let (colour, depth) = env.raytrace(&ray, 5);
 
-                let _ = fb.plot_pixel(x as i32, y as i32, colour.r, colour.g, colour.b);
+                let _ = fb.plot_pixel(x as i32, y as i32, colour);
                 let _ = fb.plot_depth(x as i32, y as i32, depth);
             }
 
