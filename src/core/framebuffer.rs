@@ -54,9 +54,7 @@ impl FrameBuffer {
         self.check_bounds(x, y)?;
 
         let index = (y * (self.width as i32) + x) as usize;
-        self.framebuffer[index].colour.r = colour.r;
-        self.framebuffer[index].colour.g = colour.g;
-        self.framebuffer[index].colour.b = colour.b;
+        self.framebuffer[index].colour = colour;
 
         Ok(())
     }

@@ -6,6 +6,6 @@ pub trait Environment {
     fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool;
 
     /// Raytrace returns the colour of a ray in the environment.
-    ///
+    /// Returns the colour of the ray and the distance to the intersection.
     fn raytrace(&mut self, ray: &Ray, recurse: u8) -> (Colour, f32);
 }

@@ -39,13 +39,8 @@ impl Vector {
     }
 
     pub fn reflection(&self, normal: &Self) -> Self {
-        let d = 2.0 * self.dot(normal);
-
-        Self::new(
-            self.x - d * normal.x,
-            self.y - d * normal.y,
-            self.z - d * normal.z,
-        )
+        let incident = self;
+        *incident - 2.0 * incident.dot(normal) * *normal
     }
 
     /// The refraction of a vector based on the normal of the surface it is hitting
