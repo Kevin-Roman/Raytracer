@@ -72,7 +72,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(Colour::default());
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(

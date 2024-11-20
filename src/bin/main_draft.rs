@@ -15,7 +15,7 @@ use raytracer::{
 
 fn build_scene(scene: &mut Scene) {
     // Floor.
-    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 3.0));
+    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
     let floor_plane_material = Rc::new(CompoundMaterial::new(vec![
         Box::new(AmbientOcclusionMaterial::new(
             Colour::new(0.9, 0.9, 0.9, 1.0),
@@ -36,7 +36,7 @@ fn build_scene(scene: &mut Scene) {
     // Main teapot object.
     let transform: Transform = Transform::new([
         [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, -5.0],
+        [0.0, 0.0, 1.0, -10.0],
         [0.0, 1.0, 0.0, 20.0],
         [0.0, 0.0, 0.0, 1.0],
     ]);
@@ -55,7 +55,7 @@ fn build_scene(scene: &mut Scene) {
 
     let polymesh_material = Rc::new(CompoundMaterial::new(vec![
         Box::new(AmbientOcclusionMaterial::new(
-            Colour::new(0.1, 0.1, 0.1, 1.0),
+            Colour::new(0.05, 0.05, 0.05, 1.0),
             64,
             0.05,
         )),
@@ -70,7 +70,7 @@ fn build_scene(scene: &mut Scene) {
     scene.objects.push(polymesh_object);
 
     // Object used for shadow.
-    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-5.0, 5.0, 10.0, 1.0), 3.0));
+    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-4.0, 4.0, 10.0, 1.0), 3.0));
     let sphere_material = Rc::new(GlobalMaterial::new(
         Colour::new(1.0, 1.0, 1.0, 0.0),
         Colour::new(1.0, 1.0, 1.0, 0.0),
@@ -89,8 +89,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 64;
-    let height = 64;
+    let width = 512;
+    let height = 512;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -100,12 +100,12 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(Colour::default());
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
         0.5,
-        Vertex::new(0.0, 10.0, 0.0, 1.0),
+        Vertex::new(0.0, 7.0, 0.0, 1.0),
         Vector::new(0.0, -3.0, 20.0),
         Vector::new(0.0, 1.0, 1.0),
     );

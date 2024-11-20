@@ -2,6 +2,7 @@
 
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
+/// RGBA colour with components in the range [0.0, 1.0].
 #[derive(Clone, Copy, Debug)]
 pub struct Colour {
     /// Red.

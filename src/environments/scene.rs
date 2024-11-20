@@ -13,13 +13,15 @@ pub const ROUNDING_ERROR: f32 = 0.0001;
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
+    background_colour: Colour,
 }
 
 impl Scene {
-    pub fn new() -> Self {
+    pub fn new(background_colour: Colour) -> Self {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
+            background_colour,
         }
     }
 
@@ -105,6 +107,8 @@ impl Environment for Scene {
                 // Calculate contributions from lights.
                 colour += self.compute_lighting(&hit, &material);
             }
+        } else {
+            colour = self.background_colour;
         }
 
         (colour, depth)
