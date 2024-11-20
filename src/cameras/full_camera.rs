@@ -78,8 +78,8 @@ impl Default for FullCamera {
     }
 }
 
-impl Camera for FullCamera {
-    fn render(&mut self, env: &mut dyn Environment, fb: &mut FrameBuffer) {
+impl<T: Environment> Camera<T> for FullCamera {
+    fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;
 

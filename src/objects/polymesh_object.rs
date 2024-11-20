@@ -81,25 +81,31 @@ impl PolyMesh {
         ray: &Ray,
         triangle_index: usize,
     ) -> Option<((f32, f32, f32), bool)> {
+        // Retrieve the triangle and its vertices.
         let triangle = &self.triangles[triangle_index];
-        let vert0 = self.vertices[triangle.vertex_indices[0]];
-        let vert1 = self.vertices[triangle.vertex_indices[1]];
-        let vert2 = self.vertices[triangle.vertex_indices[2]];
+        let vert0 = &self.vertices[triangle.vertex_indices[0]];
+        let vert1 = &self.vertices[triangle.vertex_indices[1]];
+        let vert2 = &self.vertices[triangle.vertex_indices[2]];
 
+        // Calculate the edges of the triangle.
         let edge1 = vert1.vector - vert0.vector;
         let edge2 = vert2.vector - vert0.vector;
 
+        // Calculate the determinant.
         let p_vec = ray.direction.cross(&edge2);
         let det = edge1.dot(&p_vec);
 
+        // If the determinant is near zero, the ray lies in the plane of the triangle.
         if -EPSILON < det && det < EPSILON {
             return None;
         }
 
+        // Calculate the inverse of the determinant.
         let inv_det = 1.0 / det;
 
         let t_vec = ray.position.vector - vert0.vector;
 
+        // Test bounds.
         let u = t_vec.dot(&p_vec) * inv_det;
         if u < 0.0 || u > 1.0 {
             return None;
@@ -107,16 +113,19 @@ impl PolyMesh {
 
         let q_vec = t_vec.cross(&edge1);
 
+        // Test bounds for the barycentric coordinate.
         let v = ray.direction.dot(&q_vec) * inv_det;
         if v < 0.0 || u + v > 1.0 {
             return None;
         }
 
+        // Calculate the distance from the ray origin to the intersection point.
         let t = edge2.dot(&q_vec) * inv_det;
 
-        // Negative determinant indicates a back facing triangle.
+        // Determine if the intersection is entering or exiting the triangle.
         let entering = det >= 0.0;
-        return Some(((t, u, v), entering));
+
+        Some(((t, u, v), entering))
     }
 }
 
