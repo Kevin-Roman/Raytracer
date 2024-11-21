@@ -67,11 +67,11 @@ fn main() {
 
     camera.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/stage2_task3_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/ambient_occlusion_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/stage2_task3_depth.ppm") {
+    if let Err(e) = fb.write_depth_file("./output/6_ambient_occlusion_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
 

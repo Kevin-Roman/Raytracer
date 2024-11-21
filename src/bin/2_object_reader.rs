@@ -72,7 +72,7 @@ fn main() {
         print!(".");
     }
 
-    if let Err(e) = fb.write_rgb_file("./output/lab2.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/2_object_reader_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 }

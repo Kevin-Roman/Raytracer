@@ -20,7 +20,7 @@ fn main() {
         let _ = draw_line(&mut fb, x0, y0, x1, y1);
     }
 
-    if let Err(e) = fb.write_rgb_file("./output/lab1.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/1_linedrawing_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 }
