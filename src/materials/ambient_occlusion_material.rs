@@ -40,6 +40,8 @@ impl AmbientOcclusionMaterial {
         }
     }
 
+    /// Multi-jittered sampling technique to generate a set of
+    /// sample points that are evenly distributed within a unit square.
     fn multi_jitter(&self) -> Vec<Point2D> {
         let mut rng = rand::thread_rng();
         let sqrt_samples = (self.num_samples as f32).sqrt() as u32;
@@ -47,6 +49,7 @@ impl AmbientOcclusionMaterial {
         let mut points: Vec<Point2D> = Vec::with_capacity(self.num_samples as usize);
         let subcell_width = 1.0 / (self.num_samples as f32);
 
+        // Generate initial points with jittering.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 points.push(Point2D {
@@ -60,6 +63,7 @@ impl AmbientOcclusionMaterial {
             }
         }
 
+        // Shuffle x coordinates within each column.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 let k = rng.gen_range(j..sqrt_samples);
@@ -70,6 +74,7 @@ impl AmbientOcclusionMaterial {
             }
         }
 
+        // Shuffle y coordinates within each row.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 let k = rng.gen_range(j..sqrt_samples);
@@ -83,6 +88,8 @@ impl AmbientOcclusionMaterial {
         points
     }
 
+    /// Converts 2D sample points into 3D vectors that are distributed over a hemisphere.
+    /// The distribution is controlled by the exponent `e` (how sparse/dense the vectors should be).
     fn hemisphere_sampler(&self, e: f32) -> Vec<Vector> {
         let samples: Vec<Point2D> = self.multi_jitter();
         let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(self.num_samples as usize);
