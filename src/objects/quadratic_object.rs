@@ -1,5 +1,3 @@
-// The Quadratic Object defines and intersects with quadratic objects.
-
 use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
@@ -26,6 +24,7 @@ pub struct Quadratic {
     j: f32,
 }
 
+// Object defined by a quadratic.
 impl Quadratic {
     /// Quadratic surface `ax^2 + 2bxy + 2cxz + 2dx + ey^2 + 2fyz + 2gy + hz^2 + 2iz + j = 0`.
     pub fn new(

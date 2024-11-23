@@ -1,4 +1,4 @@
-// Stage 2.1: Reflection and Refraction.
+// Stage 2.3: Ambient Occlusion.
 
 use std::rc::Rc;
 

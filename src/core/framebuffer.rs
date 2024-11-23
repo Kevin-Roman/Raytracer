@@ -1,5 +1,3 @@
-// The FrameBuffer creates a framebuffer with rgba and depth and can write them to a ppm file.
-
 use std::io;
 use thiserror::Error as ThiserrorError;
 
@@ -23,6 +21,7 @@ pub enum FrameBufferError {
     IoError(#[from] io::Error),
 }
 
+/// Creates a framebuffer with rgba and depth and can write them to a ppm file.
 pub struct FrameBuffer {
     pub width: u16,
     pub height: u16,

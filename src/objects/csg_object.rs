@@ -1,6 +1,3 @@
-// CSG is an object that is built by Constructive Solid Geometry from two sub-objects.
-// It supports three operations Union, Intersection and Difference of the two sub-objects.
-
 use sortedlist_rs::SortedList;
 use std::rc::Rc;
 
@@ -62,6 +59,9 @@ const ACTIONS: [[Action; 8]; 3] = [
 ];
 
 /// Constructive solid geometry.
+///
+/// CSG is an object that is built by Constructive Solid Geometry from two sub-objects.
+/// It supports three operations Union, Intersection and Difference of the two sub-objects.
 pub struct CSG {
     base: BaseObject,
     mode: Mode,

@@ -1,11 +1,10 @@
-// simple Camera has a 90 degree field of view along the z axis.
-
 use crate::{
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
     primitives::ray::Ray,
 };
 use std::io::{self, Write};
 
+/// Simple Camera has a 90 degree field of view along the z axis.
 pub struct SimpleCamera {
     pub width: u16,
     pub height: u16,
@@ -43,8 +42,8 @@ impl Default for SimpleCamera {
     }
 }
 
-impl Camera for SimpleCamera {
-    fn render(&mut self, env: &mut dyn Environment, fb: &mut FrameBuffer) {
+impl<T: Environment> Camera<T> for SimpleCamera {
+    fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;
 

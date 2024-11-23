@@ -1,5 +1,3 @@
-// Colour stores and manipulates an rgba colour.
-
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
 /// RGBA colour with components in the range [0.0, 1.0].

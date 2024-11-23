@@ -1,7 +1,3 @@
-// Full camera allows a camera to be placed in space with a lookat and up direction
-// as well as the field of view. It loops over the pixels in a framebuffer and computes
-// a ray that is then passed to the environment.
-
 use crate::{
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
     primitives::{ray::Ray, vector::Vector, vertex::Vertex},
@@ -9,6 +5,9 @@ use crate::{
 
 const RAYTRACE_RECURSE: u8 = 5;
 
+/// Full camera allows a camera to be placed in space with a lookat and up direction
+/// as well as the field of view. It loops over the pixels in a framebuffer and computes
+/// a ray that is then passed to the environment.
 pub struct FullCamera {
     pub width: u16,
     pub height: u16,

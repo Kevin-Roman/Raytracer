@@ -1,6 +1,3 @@
-// This Material class maps the x,y,z components of the normal to the r,g,b components
-// of the returned colour. A useful debug tool.
-
 use crate::{
     core::{environment::Environment, material::Material},
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
