@@ -4,6 +4,7 @@ use crate::{
 };
 
 /// PhongMaterial is a Material that implements the Phong surface illumination model.
+#[derive(Clone, Copy)]
 pub struct PhongMaterial {
     ambient: Colour,
     diffuse: Colour,
