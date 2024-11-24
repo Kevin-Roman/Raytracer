@@ -8,7 +8,7 @@ use crate::{
 
 /// Small rounding error used to move shadow ray point along the ray by a small amount
 /// in case the shadow position is behind the hit (due to floating point precision).
-pub const ROUNDING_ERROR: f32 = 0.0001;
+pub const ROUNDING_ERROR: f32 = 0.001;
 
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
@@ -44,7 +44,12 @@ impl Scene {
     }
 
     /// Determine if a hit point is in shadow.
-    fn is_point_in_shadow(&mut self, hit_position: Vertex, light_direction: Vector) -> bool {
+    fn is_point_in_shadow(
+        &mut self,
+        hit_position: Vertex,
+        light_position: Option<Vertex>,
+        light_direction: Vector,
+    ) -> bool {
         let to_light_direction = light_direction.negate();
         // Move the shadow ray point slightly along the ray (towards the light) to avoid self-shadowing.
         let shadow_ray = Ray::new(
@@ -52,7 +57,11 @@ impl Scene {
             to_light_direction,
         );
 
-        self.shadowtrace(&shadow_ray, f32::INFINITY)
+        let shadow_limit = light_position
+            .map(|light_position| (light_position.vector - shadow_ray.position.vector).length())
+            .unwrap_or(f32::INFINITY);
+
+        self.shadowtrace(&shadow_ray, shadow_limit)
     }
 
     /// Compute contribution of all lights to the hit point.
@@ -61,14 +70,15 @@ impl Scene {
 
         for light_index in 0..self.lights.len() {
             let viewer_direction = (-hit.position.vector).normalise();
-            let (light_direction, is_lit) = self.lights[light_index].get_direction(hit.position);
+            let (light_position, light_direction, is_lit) =
+                self.lights[light_index].get_direction(hit.position);
 
             // Skip lights that are facing the wrong direction.
             if light_direction.dot(&hit.normal) > 0.0 {
                 continue;
             }
 
-            if is_lit && !self.is_point_in_shadow(hit.position, light_direction) {
+            if is_lit && !self.is_point_in_shadow(hit.position, light_position, light_direction) {
                 let intensity = self.lights[light_index].get_intensity(hit.position);
                 colour += intensity
                     * material.compute_per_light(&viewer_direction, &light_direction, &hit);
