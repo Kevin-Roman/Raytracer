@@ -1,10 +1,9 @@
-use sortedlist_rs::SortedList;
 use std::rc::Rc;
 
 use crate::{
     core::{
         material::Material,
-        object::{BaseObject, Object},
+        object::{BaseObject, HitPool, Object},
     },
     primitives::{hit::Hit, ray::Ray, transform::Transform},
 };
@@ -81,14 +80,6 @@ impl CSG {
 }
 
 impl Object for CSG {
-    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
-        self.base.get_hitpool()
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
-    }
-
     fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
@@ -97,14 +88,11 @@ impl Object for CSG {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, hitpool: &mut HitPool, ray: &Ray) {
         let mut result: Option<Hit> = None;
 
-        self.left_object.add_intersections(ray);
-        self.right_object.add_intersections(ray);
-
-        let left_hitpool = self.left_object.get_hitpool();
-        let right_hitpool = self.right_object.get_hitpool();
+        let mut left_hitpool = self.left_object.generate_hitpool(ray);
+        let mut right_hitpool = self.right_object.generate_hitpool(ray);
 
         let mut left_index = 0;
         let mut right_index = 0;
@@ -181,7 +169,7 @@ impl Object for CSG {
         right_hitpool.clear();
 
         if let Some(hit) = result {
-            self.base.hitpool.insert(hit);
+            hitpool.insert(hit);
         }
     }
 

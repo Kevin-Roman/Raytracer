@@ -1,11 +1,9 @@
 use std::{io, rc::Rc};
 
-use sortedlist_rs::SortedList;
-
 use crate::{
     core::{
         material::Material,
-        object::{BaseObject, Object},
+        object::{BaseObject, HitPool, Object},
     },
     primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
     utilities::obj_reader::{ObjReader, Triangle},
@@ -37,6 +35,7 @@ impl PolyMesh {
 
     fn add_hit(
         &mut self,
+        hitpool: &mut HitPool,
         triangle_index: usize,
         ray: &Ray,
         t: f32,
@@ -65,9 +64,7 @@ impl PolyMesh {
             hit_normal = hit_normal.negate();
         }
 
-        self.base
-            .hitpool
-            .insert(Hit::new(t, entering, hit_position, hit_normal));
+        hitpool.insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 
     /// Triangle intersection using the `Möller–Trumbore intersection algorithm`.
@@ -130,14 +127,6 @@ impl PolyMesh {
 }
 
 impl Object for PolyMesh {
-    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
-        self.base.get_hitpool()
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
-    }
-
     fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
@@ -146,11 +135,11 @@ impl Object for PolyMesh {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, hitpool: &mut HitPool, ray: &Ray) {
         // For each triangle in the model.
         for i in 0..self.triangles.len() {
             if let Some(((t, u, v), entering)) = self.triangle_intersection(ray, i) {
-                self.add_hit(i, ray, t, u, v, entering);
+                self.add_hit(hitpool, i, ray, t, u, v, entering);
             }
         }
     }

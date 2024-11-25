@@ -32,8 +32,7 @@ impl Scene {
         let mut nearest_hit: Option<(Hit, usize)> = None;
 
         for (i, object) in self.objects.iter_mut().enumerate() {
-            object.add_intersections(ray);
-            if let Some(hit) = object.select_first_hit() {
+            if let Some(hit) = object.select_first_hit(ray) {
                 if nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance {
                     nearest_hit = Some((hit, i));
                 }
@@ -92,8 +91,7 @@ impl Scene {
 impl Environment for Scene {
     fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool {
         for object in &mut self.objects {
-            object.add_intersections(ray);
-            if let Some(hit) = object.select_first_hit() {
+            if let Some(hit) = object.select_first_hit(ray) {
                 if 0.0 < hit.distance && hit.distance < limit {
                     return true;
                 }
