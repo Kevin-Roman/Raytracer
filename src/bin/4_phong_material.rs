@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
@@ -31,7 +31,7 @@ fn build_scene(scene: &mut Scene) {
     };
     polymesh_object.apply_transform(&transform);
 
-    let polymesh_material = Rc::new(PhongMaterial::new(
+    let polymesh_material = Arc::new(PhongMaterial::new(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.0, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
@@ -42,7 +42,7 @@ fn build_scene(scene: &mut Scene) {
 
     // Object used for shadow.
     let mut sphere_object = Box::new(Sphere::new(Vertex::new(-10.0, 0.0, 10.0, 1.0), 3.0));
-    let sphere_material = Rc::new(PhongMaterial::new(
+    let sphere_material = Arc::new(PhongMaterial::new(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.0, 0.0, 0.5, 1.0),
         Colour::new(0.3, 0.3, 0.3, 1.0),
@@ -91,6 +91,4 @@ fn main() {
     if let Err(e) = fb.write_depth_file("./output/4_phong_material_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
-
-    println!("Done")
 }

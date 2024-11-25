@@ -16,7 +16,7 @@ impl FalseColourMaterial {
 impl Material for FalseColourMaterial {
     fn compute_once(
         &self,
-        _environment: &mut dyn Environment,
+        _environment: &dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
         _recurse: u8,

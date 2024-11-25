@@ -1,5 +1,5 @@
 use core::f32;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     core::{environment::Environment, light::Light, material::Material, object::Object},
@@ -28,10 +28,10 @@ impl Scene {
     /// Trace and determine the nearest ray's hit in front of the camera.
     ///
     /// Returns the hit and the index of the object that was hit.
-    pub fn trace(&mut self, ray: &Ray) -> Option<(Hit, usize)> {
+    pub fn trace(&self, ray: &Ray) -> Option<(Hit, usize)> {
         let mut nearest_hit: Option<(Hit, usize)> = None;
 
-        for (i, object) in self.objects.iter_mut().enumerate() {
+        for (i, object) in self.objects.iter().enumerate() {
             if let Some(hit) = object.select_first_hit(ray) {
                 if nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance {
                     nearest_hit = Some((hit, i));
@@ -44,7 +44,7 @@ impl Scene {
 
     /// Determine if a hit point is in shadow.
     fn is_point_in_shadow(
-        &mut self,
+        &self,
         hit_position: Vertex,
         light_position: Option<Vertex>,
         light_direction: Vector,
@@ -64,7 +64,7 @@ impl Scene {
     }
 
     /// Compute contribution of all lights to the hit point.
-    fn compute_lighting(&mut self, hit: &Hit, material: &Rc<dyn Material>) -> Colour {
+    fn compute_lighting(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
 
         for light_index in 0..self.lights.len() {
@@ -89,8 +89,8 @@ impl Scene {
 }
 
 impl Environment for Scene {
-    fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool {
-        for object in &mut self.objects {
+    fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool {
+        for object in &self.objects {
             if let Some(hit) = object.select_first_hit(ray) {
                 if 0.0 < hit.distance && hit.distance < limit {
                     return true;
@@ -101,7 +101,7 @@ impl Environment for Scene {
         false
     }
 
-    fn raytrace(&mut self, ray: &Ray, recurse: u8) -> (Colour, f32) {
+    fn raytrace(&self, ray: &Ray, recurse: u8) -> (Colour, f32) {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
         let mut depth = 0.0;
 

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     core::{
@@ -80,15 +80,15 @@ impl CSG {
 }
 
 impl Object for CSG {
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, hitpool: &mut HitPool, ray: &Ray) {
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         let mut result: Option<Hit> = None;
 
         let mut left_hitpool = self.left_object.generate_hitpool(ray);

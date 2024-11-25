@@ -25,7 +25,7 @@ impl Default for CompoundMaterial {
 impl Material for CompoundMaterial {
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         viewer: &Ray,
         hit: &Hit,
         recurse: u8,

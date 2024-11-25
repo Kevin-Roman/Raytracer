@@ -4,11 +4,11 @@ use crate::{
 };
 
 /// Material is the trait for object materials.
-pub trait Material {
+pub trait Material: Sync + Send {
     /// Compute the colour at the ray intersection with the object
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         viewer: &Ray,
         hit: &Hit,
         recurse: u8,

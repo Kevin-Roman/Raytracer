@@ -1,4 +1,4 @@
-use std::{io, rc::Rc};
+use std::{io, sync::Arc};
 
 use crate::{
     core::{
@@ -34,7 +34,7 @@ impl PolyMesh {
     }
 
     fn add_hit(
-        &mut self,
+        &self,
         hitpool: &mut HitPool,
         triangle_index: usize,
         ray: &Ray,
@@ -127,15 +127,15 @@ impl PolyMesh {
 }
 
 impl Object for PolyMesh {
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, hitpool: &mut HitPool, ray: &Ray) {
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         // For each triangle in the model.
         for i in 0..self.triangles.len() {
             if let Some(((t, u, v), entering)) = self.triangle_intersection(ray, i) {

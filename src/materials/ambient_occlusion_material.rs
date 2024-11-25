@@ -9,7 +9,7 @@ use crate::{
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
-const SHADOW_DISTANCE_LIMIT: f32 = 10.0;
+const SHADOW_DISTANCE_LIMIT: f32 = 50.0;
 
 pub struct Point2D {
     pub x: f32,
@@ -113,7 +113,7 @@ impl AmbientOcclusionMaterial {
 impl Material for AmbientOcclusionMaterial {
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
         _recurse: u8,

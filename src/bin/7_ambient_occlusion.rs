@@ -1,6 +1,6 @@
 // Stage 2.3: Ambient Occlusion.
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
@@ -15,7 +15,7 @@ use raytracer::{
 fn build_scene(scene: &mut Scene) {
     // Floor.
     let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 3.0));
-    let floor_plane_material = Rc::new(AmbientOcclusionMaterial::new(
+    let floor_plane_material = Arc::new(AmbientOcclusionMaterial::new(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         64,
         0.1,
@@ -26,7 +26,7 @@ fn build_scene(scene: &mut Scene) {
 
     // Object used for shadow.
     let mut sphere_object = Box::new(Sphere::new(Vertex::new(0.0, 0.0, 10.0, 1.0), 3.0));
-    let sphere_material = Rc::new(AmbientOcclusionMaterial::new(
+    let sphere_material = Arc::new(AmbientOcclusionMaterial::new(
         Colour::new(1.0, 1.0, 0.0, 1.0),
         64,
         0.1,
@@ -44,8 +44,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 512;
-    let height = 512;
+    let width = 1024;
+    let height = 1024;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -67,13 +67,11 @@ fn main() {
 
     camera.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/ambient_occlusion_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/7_ambient_occlusion_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/6_ambient_occlusion_depth.ppm") {
+    if let Err(e) = fb.write_depth_file("./output/7_ambient_occlusion_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
-
-    println!(" Done")
 }

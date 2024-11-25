@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     core::{
@@ -30,15 +30,15 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, hitpool: &mut HitPool, ray: &Ray) {
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         let distance_to_plane: f32 = self.a * ray.position.vector.x
             + self.b * ray.position.vector.y
             + self.c * ray.position.vector.z

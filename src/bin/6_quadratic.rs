@@ -1,6 +1,6 @@
 // Stage 2.2: Quadratic Surfaces.
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
@@ -20,7 +20,7 @@ use raytracer::{
 fn build_scene(scene: &mut Scene) {
     // Floor.
     let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
-    let floor_plane_material = Rc::new(PhongMaterial::new(
+    let floor_plane_material = Arc::new(PhongMaterial::new(
         Colour::new(0.8, 0.8, 0.8, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         Colour::new(0.1, 0.1, 0.1, 1.0),
@@ -51,7 +51,7 @@ fn build_scene(scene: &mut Scene) {
     };
     polymesh_object.apply_transform(&transform);
 
-    let polymesh_material: Rc<dyn Material> = Rc::new(PhongMaterial::new(
+    let polymesh_material: Arc<dyn Material> = Arc::new(PhongMaterial::new(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.0, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
@@ -73,7 +73,7 @@ fn build_scene(scene: &mut Scene) {
     ));
 
     let mut csg_object = Box::new(CSG::new(Mode::CsgDiff, sphere_object_2, sphere_object_1));
-    let csg_material = Rc::new(GlobalMaterial::new(
+    let csg_material = Arc::new(GlobalMaterial::new(
         Colour::new(1.0, 1.0, 1.0, 0.0),
         Colour::new(1.0, 1.0, 1.0, 0.0),
         1.52,
@@ -115,13 +115,11 @@ fn main() {
 
     camera.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/stage2_task2_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/6_quadratic_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/stage2_task2_depth.ppm") {
+    if let Err(e) = fb.write_depth_file("./output/6_quadratic_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
-
-    println!("Done")
 }

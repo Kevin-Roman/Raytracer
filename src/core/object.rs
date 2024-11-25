@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use sortedlist_rs::SortedList;
 
@@ -10,11 +10,11 @@ use crate::{
 pub type HitPool = SortedList<Hit>;
 
 /// Object is the trait for objects in the environment.
-pub trait Object {
+pub trait Object: Sync {
     /// Computes and stores the intersections of a ray with this object.
-    fn add_intersections(&mut self, _hitpool: &mut HitPool, _ray: &Ray) {}
+    fn add_intersections(&self, _hitpool: &mut HitPool, _ray: &Ray) {}
 
-    fn generate_hitpool(&mut self, ray: &Ray) -> HitPool {
+    fn generate_hitpool(&self, ray: &Ray) -> HitPool {
         let mut hitpool = SortedList::new();
         self.add_intersections(&mut hitpool, ray);
         hitpool
@@ -22,7 +22,7 @@ pub trait Object {
 
     /// Selects the first hit (with positive distance) from the hitpool.
     /// This also clears the hitpool.
-    fn select_first_hit(&mut self, ray: &Ray) -> Option<Hit> {
+    fn select_first_hit(&self, ray: &Ray) -> Option<Hit> {
         let mut hitpool = self.generate_hitpool(ray);
         if let Some(index) = hitpool
             .flatten()
@@ -37,16 +37,16 @@ pub trait Object {
         }
     }
 
-    fn get_material(&self) -> Option<&Rc<dyn Material>>;
+    fn get_material(&self) -> Option<&Arc<dyn Material>>;
 
-    fn set_material(&mut self, material: Rc<dyn Material>);
+    fn set_material(&mut self, material: Arc<dyn Material>);
 
     /// Applies a transformation to the object.
     fn apply_transform(&mut self, _trans: &Transform) {}
 }
 
 pub struct BaseObject {
-    pub material: Option<Rc<dyn Material>>,
+    pub material: Option<Arc<dyn Material>>,
 }
 
 impl BaseObject {
@@ -56,11 +56,11 @@ impl BaseObject {
 }
 
 impl Object for BaseObject {
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.material.as_ref()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.material = Some(material);
     }
 }

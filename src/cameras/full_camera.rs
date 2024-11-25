@@ -1,3 +1,10 @@
+use indicatif::ProgressBar;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
+
 use crate::{
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
     primitives::{ray::Ray, vector::Vector, vertex::Vertex},
@@ -57,13 +64,6 @@ impl FullCamera {
             (x_v * self.u + y_v * self.v - self.fov * self.w).normalise(),
         )
     }
-
-    fn print_progress(&self, x: i32, y: i32) {
-        let percentage = ((y * (self.width as i32) + x + 1) as f64
-            / ((self.height as u32) * (self.width as u32)) as f64)
-            * 100.0;
-        print!("\rProgress: {:.2}%", percentage);
-    }
 }
 
 impl Default for FullCamera {
@@ -77,22 +77,37 @@ impl Default for FullCamera {
     }
 }
 
-impl<T: Environment> Camera<T> for FullCamera {
-    fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
+impl<T: Environment + Sync> Camera<T> for FullCamera {
+    fn render(&mut self, env: &T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;
 
-        for y in 0..self.height {
+        let fb = Arc::new(Mutex::new(fb));
+
+        let start_time = Instant::now();
+        let pb = ProgressBar::new(self.height as u64);
+
+        (0..self.height).into_par_iter().for_each(|y| {
             for x in 0..self.width {
                 let ray = self.get_pixel_ray(x, y);
 
                 let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
 
+                let mut fb = fb.lock().unwrap();
                 let _ = fb.plot_pixel(x as i32, y as i32, colour);
                 let _ = fb.plot_depth(x as i32, y as i32, depth);
-
-                self.print_progress(x as i32, y as i32);
             }
-        }
+            pb.inc(1);
+        });
+
+        pb.finish();
+        let elapsed_time = start_time.elapsed();
+        let total_seconds = elapsed_time.as_secs();
+        println!(
+            "Completed in {:02}:{:02}.{:03}",
+            total_seconds / 60,
+            total_seconds % 60,
+            elapsed_time.subsec_millis()
+        );
     }
 }

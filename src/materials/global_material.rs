@@ -61,7 +61,7 @@ impl GlobalMaterial {
 impl Material for GlobalMaterial {
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         viewer: &Ray,
         hit: &Hit,
         recurse: u8,
