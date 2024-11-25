@@ -89,7 +89,7 @@ impl Object for CSG {
     }
 
     fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
-        let mut result: Option<Hit> = None;
+        let mut result: Vec<Hit> = Vec::new();
 
         let mut left_hitpool = self.left_object.generate_hitpool(ray);
         let mut right_hitpool = self.right_object.generate_hitpool(ray);
@@ -111,30 +111,26 @@ impl Object for CSG {
 
             match ACTIONS[self.mode as usize][state] {
                 Action::CsgAEnter => {
-                    if result.is_none() {
-                        result = Some(left_hitpool[left_index]);
-                    }
+                    result.push(left_hitpool[left_index]);
+                    result.last_mut().unwrap().entering = true;
                     left_index += 1;
                 }
                 Action::CsgAExit => {
-                    if result.is_none() {
-                        result = Some(left_hitpool[left_index]);
-                    }
+                    result.push(left_hitpool[left_index]);
+                    result.last_mut().unwrap().entering = false;
                     left_index += 1;
                 }
                 Action::CsgADrop => {
                     left_index += 1;
                 }
                 Action::CsgBEnter => {
-                    if result.is_none() {
-                        result = Some(right_hitpool[right_index]);
-                    }
+                    result.push(right_hitpool[right_index]);
+                    result.last_mut().unwrap().entering = true;
                     right_index += 1;
                 }
                 Action::CsgBExit => {
-                    if result.is_none() {
-                        result = Some(right_hitpool[right_index]);
-                    }
+                    result.push(right_hitpool[right_index]);
+                    result.last_mut().unwrap().entering = false;
                     right_index += 1;
                 }
                 Action::CsgBDrop => {
@@ -146,20 +142,14 @@ impl Object for CSG {
         match self.mode {
             Mode::CsgDiff => {
                 if left_index < left_hitpool.len() {
-                    if result.is_none() {
-                        result = Some(left_hitpool[left_index]);
-                    }
+                    result.extend(left_hitpool.flatten().iter().skip(left_index).cloned());
                 }
             }
             Mode::CsgUnion => {
                 if left_index >= left_hitpool.len() {
-                    if result.is_none() && right_index < right_hitpool.len() {
-                        result = Some(right_hitpool[right_index]);
-                    }
+                    result.extend(right_hitpool.flatten().iter().skip(right_index).cloned());
                 } else {
-                    if result.is_none() && left_index < left_hitpool.len() {
-                        result = Some(left_hitpool[left_index]);
-                    }
+                    result.extend(left_hitpool.flatten().iter().skip(left_index).cloned());
                 }
             }
             Mode::CsgInter => {}
@@ -168,7 +158,7 @@ impl Object for CSG {
         left_hitpool.clear();
         right_hitpool.clear();
 
-        if let Some(hit) = result {
+        for hit in result {
             hitpool.insert(hit);
         }
     }
