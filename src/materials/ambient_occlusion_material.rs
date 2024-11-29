@@ -1,6 +1,9 @@
 use crate::{
-    core::{environment::Environment, material::Material, sampler::Sampler},
-    environments::scene::ROUNDING_ERROR,
+    core::{
+        environment::{Environment, ROUNDING_ERROR},
+        material::Material,
+        sampler::Sampler,
+    },
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };

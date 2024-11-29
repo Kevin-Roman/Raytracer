@@ -2,13 +2,14 @@ use core::f32;
 use std::sync::Arc;
 
 use crate::{
-    core::{environment::Environment, light::Light, material::Material, object::Object},
+    core::{
+        environment::{Environment, ROUNDING_ERROR},
+        light::Light,
+        material::Material,
+        object::Object,
+    },
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector, vertex::Vertex},
 };
-
-/// Small rounding error used to move shadow ray point along the ray by a small amount
-/// in case the shadow position is behind the hit (due to floating point precision).
-pub const ROUNDING_ERROR: f32 = 0.001;
 
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
@@ -67,10 +68,9 @@ impl Scene {
     fn compute_lighting(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
 
-        for light_index in 0..self.lights.len() {
+        for light in &self.lights {
             let viewer_direction = (-hit.position.vector).normalise();
-            let (light_position, light_direction, is_lit) =
-                self.lights[light_index].get_direction(hit.position);
+            let (light_position, light_direction, is_lit) = light.get_direction(hit.position);
 
             // Skip lights that are facing the wrong direction.
             if light_direction.dot(&hit.normal) > 0.0 {
@@ -78,7 +78,7 @@ impl Scene {
             }
 
             if is_lit && !self.is_point_in_shadow(hit.position, light_position, light_direction) {
-                let intensity = self.lights[light_index].get_intensity(hit.position);
+                let intensity = light.get_intensity(hit.position);
                 colour += intensity
                     * material.compute_per_light(&viewer_direction, &light_direction, &hit);
             }
@@ -120,5 +120,13 @@ impl Environment for Scene {
         }
 
         (colour, depth)
+    }
+
+    fn add_object(&mut self, object: Box<dyn Object>) {
+        self.objects.push(object);
+    }
+
+    fn add_light(&mut self, light: Box<dyn Light>) {
+        self.lights.push(light);
     }
 }

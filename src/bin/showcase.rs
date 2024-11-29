@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{camera::Camera, framebuffer::FrameBuffer, object::Object},
-    environments::scene::Scene,
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
+    environments::photon_scene::PhotonScene,
     materials::{
         ambient_occlusion_material::AmbientOcclusionMaterial, compound_material::CompoundMaterial,
         global_material::GlobalMaterial, phong_material::PhongMaterial,
@@ -13,7 +13,7 @@ use raytracer::{
     utilities::cornell_box::{setup_cornell_box, HALF_SIDE_LENGTH},
 };
 
-fn build_scene(scene: &mut Scene) {
+fn build_scene<T: Environment>(scene: &mut T) {
     setup_cornell_box(scene, true);
 
     let mut sphere_object = Box::new(Sphere::new(
@@ -25,7 +25,7 @@ fn build_scene(scene: &mut Scene) {
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
     )));
-    scene.objects.push(sphere_object);
+    scene.add_object(sphere_object);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
@@ -56,7 +56,7 @@ fn build_scene(scene: &mut Scene) {
             0.2,
         )),
     ])));
-    scene.objects.push(teapot);
+    scene.add_object(teapot);
 }
 
 fn main() {
@@ -71,7 +71,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new(Colour::default());
+    let mut scene = PhotonScene::new();
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(

@@ -6,4 +6,8 @@ pub trait Light: Sync {
     fn get_direction(&self, surface: Vertex) -> (Option<Vertex>, Vector, bool);
 
     fn get_intensity(&self, surface: Vertex) -> Colour;
+
+    fn get_position(&self) -> Option<Vertex> {
+        None
+    }
 }

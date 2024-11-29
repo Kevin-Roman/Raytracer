@@ -1,15 +1,59 @@
-use kd_tree::{KdPoint, KdTree};
+use kd_tree::KdPoint;
 
-use super::vertex::Vertex;
+use super::{colour::Colour, vector::Vector, vertex::Vertex};
+
+#[derive(Clone, Copy, Debug)]
+pub enum PhotonType {
+    DirectionIllumination,
+    IndirectIllumination,
+    ShadowPhoton,
+}
 
 pub struct Photon {
     position: Vertex,
+    direction: Vector,
+    intensity: Colour,
+    photon_type: PhotonType,
+}
+
+impl Photon {
+    pub fn new(
+        position: Vertex,
+        direction: Vector,
+        intensity: Colour,
+        photon_type: PhotonType,
+    ) -> Self {
+        Self {
+            position,
+            direction,
+            intensity,
+            photon_type,
+        }
+    }
+}
+
+impl Default for Photon {
+    fn default() -> Self {
+        Photon::new(
+            Vertex::default(),
+            Vector::default(),
+            Colour::default(),
+            PhotonType::DirectionIllumination,
+        )
+    }
 }
 
 impl KdPoint for Photon {
-    type Scalar = f64;
-    type Dim = typenum::U2; // 2 dimensional tree.
-    fn at(&self, k: usize) -> f64 {
-        0.0
+    type Scalar = f32;
+    // 3-dimensional tree.
+    type Dim = typenum::U3;
+
+    fn at(&self, index: usize) -> f32 {
+        match index {
+            0 => self.position.vector.x,
+            1 => self.position.vector.y,
+            2 => self.position.vector.z,
+            _ => unreachable!(),
+        }
     }
 }
