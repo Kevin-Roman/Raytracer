@@ -78,7 +78,7 @@ impl Default for FullCamera {
 }
 
 impl<T: Environment + Sync> Camera<T> for FullCamera {
-    fn render(&mut self, env: &T, fb: &mut FrameBuffer) {
+    fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;
 
@@ -86,6 +86,8 @@ impl<T: Environment + Sync> Camera<T> for FullCamera {
 
         let start_time = Instant::now();
         let pb = ProgressBar::new(self.height as u64);
+
+        env.initialise();
 
         (0..self.height).into_par_iter().for_each(|y| {
             for x in 0..self.width {

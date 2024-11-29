@@ -118,6 +118,7 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "paste",
+ "rayon",
  "typenum",
 ]
 
@@ -268,6 +269,7 @@ dependencies = [
  "rayon",
  "sortedlist-rs",
  "thiserror",
+ "typenum",
 ]
 
 [[package]]

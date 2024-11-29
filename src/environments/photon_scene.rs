@@ -1,9 +1,13 @@
 use core::f32;
 use std::sync::Arc;
 
+use kd_tree::KdTree;
+
 use crate::{
     core::{environment::Environment, light::Light, material::Material, object::Object},
-    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector, vertex::Vertex},
+    primitives::{
+        colour::Colour, hit::Hit, photon::Photon, ray::Ray, vector::Vector, vertex::Vertex,
+    },
 };
 
 /// Small rounding error used to move shadow ray point along the ray by a small amount
@@ -13,15 +17,17 @@ pub const ROUNDING_ERROR: f32 = 0.001;
 pub struct PhotonScene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
-    background_colour: Colour,
+    pub global_photon_map: Option<KdTree<Photon>>,
+    pub caustic_photon_map: Option<KdTree<Photon>>,
 }
 
 impl PhotonScene {
-    pub fn new(background_colour: Colour) -> Self {
+    pub fn new() -> Self {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
-            background_colour,
+            global_photon_map: None,
+            caustic_photon_map: None,
         }
     }
 
@@ -89,6 +95,9 @@ impl PhotonScene {
 }
 
 impl Environment for PhotonScene {
+    /// Pass 1: Constructing the Photon Maps.
+    fn initialise(&mut self) {}
+
     fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool {
         for object in &self.objects {
             if let Some(hit) = object.select_first_hit(ray) {
@@ -115,8 +124,6 @@ impl Environment for PhotonScene {
                 // Calculate contributions from lights.
                 colour += self.compute_lighting(&hit, &material);
             }
-        } else {
-            colour = self.background_colour;
         }
 
         (colour, depth)
