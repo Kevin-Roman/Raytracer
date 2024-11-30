@@ -44,4 +44,14 @@ impl Material for CompoundMaterial {
                 acc + material.compute_per_light(viewer, light_direction, hit)
             })
     }
+
+    fn is_specular(&self) -> bool {
+        for material in &self.materials {
+            if material.is_specular() {
+                return true;
+            }
+        }
+
+        false
+    }
 }

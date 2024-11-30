@@ -8,30 +8,28 @@ use crate::{
 };
 
 pub struct MultiJitterSampler {
-    num_samples: u16,
+    num_samples: u32,
     samples: Vec<Point2D>,
 }
 
 impl MultiJitterSampler {
-    pub fn new(num_samples: u16) -> Self {
+    pub fn new(num_samples: u32) -> Self {
         assert!(
-            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples as u32,
+            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples,
             "Number of samples must be a square number."
         );
 
-        let samples: Vec<Point2D> = MultiJitterSampler::samples(num_samples);
+        let samples: Vec<Point2D> = MultiJitterSampler::generate_samples(num_samples);
 
         Self {
             num_samples,
-            samples,
+            samples: samples,
         }
     }
-}
 
-impl Sampler for MultiJitterSampler {
     /// Multi-jittered sampling technique to generate a set of
     /// sample points that are evenly distributed within a unit square.
-    fn samples(num_samples: u16) -> Vec<Point2D> {
+    fn generate_samples(num_samples: u32) -> Vec<Point2D> {
         let mut rng = rand::thread_rng();
         let sqrt_samples = (num_samples as f32).sqrt() as u32;
 
@@ -75,6 +73,12 @@ impl Sampler for MultiJitterSampler {
         }
 
         points
+    }
+}
+
+impl Sampler for MultiJitterSampler {
+    fn get_samples(&self) -> &Vec<Point2D> {
+        &self.samples
     }
 
     /// Converts 2D sample points into 3D vectors that are distributed over a hemisphere.

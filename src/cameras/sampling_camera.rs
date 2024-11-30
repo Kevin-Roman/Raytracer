@@ -10,14 +10,16 @@ use crate::{
         camera::{Camera, RAYTRACE_RECURSE},
         environment::Environment,
         framebuffer::FrameBuffer,
+        sampler::Sampler,
     },
-    primitives::{ray::Ray, vector::Vector, vertex::Vertex},
+    primitives::{colour::Colour, ray::Ray, vector::Vector, vertex::Vertex},
+    samplers::multi_jitter_sampler::MultiJitterSampler,
 };
 
 /// Full camera allows a camera to be placed in space with a lookat and up direction
 /// as well as the field of view. It loops over the pixels in a framebuffer and computes
 /// a ray that is then passed to the environment.
-pub struct FullCamera {
+pub struct SamplingCamera {
     pub width: u16,
     pub height: u16,
     /// Field of view. Distance from the camera to the image plane.
@@ -30,10 +32,11 @@ pub struct FullCamera {
     u: Vector,
     /// Camera's up vector.
     v: Vector,
+    num_samples: u32,
 }
 
-impl FullCamera {
-    pub fn new(fov: f32, position: Vertex, lookat: Vector, up: Vector) -> Self {
+impl SamplingCamera {
+    pub fn new(fov: f32, position: Vertex, lookat: Vector, up: Vector, num_samples: u32) -> Self {
         let w = (position.vector - lookat).normalise();
         let u = w.cross(&up).normalise();
         let v = u.cross(&w);
@@ -46,16 +49,17 @@ impl FullCamera {
             w,
             u,
             v,
+            num_samples,
         }
     }
 
-    fn get_pixel_ray(&self, x: u16, y: u16) -> Ray {
+    fn get_pixel_ray(&self, x: u16, y: u16, x_offset: f32, y_offset: f32) -> Ray {
         // Add 0.5 to pixel's x and y coordinates to get middle of the pixel.
         // The camera (eye) is centred with the centre of the image, so we need
         // to shift the pixels up and left by half the width/height) to get the pixel
         // coordinates in respect to the camera.
-        let mut x_v = ((x as f32) + 0.5) - ((self.width as f32) / 2.0);
-        let mut y_v = ((self.height as f32) / 2.0) - ((y as f32) + 0.5);
+        let mut x_v = ((x as f32) + 0.5 + x_offset) - ((self.width as f32) / 2.0);
+        let mut y_v = ((self.height as f32) / 2.0) - ((y as f32) + 0.5 + y_offset);
 
         // Normalise.
         x_v /= self.width as f32;
@@ -68,18 +72,19 @@ impl FullCamera {
     }
 }
 
-impl Default for FullCamera {
+impl Default for SamplingCamera {
     fn default() -> Self {
         Self::new(
             0.5,
             Vertex::default(),
             Vector::new(0.0, 0.0, 1.0),
             Vector::new(0.0, 1.0, 0.0),
+            1,
         )
     }
 }
 
-impl<T: Environment + Sync> Camera<T> for FullCamera {
+impl<T: Environment + Sync> Camera<T> for SamplingCamera {
     fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;
@@ -93,13 +98,26 @@ impl<T: Environment + Sync> Camera<T> for FullCamera {
 
         (0..self.height).into_par_iter().for_each(|y| {
             for x in 0..self.width {
-                let ray = self.get_pixel_ray(x, y);
+                let sampler = MultiJitterSampler::new(self.num_samples);
+                let samples = sampler.get_samples();
 
-                let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
+                let mut sampled_colour = Colour::default();
+                let mut sampled_depth = 0.0;
+
+                for samples in samples {
+                    let ray = self.get_pixel_ray(x, y, samples.x - 0.5, samples.y - 0.5);
+                    let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
+                    sampled_colour += colour;
+                    sampled_depth += depth;
+                }
+
+                // Average the radiance
+                sampled_colour /= samples.len() as f32;
+                sampled_depth /= samples.len() as f32;
 
                 let mut fb = fb.lock().unwrap();
-                let _ = fb.plot_pixel(x as i32, y as i32, colour);
-                let _ = fb.plot_depth(x as i32, y as i32, depth);
+                let _ = fb.plot_pixel(x as i32, y as i32, sampled_colour);
+                let _ = fb.plot_depth(x as i32, y as i32, sampled_depth);
             }
             pb.inc(1);
         });

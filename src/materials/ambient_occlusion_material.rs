@@ -14,16 +14,16 @@ const SHADOW_DISTANCE_LIMIT: f32 = 50.0;
 pub struct AmbientOcclusionMaterial {
     ambient: Colour,
     /// Number of samples to take for ambient occlusion.
-    num_samples: u16,
+    num_samples: u32,
     /// Minimum amount of ambient light to be considered.
     /// Value between 0.0 and 1.0.
     min_ambient_amount: f32,
 }
 
 impl AmbientOcclusionMaterial {
-    pub fn new(ambient: Colour, num_samples: u16, min_ambient_amount: f32) -> Self {
+    pub fn new(ambient: Colour, num_samples: u32, min_ambient_amount: f32) -> Self {
         assert!(
-            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples as u32,
+            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples,
             "Number of samples must be a square number."
         );
 

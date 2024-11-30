@@ -4,7 +4,7 @@ use sortedlist_rs::SortedList;
 
 use crate::{
     core::material::Material,
-    primitives::{hit::Hit, ray::Ray, transform::Transform},
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
 };
 
 /// Sortedlist uses a list of sorted sublists to store elements.
@@ -51,6 +51,10 @@ pub trait Object: Sync {
 
     /// Applies a transformation to the object.
     fn apply_transform(&mut self, _trans: &Transform) {}
+
+    fn bounding_sphere(&self) -> Option<(Vertex, f32)> {
+        None
+    }
 }
 
 pub struct BaseObject {

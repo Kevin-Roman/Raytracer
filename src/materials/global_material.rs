@@ -104,4 +104,8 @@ impl Material for GlobalMaterial {
     fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
         Colour::default()
     }
+
+    fn is_specular(&self) -> bool {
+        true
+    }
 }

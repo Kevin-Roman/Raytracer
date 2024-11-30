@@ -1,17 +1,19 @@
 use std::sync::Arc;
 
 use raytracer::{
-    cameras::full_camera::FullCamera,
+    cameras::sampling_camera::SamplingCamera,
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
     environments::photon_scene::PhotonScene,
     materials::{
-        ambient_occlusion_material::AmbientOcclusionMaterial, compound_material::CompoundMaterial,
-        global_material::GlobalMaterial, phong_material::PhongMaterial,
+        compound_material::CompoundMaterial, global_material::GlobalMaterial,
+        phong_material::PhongMaterial,
     },
     objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
-    utilities::cornell_box::{setup_cornell_box, HALF_SIDE_LENGTH},
+    utilities::cornell_box::{setup_cornell_box, HALF_SIDE_LENGTH, SIDE_LENGTH},
 };
+
+const NUM_CAMERA_RAY_SAMPLES: u32 = 4;
 
 fn build_scene<T: Environment>(scene: &mut T) {
     setup_cornell_box(scene, false);
@@ -50,11 +52,11 @@ fn build_scene<T: Environment>(scene: &mut T) {
             Colour::new(0.5, 0.5, 0.5, 1.0),
             50.0,
         )),
-        Box::new(AmbientOcclusionMaterial::new(
-            Colour::new(0.2, 0.2, 0.2, 1.0),
-            64,
-            0.2,
-        )),
+        // Box::new(AmbientOcclusionMaterial::new(
+        //     Colour::new(0.2, 0.2, 0.2, 1.0),
+        //     64,
+        //     0.2,
+        // )),
     ])));
     scene.add_object(teapot);
 }
@@ -74,20 +76,31 @@ fn main() {
     let mut scene = PhotonScene::new();
     build_scene(&mut scene);
 
-    let mut camera = FullCamera::new(
+    let mut camera_front = SamplingCamera::new(
         0.5,
         Vertex::new(0.0, HALF_SIDE_LENGTH, 0.05, 1.0),
         Vector::new(0.0, HALF_SIDE_LENGTH, HALF_SIDE_LENGTH),
         Vector::new(0.0, 1.0, 0.0),
+        NUM_CAMERA_RAY_SAMPLES,
     );
 
-    camera.render(&mut scene, &mut fb);
+    camera_front.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_front.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/showcase_depth.ppm") {
-        eprintln!("Error writing Depth file: {}", e);
-    };
+    // let mut camera_back = SamplingCamera::new(
+    //     0.2,
+    //     Vertex::new(0.0, HALF_SIDE_LENGTH, SIDE_LENGTH - 0.05, 1.0),
+    //     Vector::new(0.0, HALF_SIDE_LENGTH, HALF_SIDE_LENGTH),
+    //     Vector::new(0.0, 1.0, 0.0),
+    //     NUM_CAMERA_RAY_SAMPLES,
+    // );
+
+    // camera_back.render(&mut scene, &mut fb);
+
+    // if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_back.ppm") {
+    //     eprintln!("Error writing RGB file: {}", e);
+    // };
 }

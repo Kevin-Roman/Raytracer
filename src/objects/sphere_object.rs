@@ -5,7 +5,12 @@ use crate::{
         material::Material,
         object::{BaseObject, HitPool, Object},
     },
-    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
+    primitives::{
+        hit::Hit,
+        ray::Ray,
+        transform::Transform,
+        vertex::{self, Vertex},
+    },
 };
 
 pub struct Sphere {
@@ -71,5 +76,9 @@ impl Object for Sphere {
 
     fn apply_transform(&mut self, trans: &Transform) {
         trans.apply_to_vertex(&mut self.center);
+    }
+
+    fn bounding_sphere(&self) -> Option<(Vertex, f32)> {
+        Some((self.center, self.radius))
     }
 }

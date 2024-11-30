@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign};
 
 /// RGBA colour with components in the range [0.0, 1.0].
 #[derive(Clone, Copy, Debug)]
@@ -73,6 +73,14 @@ impl Mul<Colour> for f32 {
     }
 }
 
+impl Div<f32> for Colour {
+    type Output = Self;
+
+    fn div(self, denom: f32) -> Self::Output {
+        Colour::new(self.r / denom, self.g / denom, self.b / denom, self.a)
+    }
+}
+
 impl AddAssign<Self> for Colour {
     fn add_assign(&mut self, other: Self) {
         self.add(&other);
@@ -82,5 +90,13 @@ impl AddAssign<Self> for Colour {
 impl MulAssign<Self> for Colour {
     fn mul_assign(&mut self, other: Self) {
         self.scale(&other);
+    }
+}
+
+impl DivAssign<f32> for Colour {
+    fn div_assign(&mut self, denom: f32) {
+        self.r /= denom;
+        self.g /= denom;
+        self.b /= denom;
     }
 }
