@@ -23,7 +23,7 @@ impl Light for DirectionalLight {
         (None, self.direction, true)
     }
 
-    fn get_intensity(&self, _surface: Vertex) -> Colour {
+    fn get_intensity(&self) -> Colour {
         self.intensity
     }
 }

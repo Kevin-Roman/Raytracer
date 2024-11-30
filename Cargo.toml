@@ -11,3 +11,6 @@ rayon = "1.10.0"
 sortedlist-rs = "0.2.2"
 thiserror = "1.0.63"
 typenum = "1.17.0"
+
+[features]
+debugging = []

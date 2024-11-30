@@ -27,7 +27,11 @@ impl Light for PointLight {
         )
     }
 
-    fn get_intensity(&self, _surface: Vertex) -> Colour {
+    fn get_intensity(&self) -> Colour {
         self.intensity
+    }
+
+    fn get_position(&self) -> Option<Vertex> {
+        Some(self.position)
     }
 }

@@ -8,12 +8,12 @@ use crate::{
 };
 
 pub struct MultiJitterSampler {
-    num_samples: u8,
+    num_samples: u16,
     samples: Vec<Point2D>,
 }
 
 impl MultiJitterSampler {
-    pub fn new(num_samples: u8) -> Self {
+    pub fn new(num_samples: u16) -> Self {
         assert!(
             ((num_samples as f64).sqrt() as u32).pow(2) == num_samples as u32,
             "Number of samples must be a square number."
@@ -31,7 +31,7 @@ impl MultiJitterSampler {
 impl Sampler for MultiJitterSampler {
     /// Multi-jittered sampling technique to generate a set of
     /// sample points that are evenly distributed within a unit square.
-    fn samples(num_samples: u8) -> Vec<Point2D> {
+    fn samples(num_samples: u16) -> Vec<Point2D> {
         let mut rng = rand::thread_rng();
         let sqrt_samples = (num_samples as f32).sqrt() as u32;
 

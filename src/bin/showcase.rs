@@ -14,7 +14,7 @@ use raytracer::{
 };
 
 fn build_scene<T: Environment>(scene: &mut T) {
-    setup_cornell_box(scene, true);
+    setup_cornell_box(scene, false);
 
     let mut sphere_object = Box::new(Sphere::new(
         Vertex::new(-20.0, 15.0, HALF_SIDE_LENGTH * 1.25, 1.0),

@@ -10,10 +10,10 @@ pub enum PhotonType {
 }
 
 pub struct Photon {
-    position: Vertex,
-    direction: Vector,
-    intensity: Colour,
-    photon_type: PhotonType,
+    pub position: Vertex,
+    pub direction: Vector,
+    pub intensity: Colour,
+    pub photon_type: PhotonType,
 }
 
 impl Photon {

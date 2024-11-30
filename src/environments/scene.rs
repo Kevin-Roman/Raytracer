@@ -29,7 +29,7 @@ impl Scene {
     /// Trace and determine the nearest ray's hit in front of the camera.
     ///
     /// Returns the hit and the index of the object that was hit.
-    pub fn trace(&self, ray: &Ray) -> Option<(Hit, usize)> {
+    fn trace(&self, ray: &Ray) -> Option<(Hit, usize)> {
         let mut nearest_hit: Option<(Hit, usize)> = None;
 
         for (i, object) in self.objects.iter().enumerate() {
@@ -78,7 +78,7 @@ impl Scene {
             }
 
             if is_lit && !self.is_point_in_shadow(hit.position, light_position, light_direction) {
-                let intensity = light.get_intensity(hit.position);
+                let intensity = light.get_intensity();
                 colour += intensity
                     * material.compute_per_light(&viewer_direction, &light_direction, &hit);
             }
