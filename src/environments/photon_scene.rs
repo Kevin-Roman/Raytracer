@@ -23,13 +23,19 @@ use crate::{
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
 
+const RECURSE_APPROXIMATE_DEPTH: u8 = 2;
 const PHOTON_RECURSE: u8 = 1;
-const NUM_PHOTONS: u32 = 10_000;
-// const NUM_PHOTONS: u32 = 2500;
+// const NUM_PHOTONS: u32 = 10_000;
+const NUM_PHOTONS: u32 = 2500;
 const PHOTON_SEARCH_RADIUS: f32 = 7.5;
 const RUSSION_ROULETTE_CHANCE: f32 = 0.5;
 
 type PhotonMap = KdTree<Photon>;
+
+pub struct PhotonMaps {
+    global: PhotonMap,
+    caustic: PhotonMap,
+}
 
 enum PhotonOutcome {
     Reflect,
@@ -51,8 +57,7 @@ fn russian_roulette() -> PhotonOutcome {
 pub struct PhotonScene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
-    pub global_photon_map: PhotonMap,
-    pub caustic_photon_map: PhotonMap,
+    pub photon_maps: PhotonMaps,
 }
 
 impl PhotonScene {
@@ -60,8 +65,10 @@ impl PhotonScene {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
-            global_photon_map: KdTree::default(),
-            caustic_photon_map: KdTree::default(),
+            photon_maps: PhotonMaps {
+                global: KdTree::default(),
+                caustic: KdTree::default(),
+            },
         }
     }
 
@@ -150,23 +157,23 @@ impl PhotonScene {
         }
     }
 
-    fn compute_lighting_with_photon_map(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
-        let mut colour = Colour::default();
+    // fn compute_lighting_with_photon_map(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
+    //     let mut colour = Colour::default();
 
-        let photons = self.global_photon_map.within_radius(
-            &[
-                hit.position.vector.x,
-                hit.position.vector.y,
-                hit.position.vector.z,
-            ],
-            PHOTON_SEARCH_RADIUS,
-        );
-        for photon in photons {
-            colour += photon.intensity * material.brdf(&hit.normal, &photon.direction);
-        }
+    //     let photons = self.photon_maps.global.within_radius(
+    //         &[
+    //             hit.position.vector.x,
+    //             hit.position.vector.y,
+    //             hit.position.vector.z,
+    //         ],
+    //         PHOTON_SEARCH_RADIUS,
+    //     );
+    //     for photon in photons {
+    //         colour += photon.intensity * material.brdf(&hit.normal, &photon.direction);
+    //     }
 
-        colour
-    }
+    //     colour
+    // }
 
     // fn compute_lighting(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
     //     let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
@@ -351,8 +358,8 @@ impl Environment for PhotonScene {
         #[cfg(feature = "debugging")]
         self.display_photons(&caustic_photon_map);
 
-        self.global_photon_map = KdTree::par_build_by_ordered_float(global_photon_map);
-        self.caustic_photon_map = KdTree::par_build_by_ordered_float(caustic_photon_map);
+        self.photon_maps.global = KdTree::par_build_by_ordered_float(global_photon_map);
+        self.photon_maps.caustic = KdTree::par_build_by_ordered_float(caustic_photon_map);
     }
 
     fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool {
@@ -367,8 +374,9 @@ impl Environment for PhotonScene {
         false
     }
 
+    // Pass 2: Rendering the scene.
     fn raytrace(&self, ray: &Ray, recurse: u8) -> (Colour, f32) {
-        let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
+        let mut colour = Colour::new(0.0, 0.0, 0.0, 1.0);
         let mut depth = 0.0;
 
         if let Some((hit, object_index)) = self.ray_trace(ray) {
@@ -377,13 +385,9 @@ impl Environment for PhotonScene {
             if let Some(material) = self.objects[object_index].get_material().cloned() {
                 // Compute direct material contribution.
                 colour += material.compute_once(self, ray, &hit, recurse);
-                // colour += self.compute_lighting_with_photon_map(&hit, &material);
 
-                // // Compute direct material contribution.
-                // colour += material.compute_once(self, ray, &hit, recurse);
-
-                // // Calculate contributions from lights.
-                // colour += self.compute_lighting(&hit, &material);
+                // Calculate contributions from lights.
+                colour += self.compute_lighting(&hit, &material);
             }
         }
 
@@ -396,5 +400,9 @@ impl Environment for PhotonScene {
 
     fn add_light(&mut self, light: Box<dyn Light>) {
         self.lights.push(light);
+    }
+
+    fn get_photon_maps(&self) -> Option<&PhotonMaps> {
+        Some(&self.photon_maps)
     }
 }

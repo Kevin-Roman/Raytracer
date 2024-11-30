@@ -1,4 +1,7 @@
-use crate::primitives::{colour::Colour, ray::Ray};
+use crate::{
+    environments::photon_scene::PhotonMaps,
+    primitives::{colour::Colour, ray::Ray},
+};
 
 use super::{light::Light, object::Object};
 
@@ -20,4 +23,8 @@ pub trait Environment {
     fn add_object(&mut self, object: Box<dyn Object>);
 
     fn add_light(&mut self, light: Box<dyn Light>);
+
+    fn get_photon_maps(&self) -> Option<&PhotonMaps> {
+        None
+    }
 }
