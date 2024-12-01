@@ -90,17 +90,17 @@ fn main() {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    // let mut camera_back = SamplingCamera::new(
-    //     0.2,
-    //     Vertex::new(0.0, HALF_SIDE_LENGTH, SIDE_LENGTH - 0.05, 1.0),
-    //     Vector::new(0.0, HALF_SIDE_LENGTH, HALF_SIDE_LENGTH),
-    //     Vector::new(0.0, 1.0, 0.0),
-    //     NUM_CAMERA_RAY_SAMPLES,
-    // );
+    let mut camera_back = SamplingCamera::new(
+        0.2,
+        Vertex::new(0.0, HALF_SIDE_LENGTH, SIDE_LENGTH - 0.05, 1.0),
+        Vector::new(0.0, HALF_SIDE_LENGTH, HALF_SIDE_LENGTH),
+        Vector::new(0.0, 1.0, 0.0),
+        NUM_CAMERA_RAY_SAMPLES,
+    );
 
-    // camera_back.render(&mut scene, &mut fb);
+    camera_back.render(&mut scene, &mut fb);
 
-    // if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_back.ppm") {
-    //     eprintln!("Error writing RGB file: {}", e);
-    // };
+    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_back.ppm") {
+        eprintln!("Error writing RGB file: {}", e);
+    };
 }

@@ -10,8 +10,6 @@ use crate::{
         object::Object,
         sampler::Sampler,
     },
-    materials::phong_material::PhongMaterial,
-    objects::sphere_object::Sphere,
     primitives::{
         colour::Colour,
         hit::Hit,
@@ -23,18 +21,21 @@ use crate::{
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
 
+#[cfg(feature = "debugging")]
+use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sphere};
+
 const RECURSE_APPROXIMATE_DEPTH: u8 = 2;
 const PHOTON_RECURSE: u8 = 1;
 // const NUM_PHOTONS: u32 = 10_000;
 const NUM_PHOTONS: u32 = 2500;
-const PHOTON_SEARCH_RADIUS: f32 = 7.5;
-const RUSSION_ROULETTE_CHANCE: f32 = 0.5;
+const RUSSION_ROULETTE_CHANCE: f32 = 0.0;
+const SPECULAR_FOCUS: f32 = 0.2;
 
-type PhotonMap = KdTree<Photon>;
+pub type PhotonMap = KdTree<Photon>;
 
 pub struct PhotonMaps {
-    global: PhotonMap,
-    caustic: PhotonMap,
+    pub global: PhotonMap,
+    pub caustic: PhotonMap,
 }
 
 enum PhotonOutcome {
@@ -96,12 +97,10 @@ impl PhotonScene {
     ) {
         let mut nearest_hit: Option<(Hit, usize)> = None;
 
-        // TODO: those that are not specular, for global photon map.
         for (i, object) in self.objects.iter().enumerate() {
             // TODO: handle transmision and it's need for hit.entering = false (maybe).
             if let Some(hit) = object.select_first_hit(ray) {
-                if 0.0 < hit.distance
-                    && hit.entering
+                if hit.entering
                     && (nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance)
                 {
                     nearest_hit = Some((hit, i));
@@ -307,7 +306,18 @@ impl Environment for PhotonScene {
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
                 for sample_direction in &samples {
-                    let photon_ray = Ray::new(light_position, *sample_direction);
+                    let sign = if rand::random::<f64>() > 0.5 {
+                        1.0
+                    } else {
+                        -1.0
+                    };
+                    let photon_direction = Vector::new(
+                        sample_direction.x,
+                        sample_direction.y,
+                        sample_direction.z * sign,
+                    );
+                    let photon_ray = Ray::new(light_position, photon_direction);
+
                     let photon_power = 1.0 / samples.len() as f32;
 
                     // TODO: photon stores light intensity.
@@ -332,8 +342,8 @@ impl Environment for PhotonScene {
 
                     if let Some(bounding_sphere) = object.bounding_sphere() {
                         for sample_direction in &samples {
-                            let target_point =
-                                bounding_sphere.0 + (bounding_sphere.1 * *sample_direction);
+                            let target_point = bounding_sphere.0
+                                + (bounding_sphere.1 * SPECULAR_FOCUS * *sample_direction);
                             let photon_direction =
                                 (target_point.vector - light_position.vector).normalise();
                             let photon_ray = Ray::new(light_position, photon_direction);

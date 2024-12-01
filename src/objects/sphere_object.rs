@@ -5,12 +5,7 @@ use crate::{
         material::Material,
         object::{BaseObject, HitPool, Object},
     },
-    primitives::{
-        hit::Hit,
-        ray::Ray,
-        transform::Transform,
-        vertex::{self, Vertex},
-    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
 };
 
 pub struct Sphere {

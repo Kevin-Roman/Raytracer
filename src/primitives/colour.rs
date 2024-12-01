@@ -35,7 +35,7 @@ impl Colour {
 
 impl Default for Colour {
     fn default() -> Self {
-        Self::new(0.0, 0.0, 0.0, 1.0)
+        Self::new(0.0, 0.0, 0.0, 0.0)
     }
 }
 

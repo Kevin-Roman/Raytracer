@@ -32,11 +32,7 @@ pub trait Object: Sync {
     /// This also clears the hitpool.
     fn select_first_hit(&self, ray: &Ray) -> Option<Hit> {
         let mut hitpool = self.generate_hitpool(ray);
-        if let Some(index) = hitpool
-            .flatten()
-            .iter()
-            .position(|&hit| hit.distance >= 0.0)
-        {
+        if let Some(index) = hitpool.flatten().iter().position(|&hit| hit.distance > 0.0) {
             let hit = hitpool.remove(index);
             hitpool.clear();
             Some(hit)
