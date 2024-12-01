@@ -37,11 +37,18 @@ impl Material for CompoundMaterial {
             })
     }
 
-    fn compute_per_light(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+    fn compute_per_light(
+        &self,
+        environment: &dyn Environment,
+        viewer: &Vector,
+        light_direction: &Vector,
+        hit: &Hit,
+        recurse: u8,
+    ) -> Colour {
         self.materials
             .iter()
             .fold(Colour::default(), |acc, material| {
-                acc + material.compute_per_light(viewer, light_direction, hit)
+                acc + material.compute_per_light(environment, viewer, light_direction, hit, recurse)
             })
     }
 

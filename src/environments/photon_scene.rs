@@ -237,7 +237,12 @@ impl PhotonScene {
     }
 
     /// Compute contribution of all lights to the hit point.
-    fn compute_lighting(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
+    fn compute_lighting(
+        &self,
+        hit: &Hit,
+        material: &Arc<dyn Material>,
+        recurse_depth: u8,
+    ) -> Colour {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
 
         for light in &self.lights {
@@ -252,7 +257,13 @@ impl PhotonScene {
             if is_lit && !self.is_point_in_shadow(hit.position, light_position, light_direction) {
                 let intensity = light.get_intensity();
                 colour += intensity
-                    * material.compute_per_light(&viewer_direction, &light_direction, &hit);
+                    * material.compute_per_light(
+                        self,
+                        &viewer_direction,
+                        &light_direction,
+                        &hit,
+                        recurse_depth,
+                    );
             }
         }
 
@@ -400,7 +411,7 @@ impl Environment for PhotonScene {
                 colour += material.compute_once(self, ray, &hit, recurse);
 
                 // Calculate contributions from lights.
-                colour += self.compute_lighting(&hit, &material);
+                colour += self.compute_lighting(&hit, &material, recurse);
             }
         }
 
