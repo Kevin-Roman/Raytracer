@@ -96,24 +96,25 @@ impl<T: Environment + Sync> Camera<T> for SamplingCamera {
 
         env.initialise();
 
+        // Multithread the rendering process for each row.
         (0..self.height).into_par_iter().for_each(|y| {
-            for x in 0..self.width {
-                let sampler = MultiJitterSampler::new(self.num_samples);
-                let samples = sampler.get_samples();
+            let mut sampler = MultiJitterSampler::new(self.num_samples, 1.0);
 
+            for x in 0..self.width {
                 let mut sampled_colour = Colour::default();
                 let mut sampled_depth = 0.0;
 
-                for samples in samples {
-                    let ray = self.get_pixel_ray(x, y, samples.x - 0.5, samples.y - 0.5);
+                for _ in 0..self.num_samples {
+                    let sample = sampler.sample_unit_square();
+                    let ray = self.get_pixel_ray(x, y, sample.x - 0.5, sample.y - 0.5);
                     let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
                     sampled_colour += colour;
                     sampled_depth += depth;
                 }
 
                 // Average the radiance
-                sampled_colour /= samples.len() as f32;
-                sampled_depth /= samples.len() as f32;
+                sampled_colour /= self.num_samples as f32;
+                sampled_depth /= self.num_samples as f32;
 
                 let mut fb = fb.lock().unwrap();
                 let _ = fb.plot_pixel(x as i32, y as i32, sampled_colour);

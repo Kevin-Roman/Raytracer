@@ -1,12 +1,13 @@
 use crate::primitives::vector::Vector;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Point2D {
     pub x: f32,
     pub y: f32,
 }
 
 pub trait Sampler {
-    fn get_samples(&self) -> &Vec<Point2D>;
+    fn sample_unit_square(&mut self) -> Point2D;
 
-    fn hemisphere_sampler(&self, e: f32) -> Vec<Vector>;
+    fn sample_hemisphere(&mut self) -> Vector;
 }

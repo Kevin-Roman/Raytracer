@@ -297,15 +297,17 @@ impl PhotonScene {
 impl Environment for PhotonScene {
     /// Pass 1: Constructing the Photon Maps.
     fn initialise(&mut self) {
-        let sampler = MultiJitterSampler::new(NUM_PHOTONS);
-        let samples = sampler.hemisphere_sampler(1.0);
+        let mut sampler = MultiJitterSampler::new(NUM_PHOTONS, 1.0);
 
         let mut global_photon_map: Vec<Photon> = Vec::new();
         let mut caustic_photon_map: Vec<Photon> = Vec::new();
 
+        let num_samples = NUM_PHOTONS;
+
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
-                for sample_direction in &samples {
+                for _ in 0..num_samples {
+                    let sample_direction = sampler.sample_hemisphere();
                     let sign = if rand::random::<f64>() > 0.5 {
                         1.0
                     } else {
@@ -318,7 +320,7 @@ impl Environment for PhotonScene {
                     );
                     let photon_ray = Ray::new(light_position, photon_direction);
 
-                    let photon_power = 1.0 / samples.len() as f32;
+                    let photon_power = 1.0 / num_samples as f32;
 
                     // TODO: photon stores light intensity.
 
@@ -341,14 +343,15 @@ impl Environment for PhotonScene {
                     }
 
                     if let Some(bounding_sphere) = object.bounding_sphere() {
-                        for sample_direction in &samples {
+                        for _ in 0..num_samples {
+                            let sample_direction = sampler.sample_hemisphere();
                             let target_point = bounding_sphere.0
-                                + (bounding_sphere.1 * SPECULAR_FOCUS * *sample_direction);
+                                + (bounding_sphere.1 * SPECULAR_FOCUS * sample_direction);
                             let photon_direction =
                                 (target_point.vector - light_position.vector).normalise();
                             let photon_ray = Ray::new(light_position, photon_direction);
 
-                            let photon_power = 1.0 / samples.len() as f32;
+                            let photon_power = 1.0 / num_samples as f32;
 
                             self.photon_trace(
                                 &mut caustic_photon_map,

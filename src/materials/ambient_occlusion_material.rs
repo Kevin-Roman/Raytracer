@@ -43,12 +43,12 @@ impl Material for AmbientOcclusionMaterial {
         hit: &Hit,
         _recurse: u8,
     ) -> Colour {
-        let sampler = MultiJitterSampler::new(self.num_samples);
-        let samples = sampler.hemisphere_sampler(1.0);
+        let mut sampler: MultiJitterSampler = MultiJitterSampler::new(self.num_samples, 1.0);
 
         let mut ambient_occlusion_sum = 0.0;
-        for sample in &samples {
-            let sample_direction = (hit.normal + *sample).normalise();
+        for _ in 0..self.num_samples {
+            let sample = sampler.sample_hemisphere();
+            let sample_direction = (hit.normal + sample).normalise();
 
             let shadow_ray = Ray::new(hit.position + ROUNDING_ERROR * hit.normal, sample_direction);
             if !environment.shadowtrace(&shadow_ray, SHADOW_DISTANCE_LIMIT) {
@@ -59,7 +59,7 @@ impl Material for AmbientOcclusionMaterial {
             }
         }
 
-        let ambient_occlusion = (ambient_occlusion_sum as f32) / (samples.len() as f32);
+        let ambient_occlusion = (ambient_occlusion_sum as f32) / (self.num_samples as f32);
 
         ambient_occlusion * self.ambient
     }
