@@ -11,7 +11,7 @@ pub const ROUNDING_ERROR: f32 = 0.001;
 
 /// Environment is the trait for raytracing.
 pub trait Environment {
-    fn initialise(&mut self) {}
+    fn setup(&mut self) {}
 
     /// Shadowtrace returns whether a ray intersects an object in the environment.
     fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool;

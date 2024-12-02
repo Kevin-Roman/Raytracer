@@ -2,7 +2,7 @@ use kd_tree::KdPoint;
 
 use super::{colour::Colour, vector::Vector, vertex::Vertex};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PhotonType {
     DirectionIllumination,
     IndirectIllumination,

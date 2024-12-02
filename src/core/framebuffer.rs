@@ -84,6 +84,9 @@ impl FrameBuffer {
                 (min.min(pixel_min), max.max(pixel_max))
             },
         );
+
+        println!("min: {}, max: {}", min, max);
+
         let diff = if max - min == 0.0 { 1.0 } else { max - min };
 
         let ppm_writer = PPMWriter::new(self.width as u16, self.height as u16);

@@ -35,4 +35,12 @@ pub trait Material: Sync + Send {
     fn is_specular(&self) -> bool {
         false
     }
+
+    fn is_transparent(&self) -> bool {
+        false
+    }
+
+    fn get_index_of_refraction(&self) -> Option<f32> {
+        None
+    }
 }

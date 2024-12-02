@@ -89,8 +89,6 @@ impl<T: Environment + Sync> Camera<T> for FullCamera {
         let start_time = Instant::now();
         let pb = ProgressBar::new(self.height as u64);
 
-        env.initialise();
-
         (0..self.height).into_par_iter().for_each(|y| {
             for x in 0..self.width {
                 let ray = self.get_pixel_ray(x, y);

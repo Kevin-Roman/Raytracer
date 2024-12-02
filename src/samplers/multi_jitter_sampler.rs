@@ -135,8 +135,8 @@ impl MultiJitterSampler {
             let cos_theta = (1.0 - sample.y).powf(1.0 / (e + 1.0));
             let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
             let x = sin_theta * cos_phi;
-            let y = sin_theta * sin_phi;
-            let z = cos_theta;
+            let y = cos_theta;
+            let z = sin_theta * sin_phi;
 
             hemisphere_samples.push(Vector::new(x, y, z));
         }

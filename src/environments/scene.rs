@@ -14,15 +14,13 @@ use crate::{
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
-    background_colour: Colour,
 }
 
 impl Scene {
-    pub fn new(background_colour: Colour) -> Self {
+    pub fn new() -> Self {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
-            background_colour,
         }
     }
 
@@ -126,8 +124,6 @@ impl Environment for Scene {
                 // Calculate contributions from lights.
                 colour += self.compute_lighting(&hit, &material, recurse);
             }
-        } else {
-            colour = self.background_colour;
         }
 
         (colour, depth)

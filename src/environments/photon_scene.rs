@@ -1,6 +1,6 @@
 use kd_tree::KdTree;
 use rand::Rng;
-use std::sync::Arc;
+use std::collections::HashSet;
 
 use crate::{
     core::{
@@ -23,13 +23,19 @@ use crate::{
 
 #[cfg(feature = "debugging")]
 use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sphere};
+#[cfg(feature = "debugging")]
+use std::sync::Arc;
 
-const RECURSE_APPROXIMATE_DEPTH: u8 = 2;
+const RECURSE_APPROXIMATE_THRESHOLD: u8 = 2;
 const PHOTON_RECURSE: u8 = 1;
-// const NUM_PHOTONS: u32 = 10_000;
+// const NUM_PHOTONS: u32 = 1_000_000;
+// const NUM_PHOTONS: u32 = 202_500;
+// const NUM_PHOTONS: u32 = 90_000;
+// const NUM_PHOTONS: u32 = 22_500;
 const NUM_PHOTONS: u32 = 2500;
-const RUSSION_ROULETTE_CHANCE: f32 = 0.0;
-const SPECULAR_FOCUS: f32 = 0.2;
+const SPECULAR_FOCUS: f32 = 1.0;
+pub const PHOTON_SEARCH_RADIUS: f32 = 10.0;
+const PHOTON_SEARCH_COUNT: u32 = 500;
 
 pub type PhotonMap = KdTree<Photon>;
 
@@ -38,18 +44,57 @@ pub struct PhotonMaps {
     pub caustic: PhotonMap,
 }
 
+impl PhotonMaps {
+    pub fn radiance_estimate(
+        &self,
+        hit: &Hit,
+        material: &dyn Material,
+        photon_types: &HashSet<PhotonType>,
+    ) -> Colour {
+        let mut colour = Colour::default();
+
+        let photons = self.global.nearests(
+            &[
+                hit.position.vector.x,
+                hit.position.vector.y,
+                hit.position.vector.z,
+            ],
+            PHOTON_SEARCH_COUNT as usize,
+        );
+
+        for photon in photons {
+            if photon_types.contains(&photon.item.photon_type) {
+                colour +=
+                    photon.item.intensity * material.brdf(&hit.normal, &photon.item.direction);
+            }
+        }
+
+        colour
+    }
+}
+
 enum PhotonOutcome {
     Reflect,
     Absorb,
     Transmit,
 }
 
-fn russian_roulette() -> PhotonOutcome {
+fn russian_roulette(is_specular: bool, is_transparent: bool) -> PhotonOutcome {
+    let (r, t, _a) = if is_transparent {
+        (0.05, 0.9, 0.05)
+    } else if is_specular {
+        (0.95, 0.0, 0.05)
+    } else {
+        (0.2, 0.0, 0.8)
+    };
+
     let mut rng = rand::thread_rng();
     let chance: f32 = rng.gen();
 
-    if chance < RUSSION_ROULETTE_CHANCE {
+    if chance <= r {
         PhotonOutcome::Reflect
+    } else if chance <= r + t {
+        PhotonOutcome::Transmit
     } else {
         PhotonOutcome::Absorb
     }
@@ -112,7 +157,7 @@ impl PhotonScene {
             return;
         }
 
-        let hit = nearest_hit.unwrap().0;
+        let (hit, object) = nearest_hit.unwrap();
 
         photon_map.push(Photon::new(
             hit.position,
@@ -125,95 +170,54 @@ impl PhotonScene {
             return;
         }
 
-        match russian_roulette() {
-            PhotonOutcome::Reflect => {
-                // TODO: BRDF.
-                let reflection_direction = ray.direction.reflection(&hit.normal).normalise();
-                let reflected_ray = Ray::new(
-                    hit.position + ROUNDING_ERROR * reflection_direction,
-                    reflection_direction,
-                );
-                self.photon_trace(
-                    photon_map,
-                    &reflected_ray,
-                    PhotonType::IndirectIllumination,
-                    photon_intensity,
-                    recurse - 1,
-                );
+        if let Some(object) = self.objects[object].get_material().clone() {
+            match russian_roulette(object.is_specular(), object.is_transparent()) {
+                PhotonOutcome::Reflect => {
+                    let reflection_direction = ray.direction.reflection(&hit.normal).normalise();
+                    let reflected_ray = Ray::new(
+                        hit.position + ROUNDING_ERROR * reflection_direction,
+                        reflection_direction,
+                    );
+                    self.photon_trace(
+                        photon_map,
+                        &reflected_ray,
+                        PhotonType::IndirectIllumination,
+                        photon_intensity,
+                        recurse - 1,
+                    );
+                }
+                PhotonOutcome::Absorb => {
+                    let absorbed_ray =
+                        Ray::new(hit.position + ROUNDING_ERROR * ray.direction, ray.direction);
+                    self.photon_trace(
+                        photon_map,
+                        &absorbed_ray,
+                        PhotonType::ShadowPhoton,
+                        photon_intensity,
+                        recurse - 1,
+                    );
+                }
+                PhotonOutcome::Transmit => {
+                    if let Some(index_of_refraction) = object.get_index_of_refraction() {
+                        let mut transmitted_ray = Ray::default();
+                        transmitted_ray.direction = ray
+                            .direction
+                            .refraction(&hit.normal, index_of_refraction)
+                            .normalise();
+                        transmitted_ray.position =
+                            hit.position + ROUNDING_ERROR * transmitted_ray.direction;
+                        self.photon_trace(
+                            photon_map,
+                            &transmitted_ray,
+                            PhotonType::IndirectIllumination,
+                            photon_intensity,
+                            recurse - 1,
+                        );
+                    }
+                }
             }
-            PhotonOutcome::Absorb => {
-                let absorbed_ray =
-                    Ray::new(hit.position + ROUNDING_ERROR * ray.direction, ray.direction);
-                self.photon_trace(
-                    photon_map,
-                    &absorbed_ray,
-                    PhotonType::ShadowPhoton,
-                    photon_intensity,
-                    recurse - 1,
-                );
-            }
-            PhotonOutcome::Transmit => {}
         }
     }
-
-    // fn compute_lighting_with_photon_map(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
-    //     let mut colour = Colour::default();
-
-    //     let photons = self.photon_maps.global.within_radius(
-    //         &[
-    //             hit.position.vector.x,
-    //             hit.position.vector.y,
-    //             hit.position.vector.z,
-    //         ],
-    //         PHOTON_SEARCH_RADIUS,
-    //     );
-    //     for photon in photons {
-    //         colour += photon.intensity * material.brdf(&hit.normal, &photon.direction);
-    //     }
-
-    //     colour
-    // }
-
-    // fn compute_lighting(&self, hit: &Hit, material: &Arc<dyn Material>) -> Colour {
-    //     let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
-
-    //     for light in &self.lights {
-    //         let viewer_direction = (-hit.position.vector).normalise();
-    //         let (light_position, light_direction, is_lit) = light.get_direction(hit.position);
-
-    //         // Skip lights that are facing the wrong direction.
-    //         if light_direction.dot(&hit.normal) > 0.0 {
-    //             continue;
-    //         }
-
-    //         let photons = self.global_photon_map.within_radius(
-    //             &[
-    //                 hit.position.vector.x,
-    //                 hit.position.vector.y,
-    //                 hit.position.vector.z,
-    //             ],
-    //             PHOTON_SEARCH_RADIUS,
-    //         );
-
-    //         let mut visible_photons = photons.len();
-    //         let photons_len = photons.len();
-    //         for photon in photons.into_iter() {
-    //             if let PhotonType::ShadowPhoton = photon.photon_type {
-    //                 visible_photons -= 1;
-    //             }
-    //         }
-
-    //         let percent = visible_photons as f32 / photons_len as f32;
-
-    //         if is_lit && percent > 0.7 {
-    //             let intensity = light.get_intensity();
-    //             colour += intensity
-    //                 * material.compute_per_light(&viewer_direction, &light_direction, &hit);
-    //         }
-    //     }
-
-    //     colour
-    // }
 
     /// Determine if a hit point is in shadow.
     fn is_point_in_shadow(
@@ -222,6 +226,40 @@ impl PhotonScene {
         light_position: Option<Vertex>,
         light_direction: Vector,
     ) -> bool {
+        // Second pass - Shadow.
+        let photons = self.photon_maps.global.nearests(
+            &[
+                hit_position.vector.x,
+                hit_position.vector.y,
+                hit_position.vector.z,
+            ],
+            500,
+        );
+
+        let mut num_direct_photons: u32 = 0;
+        let mut num_shadow_photons: u32 = 0;
+        for photon in photons {
+            match photon.item.photon_type {
+                PhotonType::ShadowPhoton => {
+                    num_shadow_photons += 1;
+                }
+                PhotonType::DirectionIllumination => {
+                    num_direct_photons += 1;
+                }
+                _ => {}
+            }
+        }
+
+        let shadow_percent =
+            num_shadow_photons as f32 / (num_direct_photons + num_shadow_photons) as f32;
+        if shadow_percent == 1.0 {
+            return true;
+        } else if shadow_percent == 0.0 {
+            return false;
+        }
+
+        // TODO: explain this / separate code.
+
         let to_light_direction = light_direction.negate();
         // Move the shadow ray point slightly along the ray (towards the light) to avoid self-shadowing.
         let shadow_ray = Ray::new(
@@ -237,12 +275,7 @@ impl PhotonScene {
     }
 
     /// Compute contribution of all lights to the hit point.
-    fn compute_lighting(
-        &self,
-        hit: &Hit,
-        material: &Arc<dyn Material>,
-        recurse_depth: u8,
-    ) -> Colour {
+    fn compute_lighting(&self, hit: &Hit, material: &dyn Material, recurse_depth: u8) -> Colour {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
 
         for light in &self.lights {
@@ -268,6 +301,14 @@ impl PhotonScene {
         }
 
         colour
+    }
+
+    fn estimate_direct_illumination(&self, hit: &Hit, material: &dyn Material) -> Colour {
+        self.photon_maps.radiance_estimate(
+            hit,
+            material,
+            &HashSet::from([PhotonType::DirectionIllumination]),
+        )
     }
 
     #[cfg(feature = "debugging")]
@@ -307,33 +348,39 @@ impl PhotonScene {
 
 impl Environment for PhotonScene {
     /// Pass 1: Constructing the Photon Maps.
-    fn initialise(&mut self) {
+    fn setup(&mut self) {
         let mut sampler = MultiJitterSampler::new(NUM_PHOTONS, 1.0);
 
         let mut global_photon_map: Vec<Photon> = Vec::new();
         let mut caustic_photon_map: Vec<Photon> = Vec::new();
 
-        let num_samples = NUM_PHOTONS;
+        let mut num_specular_objects: u32 = 0;
+        for object in &self.objects {
+            if let Some(material) = object.get_material().cloned() {
+                if material.is_specular() {
+                    num_specular_objects += 1;
+                }
+            }
+        }
 
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
-                for _ in 0..num_samples {
+                for _ in 0..NUM_PHOTONS {
                     let sample_direction = sampler.sample_hemisphere();
-                    let sign = if rand::random::<f64>() > 0.5 {
+                    let sign = if rand::random::<f32>() > 0.5 {
                         1.0
                     } else {
                         -1.0
                     };
+
                     let photon_direction = Vector::new(
                         sample_direction.x,
-                        sample_direction.y,
-                        sample_direction.z * sign,
+                        sample_direction.y * sign,
+                        sample_direction.z,
                     );
                     let photon_ray = Ray::new(light_position, photon_direction);
 
-                    let photon_power = 1.0 / num_samples as f32;
-
-                    // TODO: photon stores light intensity.
+                    let photon_power = 0.5 / NUM_PHOTONS as f32;
 
                     self.photon_trace(
                         &mut global_photon_map,
@@ -354,7 +401,7 @@ impl Environment for PhotonScene {
                     }
 
                     if let Some(bounding_sphere) = object.bounding_sphere() {
-                        for _ in 0..num_samples {
+                        for _ in 0..(NUM_PHOTONS / num_specular_objects) {
                             let sample_direction = sampler.sample_hemisphere();
                             let target_point = bounding_sphere.0
                                 + (bounding_sphere.1 * SPECULAR_FOCUS * sample_direction);
@@ -362,12 +409,15 @@ impl Environment for PhotonScene {
                                 (target_point.vector - light_position.vector).normalise();
                             let photon_ray = Ray::new(light_position, photon_direction);
 
-                            let photon_power = 1.0 / num_samples as f32;
+                            // TODO: explain the /2 (it's because of two maps)
+                            let photon_power = 0.5 / NUM_PHOTONS as f32;
 
                             self.photon_trace(
                                 &mut caustic_photon_map,
                                 &photon_ray,
                                 PhotonType::DirectionIllumination,
+                                // ! TODO: explain the /150.0 (monte carlo sampling of area from light)
+                                // ! for correct energy sent in that area.
                                 photon_power * light.get_intensity(),
                                 PHOTON_RECURSE,
                             );
@@ -400,7 +450,7 @@ impl Environment for PhotonScene {
 
     // Pass 2: Rendering the scene.
     fn raytrace(&self, ray: &Ray, recurse: u8) -> (Colour, f32) {
-        let mut colour = Colour::new(0.0, 0.0, 0.0, 1.0);
+        let mut colour = Colour::default();
         let mut depth = 0.0;
 
         if let Some((hit, object_index)) = self.ray_trace(ray) {
@@ -410,8 +460,13 @@ impl Environment for PhotonScene {
                 // Compute direct material contribution.
                 colour += material.compute_once(self, ray, &hit, recurse);
 
-                // Calculate contributions from lights.
-                colour += self.compute_lighting(&hit, &material, recurse);
+                if recurse > RECURSE_APPROXIMATE_THRESHOLD {
+                    colour += self.compute_lighting(&hit, material.as_ref(), recurse);
+                } else {
+                    // Second pass - direction illumination.
+                    // At deeper levels, use photons to estimate direct light contribution.
+                    colour += self.estimate_direct_illumination(&hit, material.as_ref());
+                }
             }
         }
 

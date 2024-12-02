@@ -115,4 +115,16 @@ impl Material for GlobalMaterial {
     fn is_specular(&self) -> bool {
         true
     }
+
+    fn is_transparent(&self) -> bool {
+        self.index_of_refraction >= 1.0
+    }
+
+    fn brdf(&self, _normal: &Vector, _light_dir: &Vector) -> Colour {
+        Colour::default()
+    }
+
+    fn get_index_of_refraction(&self) -> Option<f32> {
+        Some(self.index_of_refraction)
+    }
 }

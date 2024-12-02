@@ -16,9 +16,6 @@ use crate::{
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
 
-/// Full camera allows a camera to be placed in space with a lookat and up direction
-/// as well as the field of view. It loops over the pixels in a framebuffer and computes
-/// a ray that is then passed to the environment.
 pub struct SamplingCamera {
     pub width: u16,
     pub height: u16,
@@ -93,8 +90,6 @@ impl<T: Environment + Sync> Camera<T> for SamplingCamera {
 
         let start_time = Instant::now();
         let pb = ProgressBar::new(self.height as u64);
-
-        env.initialise();
 
         // Multithread the rendering process for each row.
         (0..self.height).into_par_iter().for_each(|y| {

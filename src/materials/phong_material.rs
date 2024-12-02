@@ -1,10 +1,10 @@
+use std::collections::HashSet;
+
 use crate::{
     core::{environment::Environment, material::Material},
-    environments::photon_scene::PhotonMap,
-    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
+    environments::photon_scene::{PhotonMap, PhotonMaps, PHOTON_SEARCH_RADIUS},
+    primitives::{colour::Colour, hit::Hit, photon::PhotonType, ray::Ray, vector::Vector},
 };
-
-const PHOTON_SEARCH_RADIUS: f32 = 10.0;
 
 /// PhongMaterial is a Material that implements the Phong surface illumination model.
 #[derive(Clone, Copy)]
@@ -42,7 +42,15 @@ impl PhongMaterial {
         reflection.dot(&viewer).powf(self.control_factor) * self.specular
     }
 
-    fn compute_caustics(&self, photon_map: &PhotonMap, hit: &Hit) -> Colour {
+    fn calculate_soft_indirect_illumination(&self, photon_maps: &PhotonMaps, hit: &Hit) -> Colour {
+        photon_maps.radiance_estimate(
+            hit,
+            self,
+            &HashSet::from([PhotonType::IndirectIllumination]),
+        )
+    }
+
+    fn calculate_caustics(&self, photon_map: &PhotonMap, hit: &Hit) -> Colour {
         let nearby_photons = photon_map.within_radius(
             &[
                 hit.position.vector.x,
@@ -74,7 +82,8 @@ impl Material for PhongMaterial {
         colour += self.calculate_ambient();
 
         if let Some(photon_maps) = environment.get_photon_maps() {
-            colour += self.compute_caustics(&photon_maps.caustic, hit);
+            colour += self.calculate_soft_indirect_illumination(photon_maps, hit);
+            colour += self.calculate_caustics(&photon_maps.caustic, hit);
         }
 
         colour
