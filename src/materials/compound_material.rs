@@ -12,6 +12,10 @@ impl CompoundMaterial {
     pub fn new(materials: Vec<Box<dyn Material>>) -> Self {
         Self { materials }
     }
+
+    pub fn add_material(&mut self, material: Box<dyn Material>) {
+        self.materials.push(material);
+    }
 }
 
 impl Default for CompoundMaterial {

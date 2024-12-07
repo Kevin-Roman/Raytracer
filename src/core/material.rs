@@ -10,21 +10,25 @@ pub trait Material: Sync + Send {
     /// Compute the colour at the ray intersection with the object
     fn compute_once(
         &self,
-        environment: &dyn Environment,
-        viewer: &Ray,
-        hit: &Hit,
-        recurse: u8,
-    ) -> Colour;
+        _environment: &dyn Environment,
+        _viewer: &Ray,
+        _hit: &Hit,
+        _recurse: u8,
+    ) -> Colour {
+        Colour::default()
+    }
 
     /// Compute the colour at the ray intersection with the object, taking into consideration the light.
     fn compute_per_light(
         &self,
-        environment: &dyn Environment,
-        viewer: &Vector,
-        light_direction: &Vector,
-        hit: &Hit,
-        recurse: u8,
-    ) -> Colour;
+        _environment: &dyn Environment,
+        _viewer: &Vector,
+        _light_direction: &Vector,
+        _hit: &Hit,
+        _recurse: u8,
+    ) -> Colour {
+        Colour::default()
+    }
 
     // Diffuse BRDF.
     fn brdf(&self, normal: &Vector, light_dir: &Vector) -> Colour {

@@ -16,7 +16,7 @@ use raytracer::{
 const NUM_CAMERA_RAY_SAMPLES: u32 = 1;
 
 fn build_scene<T: Environment>(scene: &mut T) {
-    setup_cornell_box(scene, false);
+    setup_cornell_box(scene, false, true);
 
     let mut sphere_object = Box::new(Sphere::new(
         Vertex::new(-20.0, 20.0, LENGTH * 0.7, 1.0),

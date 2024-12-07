@@ -4,7 +4,7 @@ use crate::{
         material::Material,
         sampler::Sampler,
     },
-    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
+    primitives::{colour::Colour, hit::Hit, ray::Ray},
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
 
@@ -62,16 +62,5 @@ impl Material for AmbientOcclusionMaterial {
         let ambient_occlusion = (ambient_occlusion_sum as f32) / (self.num_samples as f32);
 
         ambient_occlusion * self.ambient
-    }
-
-    fn compute_per_light(
-        &self,
-        _environment: &dyn Environment,
-        _viewer: &Vector,
-        _light_direction: &Vector,
-        _hit: &Hit,
-        _recurse: u8,
-    ) -> Colour {
-        Colour::default()
     }
 }

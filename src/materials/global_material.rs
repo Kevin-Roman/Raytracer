@@ -101,17 +101,6 @@ impl Material for GlobalMaterial {
         colour
     }
 
-    fn compute_per_light(
-        &self,
-        _environment: &dyn Environment,
-        _viewer: &Vector,
-        _light_direction: &Vector,
-        _hit: &Hit,
-        _recurse: u8,
-    ) -> Colour {
-        Colour::default()
-    }
-
     fn is_specular(&self) -> bool {
         true
     }
