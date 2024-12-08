@@ -65,4 +65,24 @@ impl Material for CompoundMaterial {
 
         false
     }
+
+    fn is_transparent(&self) -> bool {
+        for material in &self.materials {
+            if material.is_transparent() {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn brdf(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+        let mut colour = Colour::default();
+
+        for material in &self.materials {
+            colour += material.brdf(viewer, light_direction, hit);
+        }
+
+        colour
+    }
 }

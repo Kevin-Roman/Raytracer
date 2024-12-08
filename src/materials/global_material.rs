@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::{
     core::{
         environment::{Environment, ROUNDING_ERROR},
@@ -109,11 +111,11 @@ impl Material for GlobalMaterial {
         self.index_of_refraction >= 1.0
     }
 
-    fn brdf(&self, _normal: &Vector, _light_dir: &Vector) -> Colour {
-        Colour::default()
-    }
-
     fn get_index_of_refraction(&self) -> Option<f32> {
         Some(self.index_of_refraction)
+    }
+
+    fn brdf(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
+        Colour::new(1.0, 1.0, 1.0, 1.0) / PI
     }
 }

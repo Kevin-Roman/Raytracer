@@ -62,4 +62,9 @@ impl Material for PhongMaterial {
         self.calculate_diffuse(light_direction, hit)
             + self.calculate_specular(viewer, light_direction, hit)
     }
+
+    fn brdf(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+        self.calculate_diffuse(light_direction, hit)
+            + self.calculate_specular(viewer, light_direction, hit)
+    }
 }

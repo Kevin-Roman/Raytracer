@@ -82,8 +82,7 @@ pub fn setup_cornell_box<T: Environment>(
     front_wall.set_material(white_material.clone());
     scene.add_object(Box::new(front_wall));
 
-    let mut back_wall = Plane::new(0.0, 0.0, 1.0, 0.0);
-    back_wall.set_material(white_material.clone());
+    let back_wall = Plane::new(0.0, 0.0, 1.0, 0.0);
     scene.add_object(Box::new(back_wall));
 
     let mut ceiling = Plane::new(0.0, -1.0, 0.0, HEIGHT);
@@ -99,7 +98,7 @@ pub fn setup_cornell_box<T: Environment>(
     scene.add_object(Box::new(right_wall));
 
     let point_light = PointLight::new(
-        Vertex::new(0.0, HEIGHT - 0.5, LENGTH * 0.7, 1.0),
+        Vertex::new(0.0, HEIGHT - 0.5, LENGTH * 0.6, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
     );
     scene.add_light(Box::new(point_light));

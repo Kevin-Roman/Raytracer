@@ -4,10 +4,7 @@ use raytracer::{
     cameras::sampling_camera::SamplingCamera,
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
     environments::photon_scene::PhotonScene,
-    materials::{
-        compound_material::CompoundMaterial, global_material::GlobalMaterial,
-        phong_material::PhongMaterial,
-    },
+    materials::{compound_material::CompoundMaterial, global_material::GlobalMaterial},
     objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
     utilities::cornell_box::{setup_cornell_box, HEIGHT, LENGTH},
@@ -20,12 +17,12 @@ fn build_scene<T: Environment>(scene: &mut T) {
 
     let mut sphere_object = Box::new(Sphere::new(
         Vertex::new(-20.0, 20.0, LENGTH * 0.7, 1.0),
-        20.0,
+        10.0,
     ));
     sphere_object.set_material(Arc::new(GlobalMaterial::new(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
-        2.52,
+        1.52,
     )));
     scene.add_object(sphere_object);
 
@@ -40,17 +37,16 @@ fn build_scene<T: Environment>(scene: &mut T) {
         }
     };
     teapot.apply_transform(&Transform::new([
-        [1.2, 0.0, 0.0, 15.0],
-        [0.0, 0.0, 1.2, 0.0],
-        [0.0, 1.2, 0.0, LENGTH * 0.8],
+        [1.5, 0.0, 0.0, 15.0],
+        [0.0, 0.0, 1.5, 0.0],
+        [0.0, 1.5, 0.0, LENGTH * 0.6],
         [0.0, 0.0, 0.0, 1.0],
     ]));
     teapot.set_material(Arc::new(CompoundMaterial::new(vec![
-        Box::new(PhongMaterial::new(
-            Colour::default(),
-            Colour::new(0.0, 0.5, 0.5, 1.0),
-            Colour::new(0.5, 0.5, 0.5, 1.0),
-            50.0,
+        Box::new(GlobalMaterial::new(
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            1.52,
         )),
         // Box::new(AmbientOcclusionMaterial::new(
         //     Colour::new(0.2, 0.2, 0.2, 1.0),

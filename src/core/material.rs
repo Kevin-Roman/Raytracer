@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::{
     core::environment::Environment,
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
@@ -30,10 +28,8 @@ pub trait Material: Sync + Send {
         Colour::default()
     }
 
-    // Diffuse BRDF.
-    fn brdf(&self, normal: &Vector, light_dir: &Vector) -> Colour {
-        let cos_theta = normal.dot(light_dir).abs();
-        (cos_theta / PI) * Colour::new(1.0, 1.0, 1.0, 1.0)
+    fn brdf(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
+        Colour::new(1.0, 1.0, 1.0, 1.0)
     }
 
     fn is_specular(&self) -> bool {
