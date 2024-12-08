@@ -77,12 +77,10 @@ impl Material for CompoundMaterial {
     }
 
     fn brdf(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
-        let mut colour = Colour::default();
-
-        for material in &self.materials {
-            colour += material.brdf(viewer, light_direction, hit);
-        }
-
-        colour
+        self.materials
+            .iter()
+            .fold(Colour::default(), |acc, material| {
+                acc + material.brdf(viewer, light_direction, hit)
+            })
     }
 }

@@ -5,7 +5,7 @@ use crate::{
         material::Material,
         object::{BaseObject, HitPool, Object},
     },
-    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
     utilities::obj_reader::{ObjReader, Triangle},
 };
 
@@ -161,5 +161,40 @@ impl Object for PolyMesh {
                 .transpose()
                 .apply_to_vector(&mut triangle.face_normal)
         }
+    }
+
+    fn bounding_sphere(&self) -> Option<(Vertex, f32)> {
+        // Get min and max for each all components:
+        let min = self
+            .vertices
+            .iter()
+            .fold(self.vertices[0].vector, |acc, vertex| {
+                Vector::new(
+                    acc.x.min(vertex.vector.x),
+                    acc.y.min(vertex.vector.y),
+                    acc.z.min(vertex.vector.z),
+                )
+            });
+
+        let max = self
+            .vertices
+            .iter()
+            .fold(self.vertices[0].vector, |acc, vertex| {
+                Vector::new(
+                    acc.x.max(vertex.vector.x),
+                    acc.y.max(vertex.vector.y),
+                    acc.z.max(vertex.vector.z),
+                )
+            });
+
+        let center = (min + max) / 2.0;
+
+        Some((
+            Vertex::new(center.x, center.y, center.z, 1.0),
+            self.vertices
+                .iter()
+                .map(|vertex| (vertex.vector - center).length())
+                .fold(0.0, |acc, length| acc.max(length)),
+        ))
     }
 }

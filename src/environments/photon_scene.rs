@@ -27,13 +27,13 @@ use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sp
 use std::sync::Arc;
 
 const RECURSE_APPROXIMATE_THRESHOLD: u8 = 0;
-const PHOTON_RECURSE: u8 = 3;
+const PHOTON_RECURSE: u8 = 6;
 // const NUM_PHOTONS: u32 = 1_000_000;
 // const NUM_PHOTONS: u32 = 202_500;
 const NUM_PHOTONS: u32 = 90_000;
 // const NUM_PHOTONS: u32 = 22_500;
 // const NUM_PHOTONS: u32 = 2500;
-const RADIANCE_MULTIPLIER: f32 = 5.0;
+const RADIANCE_MULTIPLIER: f32 = 3.0;
 pub const PHOTON_SEARCH_RADIUS: f32 = 5.0;
 const PHOTON_SEARCH_COUNT: u32 = 300;
 
