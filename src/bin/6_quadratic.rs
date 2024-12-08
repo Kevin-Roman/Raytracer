@@ -89,6 +89,31 @@ fn build_scene(scene: &mut Scene) {
         Colour::new(1.0, 1.0, 1.0, 0.0),
     ));
     scene.lights.push(directional_light);
+
+    // let mut cylinder = Box::new(Quadratic::new(
+    //     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -25.0,
+    // ));
+    // cylinder.apply_transform(&Transform::new([
+    //     [1.0, 0.0, 0.0, 0.0],
+    //     [0.0, 1.0, 0.0, 0.0],
+    //     [0.0, 0.0, 1.0, -20.0],
+    //     [0.0, 0.0, 0.0, 1.0],
+    // ]));
+    // cylinder.set_material(Arc::new(PhongMaterial::new(
+    //     Colour::new(0.1, 0.1, 0.1, 1.0),
+    //     Colour::new(0.0, 0.5, 0.5, 1.0),
+    //     Colour::new(0.5, 0.5, 0.5, 1.0),
+    //     50.0,
+    // )));
+
+    // scene.objects.push(cylinder);
+
+    // // Lighting.
+    // let directional_light = Box::new(DirectionalLight::new(
+    //     Vector::new(1.0, -1.0, 1.0),
+    //     Colour::new(1.0, 1.0, 1.0, 0.0),
+    // ));
+    // scene.lights.push(directional_light);
 }
 
 fn main() {
@@ -108,8 +133,8 @@ fn main() {
 
     let mut camera = FullCamera::new(
         0.5,
-        Vertex::new(0.0, 7.0, 0.0, 1.0),
-        Vector::new(0.0, -3.0, 20.0),
+        Vertex::new(0.0, 5.0, 0.0, 1.0),
+        Vector::new(0.0, 0.0, 20.0),
         Vector::new(0.0, 1.0, 0.0),
     );
 

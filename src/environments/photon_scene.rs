@@ -27,13 +27,13 @@ use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sp
 use std::sync::Arc;
 
 const RECURSE_APPROXIMATE_THRESHOLD: u8 = 0;
-const PHOTON_RECURSE: u8 = 6;
+const PHOTON_RECURSE: u8 = 3;
 // const NUM_PHOTONS: u32 = 1_000_000;
 // const NUM_PHOTONS: u32 = 202_500;
 const NUM_PHOTONS: u32 = 90_000;
 // const NUM_PHOTONS: u32 = 22_500;
 // const NUM_PHOTONS: u32 = 2500;
-const RADIANCE_MULTIPLIER: f32 = 3.0;
+const RADIANCE_MULTIPLIER: f32 = 1.0;
 pub const PHOTON_SEARCH_RADIUS: f32 = 5.0;
 const PHOTON_SEARCH_COUNT: u32 = 300;
 
@@ -106,8 +106,8 @@ impl PhotonMaps {
     }
 }
 
-fn russian_roulette(is_specular: bool, is_transparent: bool) -> PhotonOutcome {
-    let (r, t, _a) = if is_transparent {
+fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, f32) {
+    let (r, t, a) = if is_transparent {
         (0.05, 0.65, 0.25)
     } else if is_specular {
         (0.95, 0.0, 0.05)
@@ -119,11 +119,11 @@ fn russian_roulette(is_specular: bool, is_transparent: bool) -> PhotonOutcome {
     let chance: f32 = rng.gen();
 
     if chance <= r {
-        PhotonOutcome::Reflect
+        (PhotonOutcome::Reflect, r)
     } else if chance <= r + t {
-        PhotonOutcome::Transmit
+        (PhotonOutcome::Transmit, t)
     } else {
-        PhotonOutcome::Absorb
+        (PhotonOutcome::Absorb, a)
     }
 }
 
@@ -171,7 +171,6 @@ impl PhotonScene {
         let mut nearest_hit: Option<(Hit, usize)> = None;
 
         for (i, object) in self.objects.iter().enumerate() {
-            // TODO: handle transmision and it's need for hit.entering = false (maybe).
             if let Some(hit) = object.select_first_hit(ray) {
                 if ((photon_outcome.is_some()
                     && photon_outcome.unwrap() == PhotonOutcome::Transmit)
@@ -201,7 +200,9 @@ impl PhotonScene {
         }
 
         if let Some(object) = self.objects[object].get_material().clone() {
-            match russian_roulette(object.is_specular(), object.is_transparent()) {
+            let (photon_outcome, probability) =
+                russian_roulette(object.is_specular(), object.is_transparent());
+            match photon_outcome {
                 PhotonOutcome::Reflect => {
                     let reflection_direction = ray.direction.reflection(&hit.normal).normalise();
                     let reflected_ray = Ray::new(
@@ -212,7 +213,7 @@ impl PhotonScene {
                         photon_map,
                         &reflected_ray,
                         PhotonType::IndirectIllumination,
-                        photon_intensity,
+                        photon_intensity / probability,
                         Some(PhotonOutcome::Reflect),
                         recurse - 1,
                     );
@@ -224,7 +225,7 @@ impl PhotonScene {
                         photon_map,
                         &absorbed_ray,
                         PhotonType::ShadowPhoton,
-                        photon_intensity,
+                        photon_intensity / probability,
                         Some(PhotonOutcome::Absorb),
                         recurse - 1,
                     );
@@ -242,7 +243,7 @@ impl PhotonScene {
                             photon_map,
                             &transmitted_ray,
                             PhotonType::IndirectIllumination,
-                            photon_intensity,
+                            photon_intensity / probability,
                             Some(PhotonOutcome::Transmit),
                             recurse - 1,
                         );
