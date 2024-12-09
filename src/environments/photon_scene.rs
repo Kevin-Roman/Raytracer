@@ -26,14 +26,13 @@ use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sp
 #[cfg(feature = "debugging")]
 use std::sync::Arc;
 
-const RECURSE_APPROXIMATE_THRESHOLD: u8 = 0;
+const RECURSE_APPROXIMATE_THRESHOLD: u8 = 2;
 const PHOTON_RECURSE: u8 = 3;
 // const NUM_PHOTONS: u32 = 1_000_000;
 // const NUM_PHOTONS: u32 = 202_500;
 const NUM_PHOTONS: u32 = 90_000;
 // const NUM_PHOTONS: u32 = 22_500;
 // const NUM_PHOTONS: u32 = 2500;
-const RADIANCE_MULTIPLIER: f32 = 1.0;
 pub const PHOTON_SEARCH_RADIUS: f32 = 5.0;
 const PHOTON_SEARCH_COUNT: u32 = 300;
 
@@ -102,7 +101,7 @@ impl PhotonMaps {
             }
         }
 
-        RADIANCE_MULTIPLIER * colour
+        colour
     }
 }
 
@@ -172,9 +171,11 @@ impl PhotonScene {
 
         for (i, object) in self.objects.iter().enumerate() {
             if let Some(hit) = object.select_first_hit(ray) {
-                if ((photon_outcome.is_some()
-                    && photon_outcome.unwrap() == PhotonOutcome::Transmit)
-                    || hit.entering)
+                // Only consider interacts that are entering the object, or exiting if the photon
+                // is transmitted transmitted.
+                if (hit.entering
+                    || (photon_outcome.is_some()
+                        && photon_outcome.unwrap() == PhotonOutcome::Transmit))
                     && (nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance)
                 {
                     nearest_hit = Some((hit, i));
@@ -199,9 +200,9 @@ impl PhotonScene {
             return;
         }
 
-        if let Some(object) = self.objects[object].get_material().clone() {
+        if let Some(material) = self.objects[object].get_material().clone() {
             let (photon_outcome, probability) =
-                russian_roulette(object.is_specular(), object.is_transparent());
+                russian_roulette(material.is_specular(), material.is_transparent());
             match photon_outcome {
                 PhotonOutcome::Reflect => {
                     let reflection_direction = ray.direction.reflection(&hit.normal).normalise();
@@ -231,7 +232,7 @@ impl PhotonScene {
                     );
                 }
                 PhotonOutcome::Transmit => {
-                    if let Some(index_of_refraction) = object.get_index_of_refraction() {
+                    if let Some(index_of_refraction) = material.get_index_of_refraction() {
                         let mut transmitted_ray = Ray::default();
                         transmitted_ray.direction = ray
                             .direction
@@ -394,19 +395,12 @@ impl Environment for PhotonScene {
         let mut global_photon_map: Vec<Photon> = Vec::new();
         let mut caustic_photon_map: Vec<Photon> = Vec::new();
 
-        let mut num_specular_objects: u32 = 0;
-        for object in &self.objects {
-            if let Some(material) = object.get_material().cloned() {
-                if material.is_specular() {
-                    num_specular_objects += 1;
-                }
-            }
-        }
-
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
+                // Create global map.
                 for _ in 0..NUM_PHOTONS {
                     let sample_direction = sampler.sample_hemisphere();
+                    // Project samples onto a sphere, so that the photons are emitted in all directions.
                     let sign = if rand::random::<f32>() > 0.5 {
                         1.0
                     } else {
@@ -432,6 +426,7 @@ impl Environment for PhotonScene {
                     );
                 }
 
+                // Create caustic map.
                 for object in &self.objects {
                     if let Some(material) = object.get_material().cloned() {
                         if !material.is_specular() {
@@ -442,8 +437,9 @@ impl Environment for PhotonScene {
                     }
 
                     if let Some(bounding_sphere) = object.bounding_sphere() {
-                        for _ in 0..(NUM_PHOTONS / num_specular_objects) {
+                        for _ in 0..NUM_PHOTONS {
                             let sample_direction = sampler.sample_hemisphere();
+                            // Shoot photons towards the object.
                             let target_point =
                                 bounding_sphere.0 + (bounding_sphere.1 * sample_direction);
                             let photon_direction =
@@ -471,6 +467,7 @@ impl Environment for PhotonScene {
         #[cfg(feature = "debugging")]
         self.display_photons(&caustic_photon_map);
 
+        // Construct the kd-tree. It is an efficient data structure for nearest neighbour searches (O(log n))).
         self.photon_maps.global = KdTree::par_build_by_ordered_float(global_photon_map);
         self.photon_maps.caustic = KdTree::par_build_by_ordered_float(caustic_photon_map);
     }

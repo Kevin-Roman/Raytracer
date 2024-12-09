@@ -98,7 +98,7 @@ pub fn setup_cornell_box<T: Environment>(
     scene.add_object(Box::new(right_wall));
 
     let point_light = PointLight::new(
-        Vertex::new(0.0, HEIGHT - 0.5, LENGTH * 0.6, 1.0),
+        Vertex::new(0.0, HEIGHT - 8.0, LENGTH * 0.6, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
     );
     scene.add_light(Box::new(point_light));

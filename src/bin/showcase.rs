@@ -47,7 +47,7 @@ fn build_scene<T: Environment>(scene: &mut T) {
     ]));
     teapot.set_material(Arc::new(CompoundMaterial::new(vec![
         Box::new(PhongMaterial::new(
-            Colour::default(),
+            Colour::new(0.1, 0.1, 0.1, 1.0),
             Colour::new(0.0, 0.5, 0.5, 1.0),
             Colour::new(0.5, 0.5, 0.5, 1.0),
             10.0,
