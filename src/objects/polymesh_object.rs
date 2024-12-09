@@ -120,7 +120,7 @@ impl PolyMesh {
         let t = edge2.dot(&q_vec) * inv_det;
 
         // Determine if the intersection is entering or exiting the triangle.
-        let entering = det >= 0.0;
+        let entering = det < 0.0;
 
         Some(((t, u, v), entering))
     }

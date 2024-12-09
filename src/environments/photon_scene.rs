@@ -34,7 +34,7 @@ const NUM_PHOTONS: u32 = 90_000;
 // const NUM_PHOTONS: u32 = 22_500;
 // const NUM_PHOTONS: u32 = 2500;
 pub const PHOTON_SEARCH_RADIUS: f32 = 5.0;
-const PHOTON_SEARCH_COUNT: u32 = 300;
+const PHOTON_SEARCH_COUNT: u32 = 100;
 
 pub type PhotonMap = KdTree<Photon>;
 
@@ -187,7 +187,7 @@ impl PhotonScene {
             return;
         }
 
-        let (hit, object) = nearest_hit.unwrap();
+        let (hit, object_index) = nearest_hit.unwrap();
 
         photon_map.push(Photon::new(
             hit.position,
@@ -200,7 +200,7 @@ impl PhotonScene {
             return;
         }
 
-        if let Some(material) = self.objects[object].get_material().clone() {
+        if let Some(material) = self.objects[object_index].get_material().clone() {
             let (photon_outcome, probability) =
                 russian_roulette(material.is_specular(), material.is_transparent());
             match photon_outcome {
