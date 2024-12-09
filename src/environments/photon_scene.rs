@@ -28,12 +28,8 @@ use std::sync::Arc;
 
 const RECURSE_APPROXIMATE_THRESHOLD: u8 = 2;
 const PHOTON_RECURSE: u8 = 3;
-// const NUM_PHOTONS: u32 = 1_000_000;
-// const NUM_PHOTONS: u32 = 202_500;
-const NUM_PHOTONS: u32 = 90_000;
-// const NUM_PHOTONS: u32 = 22_500;
-// const NUM_PHOTONS: u32 = 2500;
-pub const PHOTON_SEARCH_RADIUS: f32 = 5.0;
+const NUM_PHOTONS: u32 = 202_500;
+const PHOTON_SEARCH_RADIUS: f32 = 5.0;
 const PHOTON_SEARCH_COUNT: u32 = 100;
 
 pub type PhotonMap = KdTree<Photon>;
@@ -107,7 +103,7 @@ impl PhotonMaps {
 
 fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, f32) {
     let (r, t, a) = if is_transparent {
-        (0.05, 0.65, 0.25)
+        (0.05, 0.7, 0.25)
     } else if is_specular {
         (0.95, 0.0, 0.05)
     } else {

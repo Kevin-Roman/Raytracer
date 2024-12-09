@@ -10,10 +10,10 @@ use raytracer::{
     utilities::cornell_box::{setup_cornell_box, HEIGHT, LENGTH},
 };
 
-const NUM_CAMERA_RAY_SAMPLES: u32 = 1;
+const NUM_CAMERA_RAY_SAMPLES: u32 = 16;
 
 fn build_scene<T: Environment>(scene: &mut T) {
-    setup_cornell_box(scene, false, true);
+    setup_cornell_box(scene, true, true);
 
     let mut sphere_object = Box::new(Sphere::new(
         Vertex::new(-20.0, 20.0, LENGTH * 0.7, 1.0),
