@@ -6,7 +6,7 @@ use super::{
 
 /// Small rounding error used to move start point of shadow ray along ray by a small amount
 /// in case the shadow position is behind the hit (due to floating point precision).
-const SMALL_ROUNDING_ERROR: f32 = 0.0001;
+pub const SMALL_ROUNDING_ERROR: f32 = 0.0001;
 
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
@@ -58,8 +58,8 @@ impl Environment for Scene {
         if let Some((hit, object_index)) = self.trace(ray) {
             depth = hit.t;
 
-            if let Some(material) = self.objects[object_index].get_material() {
-                colour += material.compute_once(ray, &hit, recurse);
+            if let Some(material) = self.objects[object_index].get_material().cloned() {
+                colour += material.compute_once(self, ray, &hit, recurse);
             }
 
             for light_index in 0..self.lights.len() {

@@ -38,14 +38,30 @@ impl Vector {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn reflection(&self, initial: &Self) -> Self {
-        let d = 2.0 * self.dot(initial);
+    pub fn reflection(&self, normal: &Self) -> Self {
+        let d = 2.0 * self.dot(normal);
 
         Self::new(
-            initial.x - d * self.x,
-            initial.y - d * self.y,
-            initial.z - d * self.z,
+            self.x - d * normal.x,
+            self.y - d * normal.y,
+            self.z - d * normal.z,
         )
+    }
+
+    pub fn refraction(&self, normal: &Self, index_of_refraction: f32) -> Self {
+        let incident = self;
+        let cos_theta_i = normal.dot(incident).abs();
+
+        let cos_theta_t =
+            (1.0 - (1.0 / index_of_refraction.powi(2)) * (1.0 - cos_theta_i.powi(2))).sqrt();
+
+        // Total internal reflection occurs when the term that will be square rooted is a negative number.
+        if cos_theta_t.is_nan() {
+            return incident.reflection(normal);
+        }
+
+        (1.0 / index_of_refraction) * *incident
+            - (cos_theta_t - (1.0 / index_of_refraction) * cos_theta_i) * *normal
     }
 
     pub fn negate(&self) -> Self {

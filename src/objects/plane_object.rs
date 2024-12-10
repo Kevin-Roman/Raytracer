@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::core::{
     hit::Hit,
     material::Material,
@@ -18,6 +20,7 @@ pub struct Plane {
 }
 
 impl Plane {
+    /// Plane `ax + by + cz + d = 0`.
     pub fn new(a: f32, b: f32, c: f32, d: f32) -> Self {
         Self {
             base: BaseObject::new(),
@@ -30,11 +33,11 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn get_material(&self) -> Option<&Box<dyn Material>> {
+    fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Box<dyn Material>) {
+    fn set_material(&mut self, material: Rc<dyn Material>) {
         self.base.set_material(material)
     }
 
@@ -115,10 +118,9 @@ impl Object for Plane {
     }
 
     fn apply_transform(&mut self, trans: &Transform) {
-        let ti = trans.inverse().transpose();
         let mut v = Vertex::new(self.a, self.b, self.c, self.d);
 
-        ti.apply_to_vertex(&mut v);
+        trans.inverse().transpose().apply_to_vertex(&mut v);
 
         self.a = v.vector.x;
         self.b = v.vector.y;

@@ -1,13 +1,15 @@
+use std::rc::Rc;
+
 use sortedlist_rs::SortedList;
 
 use super::{hit::Hit, material::Material, ray::Ray, transform::Transform};
 
 // Object is the base trait for objects.
 pub trait Object {
-    fn get_material(&self) -> Option<&Box<dyn Material>>;
+    fn get_material(&self) -> Option<&Rc<dyn Material>>;
 
     // Specify the material this object uses.
-    fn set_material(&mut self, material: Box<dyn Material>);
+    fn set_material(&mut self, material: Rc<dyn Material>);
 
     // Given a ray, if this object intersects it, return all points of intersection.
     // Return None if no intersections.
@@ -21,7 +23,7 @@ pub trait Object {
 }
 
 pub struct BaseObject {
-    pub material: Option<Box<dyn Material>>,
+    pub material: Option<Rc<dyn Material>>,
     // SortedList is implemented through two vectors, a key and a value vector.
     // The sort order is tracked on the vector of keys.
     // The index to insert a new element in is found using binary search.
@@ -38,11 +40,11 @@ impl BaseObject {
 }
 
 impl Object for BaseObject {
-    fn get_material(&self) -> Option<&Box<dyn Material>> {
+    fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.material.as_ref()
     }
 
-    fn set_material(&mut self, material: Box<dyn Material>) {
+    fn set_material(&mut self, material: Rc<dyn Material>) {
         self.material = Some(material);
     }
 

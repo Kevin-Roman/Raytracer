@@ -10,7 +10,7 @@ use crate::{
     },
     utilities::obj_reader::{ObjReader, Triangle},
 };
-use std::io;
+use std::{io, rc::Rc};
 
 const EPSILON: f32 = 0.000001;
 
@@ -126,11 +126,11 @@ impl PolyMesh {
 }
 
 impl Object for PolyMesh {
-    fn get_material(&self) -> Option<&Box<dyn Material>> {
+    fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Box<dyn Material>) {
+    fn set_material(&mut self, material: Rc<dyn Material>) {
         self.base.set_material(material)
     }
 
