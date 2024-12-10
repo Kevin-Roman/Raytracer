@@ -1,7 +1,6 @@
-// Ray stores and manipulates 3D rays.
-
 use super::{vector::Vector, vertex::Vertex};
 
+/// Ray consisting of a position and a (normalised) direction.
 #[derive(Debug)]
 pub struct Ray {
     pub position: Vertex,

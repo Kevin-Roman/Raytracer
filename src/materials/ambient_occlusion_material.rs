@@ -3,9 +3,10 @@ use rand::Rng;
 use core::f32;
 use std::f32::consts::PI;
 
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    scene::SMALL_ROUNDING_ERROR, vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    environments::scene::ROUNDING_ERROR,
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
 const SHADOW_DISTANCE_LIMIT: f32 = 10.0;
@@ -15,33 +16,40 @@ pub struct Point2D {
     pub y: f32,
 }
 
+/// AmbientOcclusionMaterial is a Material that computes ambient occlusion.
 pub struct AmbientOcclusionMaterial {
     ambient: Colour,
-    samples: usize,
-    min_amount: f32,
+    /// Number of samples to take for ambient occlusion.
+    num_samples: u8,
+    /// Minimum amount of ambient light to be considered.
+    /// Value between 0.0 and 1.0.
+    min_ambient_amount: f32,
 }
 
 impl AmbientOcclusionMaterial {
-    pub fn new(ambient: Colour, samples: usize, min_amount: f32) -> Self {
+    pub fn new(ambient: Colour, num_samples: u8, min_ambient_amount: f32) -> Self {
         assert!(
-            ((samples as f64).sqrt() as u32).pow(2) == samples as u32,
+            ((num_samples as f64).sqrt() as u32).pow(2) == num_samples as u32,
             "Number of samples must be a square number."
         );
 
         Self {
             ambient,
-            samples,
-            min_amount,
+            num_samples,
+            min_ambient_amount,
         }
     }
 
+    /// Multi-jittered sampling technique to generate a set of
+    /// sample points that are evenly distributed within a unit square.
     fn multi_jitter(&self) -> Vec<Point2D> {
         let mut rng = rand::thread_rng();
-        let sqrt_samples = (self.samples as f32).sqrt() as i32;
+        let sqrt_samples = (self.num_samples as f32).sqrt() as u32;
 
-        let mut points: Vec<Point2D> = Vec::with_capacity(self.samples as usize);
-        let subcell_width = 1.0 / (self.samples as f32);
+        let mut points: Vec<Point2D> = Vec::with_capacity(self.num_samples as usize);
+        let subcell_width = 1.0 / (self.num_samples as f32);
 
+        // Generate initial points with jittering.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 points.push(Point2D {
@@ -55,6 +63,7 @@ impl AmbientOcclusionMaterial {
             }
         }
 
+        // Shuffle x coordinates within each column.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 let k = rng.gen_range(j..sqrt_samples);
@@ -65,6 +74,7 @@ impl AmbientOcclusionMaterial {
             }
         }
 
+        // Shuffle y coordinates within each row.
         for i in 0..sqrt_samples {
             for j in 0..sqrt_samples {
                 let k = rng.gen_range(j..sqrt_samples);
@@ -78,9 +88,11 @@ impl AmbientOcclusionMaterial {
         points
     }
 
+    /// Converts 2D sample points into 3D vectors that are distributed over a hemisphere.
+    /// The distribution is controlled by the exponent `e` (how sparse/dense the vectors should be).
     fn hemisphere_sampler(&self, e: f32) -> Vec<Vector> {
         let samples: Vec<Point2D> = self.multi_jitter();
-        let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(self.samples as usize);
+        let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(self.num_samples as usize);
 
         for sample in &samples {
             let cos_phi = f32::cos(2.0 * PI * sample.x);
@@ -96,13 +108,15 @@ impl AmbientOcclusionMaterial {
 
         hemisphere_samples
     }
+}
 
-    fn calculate_ambient_occlusion(
+impl Material for AmbientOcclusionMaterial {
+    fn compute_once(
         &self,
         environment: &mut dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
         let samples = self.hemisphere_sampler(1.0);
 
@@ -110,32 +124,18 @@ impl AmbientOcclusionMaterial {
         for sample in &samples {
             let sample_direction = (hit.normal + *sample).normalise();
 
-            let shadow_ray = Ray::new(
-                hit.position + SMALL_ROUNDING_ERROR * hit.normal,
-                sample_direction,
-            );
+            let shadow_ray = Ray::new(hit.position + ROUNDING_ERROR * hit.normal, sample_direction);
             if !environment.shadowtrace(&shadow_ray, SHADOW_DISTANCE_LIMIT) {
                 ambient_occlusion_sum += 1.0;
             } else {
-                ambient_occlusion_sum += self.min_amount;
+                // If ray hits object, add only the minimum amount of ambient light.
+                ambient_occlusion_sum += self.min_ambient_amount;
             }
         }
 
         let ambient_occlusion = (ambient_occlusion_sum as f32) / (samples.len() as f32);
 
         ambient_occlusion * self.ambient
-    }
-}
-
-impl Material for AmbientOcclusionMaterial {
-    fn compute_once(
-        &self,
-        environment: &mut dyn Environment,
-        viewer: &Ray,
-        hit: &Hit,
-        recurse: i32,
-    ) -> Colour {
-        self.calculate_ambient_occlusion(environment, viewer, hit, recurse)
     }
 
     fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {

@@ -1,18 +1,13 @@
-// The Quadratic Object defines and intersects with quadratic objects.
-
 use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    tex_coords::TexCoords,
-    transform::Transform,
-    vector::Vector,
-    vertex::Vertex,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 pub struct Quadratic {
@@ -29,6 +24,7 @@ pub struct Quadratic {
     j: f32,
 }
 
+// Object defined by a quadratic.
 impl Quadratic {
     /// Quadratic surface `ax^2 + 2bxy + 2cxz + 2dx + ey^2 + 2fyz + 2gy + hz^2 + 2iz + j = 0`.
     pub fn new(
@@ -81,13 +77,9 @@ impl Quadratic {
             hit_normal = hit_normal.negate();
         }
 
-        self.base.hitpool.insert(Hit::new(
-            t,
-            entering,
-            hit_position,
-            hit_normal,
-            TexCoords::default(),
-        ));
+        self.base
+            .hitpool
+            .insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 }
 
@@ -108,7 +100,7 @@ impl Object for Quadratic {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let (dir_x, dir_y, dir_z) = (ray.direction.x, ray.direction.y, ray.direction.z);
         let (pos_x, pos_y, pos_z) = (
             ray.position.vector.x,

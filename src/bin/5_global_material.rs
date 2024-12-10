@@ -4,13 +4,12 @@ use std::rc::Rc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{
-        camera::Camera, colour::Colour, framebuffer::FrameBuffer, material::Material,
-        object::Object, scene::Scene, transform::Transform, vector::Vector, vertex::Vertex,
-    },
+    core::{camera::Camera, framebuffer::FrameBuffer, material::Material, object::Object},
+    environments::scene::Scene,
     lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{plane_object::Plane, polymesh_object::PolyMesh, sphere_object::Sphere},
+    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 fn build_scene(scene: &mut Scene) {
@@ -77,8 +76,8 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 128;
-    let height = 128;
+    let width = 512;
+    let height = 512;
 
     let mut fb = match FrameBuffer::new(width, height) {
         Ok(fb) => fb,
@@ -88,7 +87,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(Colour::default());
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -100,11 +99,11 @@ fn main() {
 
     camera.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/stage2_task1_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/5_global_material_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/stage2_task1_depth.ppm") {
+    if let Err(e) = fb.write_depth_file("./output/5_global_material_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
 

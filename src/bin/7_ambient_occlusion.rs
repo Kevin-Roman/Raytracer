@@ -1,16 +1,15 @@
-// Stage 2.1: Reflection and Refraction.
+// Stage 2.3: Ambient Occlusion.
 
 use std::rc::Rc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{
-        camera::Camera, colour::Colour, framebuffer::FrameBuffer, object::Object, scene::Scene,
-        vector::Vector, vertex::Vertex,
-    },
+    core::{camera::Camera, framebuffer::FrameBuffer, object::Object},
+    environments::scene::Scene,
     lights::directional_light::DirectionalLight,
     materials::ambient_occlusion_material::AmbientOcclusionMaterial,
     objects::{plane_object::Plane, sphere_object::Sphere},
+    primitives::{colour::Colour, vector::Vector, vertex::Vertex},
 };
 
 fn build_scene(scene: &mut Scene) {
@@ -56,7 +55,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(Colour::default());
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -68,11 +67,11 @@ fn main() {
 
     camera.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/stage2_task3_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/ambient_occlusion_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/stage2_task3_depth.ppm") {
+    if let Err(e) = fb.write_depth_file("./output/6_ambient_occlusion_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
 

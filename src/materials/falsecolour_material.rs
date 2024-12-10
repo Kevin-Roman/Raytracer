@@ -1,11 +1,10 @@
-// This Material class maps the x,y,z components of the normal to the r,g,b components
-// of the returned colour. A useful debug tool.
-
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
+/// Material that maps the x, y, z components of the normal to arbitrary r, g, b components.
+/// Used for debugging purposes.
 pub struct FalseColourMaterial {}
 
 impl FalseColourMaterial {
@@ -20,13 +19,14 @@ impl Material for FalseColourMaterial {
         _environment: &mut dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
-        let mut result = Colour::default();
-        result.r = (hit.normal.x + 1.0) * 0.5;
-        result.g = (hit.normal.y + 1.0) * 0.5;
-        result.b = (hit.normal.z + 1.0) * 0.5;
-        return result;
+        Colour::new(
+            (hit.normal.x + 1.0) * 0.5,
+            (hit.normal.y + 1.0) * 0.5,
+            (hit.normal.z + 1.0) * 0.5,
+            1.0,
+        )
     }
 
     fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {

@@ -2,33 +2,40 @@ use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use super::{hit::Hit, material::Material, ray::Ray, transform::Transform};
+use crate::{
+    core::material::Material,
+    primitives::{hit::Hit, ray::Ray, transform::Transform},
+};
 
-// Object is the base trait for objects.
+/// Object is the trait for objects in the environment.
 pub trait Object {
     fn get_hitpool(&mut self) -> &mut SortedList<Hit>;
 
     fn get_material(&self) -> Option<&Rc<dyn Material>>;
 
-    // Specify the material this object uses.
     fn set_material(&mut self, material: Rc<dyn Material>);
 
-    // Given a ray, if this object intersects it, return all points of intersection.
-    // Return None if no intersections.
-    fn intersection(&mut self, ray: &Ray);
-
-    // Apply a transform to this object.
-    fn apply_transform(&mut self, trans: &Transform);
-
-    // Retrieve the first valid hit.
+    /// Selects the first hit (with positive distance) from the hitpool.
+    /// This also clears the hitpool.
     fn select_first_hit(&mut self) -> Option<Hit>;
+
+    /// Computes and stores the intersections of a ray with this object.
+    fn add_intersections(&mut self, ray: &Ray);
+
+    /// Applies a transformation to the object.
+    fn apply_transform(&mut self, trans: &Transform);
 }
 
 pub struct BaseObject {
     pub material: Option<Rc<dyn Material>>,
-    // SortedList is implemented through two vectors, a key and a value vector.
-    // The sort order is tracked on the vector of keys.
-    // The index to insert a new element in is found using binary search.
+    /// Sortedlist uses a list of sorted sublists to store elements.
+    /// It has three internal lists:
+    /// - `lists`: This is a list of sorted sublists. Each sublist contains a portion of the elements in sorted order.
+    /// This allows for insertion and deletion by operating on smaller sublists rather than a single large list.
+    /// - `maxes`: This list contains the maximum element of each sublist in `lists`.
+    /// It is used for binary search to locate the sublist that may contain a specific element.
+    /// - `index`: This is a tree of pair-wise sums of the lengths of the sublists in `lists`.
+    /// It is used for indexing, allowing quick computation of the overall position of an element within the entire sortedlist.
     pub hitpool: SortedList<Hit>,
 }
 
@@ -55,7 +62,12 @@ impl Object for BaseObject {
     }
 
     fn select_first_hit(&mut self) -> Option<Hit> {
-        if let Some(index) = self.hitpool.flatten().iter().position(|&hit| hit.t >= 0.0) {
+        if let Some(index) = self
+            .hitpool
+            .flatten()
+            .iter()
+            .position(|&hit| hit.distance >= 0.0)
+        {
             let hit = self.hitpool.remove(index);
             self.hitpool.clear();
             Some(hit)
@@ -64,7 +76,7 @@ impl Object for BaseObject {
         }
     }
 
-    fn intersection(&mut self, _: &Ray) {}
+    fn add_intersections(&mut self, _: &Ray) {}
 
     fn apply_transform(&mut self, _: &Transform) {}
 }

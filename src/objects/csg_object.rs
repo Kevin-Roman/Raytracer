@@ -1,18 +1,15 @@
-// CSG is an object that is built by Constructive Solid Geometry from two sub-objects.
-// It supports three operations Union, Intersection and Difference of the two sub-objects.
-
 use sortedlist_rs::SortedList;
 use std::rc::Rc;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    transform::Transform,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform},
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Mode {
     CsgUnion = 0,
     CsgInter,
@@ -62,6 +59,9 @@ const ACTIONS: [[Action; 8]; 3] = [
 ];
 
 /// Constructive solid geometry.
+///
+/// CSG is an object that is built by Constructive Solid Geometry from two sub-objects.
+/// It supports three operations Union, Intersection and Difference of the two sub-objects.
 pub struct CSG {
     base: BaseObject,
     mode: Mode,
@@ -97,11 +97,11 @@ impl Object for CSG {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let mut result: Option<Hit> = None;
 
-        self.left_object.intersection(ray);
-        self.right_object.intersection(ray);
+        self.left_object.add_intersections(ray);
+        self.right_object.add_intersections(ray);
 
         let left_hitpool = self.left_object.get_hitpool();
         let right_hitpool = self.right_object.get_hitpool();
@@ -117,7 +117,7 @@ impl Object for CSG {
             if right_hitpool[right_index].entering {
                 state += 2;
             }
-            if left_hitpool[left_index].t > right_hitpool[right_index].t {
+            if left_hitpool[left_index].distance > right_hitpool[right_index].distance {
                 state += 1;
             }
 

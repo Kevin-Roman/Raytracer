@@ -2,15 +2,12 @@ use std::rc::Rc;
 
 use sortedlist_rs::SortedList;
 
-use crate::core::{
-    hit::Hit,
-    material::Material,
-    object::{BaseObject, Object},
-    ray::Ray,
-    tex_coords::TexCoords,
-    transform::Transform,
-    vector::Vector,
-    vertex::Vertex,
+use crate::{
+    core::{
+        material::Material,
+        object::{BaseObject, Object},
+    },
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 pub struct Plane {
@@ -51,7 +48,7 @@ impl Object for Plane {
         self.base.set_material(material)
     }
 
-    fn intersection(&mut self, ray: &Ray) {
+    fn add_intersections(&mut self, ray: &Ray) {
         let distance_to_plane = self.a * ray.position.vector.x
             + self.b * ray.position.vector.y
             + self.c * ray.position.vector.z
@@ -69,14 +66,12 @@ impl Object for Plane {
                     true,
                     Vertex::default(),
                     Vector::default(),
-                    TexCoords::default(),
                 ));
                 self.base.hitpool.insert(Hit::new(
                     f32::INFINITY,
                     false,
                     Vertex::default(),
                     Vector::default(),
-                    TexCoords::default(),
                 ));
             }
 
@@ -99,30 +94,20 @@ impl Object for Plane {
                 true,
                 Vertex::default(),
                 Vector::default(),
-                TexCoords::default(),
             ));
-            self.base.hitpool.insert(Hit::new(
-                t,
-                false,
-                hit_position,
-                hit_normal,
-                TexCoords::default(),
-            ));
+            self.base
+                .hitpool
+                .insert(Hit::new(t, false, hit_position, hit_normal));
         } else {
             // Ray comes from inside to outside.
-            self.base.hitpool.insert(Hit::new(
-                t,
-                true,
-                hit_position,
-                hit_normal,
-                TexCoords::default(),
-            ));
+            self.base
+                .hitpool
+                .insert(Hit::new(t, true, hit_position, hit_normal));
             self.base.hitpool.insert(Hit::new(
                 f32::INFINITY,
                 false,
                 Vertex::default(),
                 Vector::default(),
-                TexCoords::default(),
             ));
         }
     }

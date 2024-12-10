@@ -1,9 +1,11 @@
-use crate::core::{vector::Vector, vertex::Vertex};
 use std::{
     fs::File,
     io::{self, BufRead},
 };
 
+use crate::primitives::{vector::Vector, vertex::Vertex};
+
+#[derive(Debug)]
 pub struct Triangle {
     pub vertex_indices: [usize; 3],
     pub vertex_normal_indices: [usize; 3],
@@ -34,8 +36,8 @@ impl Triangle {
     }
 }
 
-#[derive(Clone, Copy)]
-struct VertexAndNormalIndices {
+#[derive(Clone, Copy, Debug)]
+struct VertexData {
     /// Vertex index;
     pub vertex_index: usize,
     /// Vertex normal index.
@@ -45,14 +47,14 @@ struct VertexAndNormalIndices {
 pub struct ObjReader {
     vertices: Vec<Vertex>,
     vertex_normals: Vec<Vertex>,
-    faces: Vec<Vec<VertexAndNormalIndices>>,
+    faces: Vec<Vec<VertexData>>,
 }
 
 impl ObjReader {
     pub fn new(file_path: &str) -> io::Result<Self> {
         let mut vertices: Vec<Vertex> = Vec::new();
         let mut vertex_normals: Vec<Vertex> = Vec::new();
-        let mut faces: Vec<Vec<VertexAndNormalIndices>> = Vec::new();
+        let mut faces: Vec<Vec<VertexData>> = Vec::new();
 
         let lines = Self::read_lines(file_path)?;
         for line in lines.flatten() {
@@ -90,7 +92,7 @@ impl ObjReader {
         triangles
     }
 
-    fn convert_face_to_triangles(&self, face: &Vec<VertexAndNormalIndices>) -> Vec<Triangle> {
+    fn convert_face_to_triangles(&self, face: &Vec<VertexData>) -> Vec<Triangle> {
         assert!(face.len() >= 3);
 
         let mut triangles: Vec<Triangle> = Vec::new();
@@ -131,7 +133,7 @@ impl ObjReader {
         Vertex::new(coords[0], coords[1], coords[2], 1.0)
     }
 
-    fn process_face_line(line: &str) -> Vec<VertexAndNormalIndices> {
+    fn process_face_line(line: &str) -> Vec<VertexData> {
         // Wavefront .obj files are 1-indexed.
         // Filter just the vertex index out.
         let vertex_indices: Vec<usize> = line
@@ -156,12 +158,12 @@ impl ObjReader {
 
         assert!(vertex_indices.len() >= 3 && vertex_normals_indices.len() >= 3);
 
-        let mut faces: Vec<VertexAndNormalIndices> = Vec::new();
+        let mut faces: Vec<VertexData> = Vec::new();
         for (vertex_index, vertex_normal_index) in vertex_indices
             .into_iter()
             .zip(vertex_normals_indices.into_iter())
         {
-            faces.push(VertexAndNormalIndices {
+            faces.push(VertexData {
                 vertex_index,
                 vertex_normal_index,
             });

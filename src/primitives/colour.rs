@@ -1,12 +1,15 @@
-// Colour stores and manipulates an rgba colour.
-
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
-#[derive(Clone, Copy)]
+/// RGBA colour with components in the range [0.0, 1.0].
+#[derive(Clone, Copy, Debug)]
 pub struct Colour {
+    /// Red.
     pub r: f32,
+    /// Green.
     pub g: f32,
+    /// Blue.
     pub b: f32,
+    /// Alpha.
     pub a: f32,
 }
 
@@ -72,18 +75,12 @@ impl Mul<Colour> for f32 {
 
 impl AddAssign<Self> for Colour {
     fn add_assign(&mut self, other: Self) {
-        self.r += other.r;
-        self.g += other.g;
-        self.b += other.b;
-        self.a += other.a;
+        self.add(&other);
     }
 }
 
 impl MulAssign<Self> for Colour {
     fn mul_assign(&mut self, other: Self) {
-        self.r *= other.r;
-        self.g *= other.g;
-        self.b *= other.b;
-        self.a *= other.a;
+        self.scale(&other);
     }
 }

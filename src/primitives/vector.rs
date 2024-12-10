@@ -1,10 +1,9 @@
-// A three element vector with lots of operators and common functions.
-
 use std::{
     cmp::PartialEq,
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
+/// A 3D vector.
 #[derive(Copy, Clone, Debug)]
 pub struct Vector {
     pub x: f32,
@@ -17,6 +16,7 @@ impl Vector {
         Self { x, y, z }
     }
 
+    /// The squared length of the vector.
     pub fn len_sqr(&self) -> f32 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
@@ -39,15 +39,13 @@ impl Vector {
     }
 
     pub fn reflection(&self, normal: &Self) -> Self {
-        let d = 2.0 * self.dot(normal);
-
-        Self::new(
-            self.x - d * normal.x,
-            self.y - d * normal.y,
-            self.z - d * normal.z,
-        )
+        let incident = self;
+        *incident - 2.0 * incident.dot(normal) * *normal
     }
 
+    /// The refraction of a vector based on the normal of the surface it is hitting
+    /// and the index of refraction of the material.
+    /// Using Snell's Law.
     pub fn refraction(&self, normal: &Self, index_of_refraction: f32) -> Self {
         let incident = self;
         let cos_theta_i = normal.dot(incident).abs();
@@ -68,6 +66,7 @@ impl Vector {
         Self::new(-self.x, -self.y, -self.z)
     }
 
+    /// The cross product (vector that is perpendicular to two given vectors).
     pub fn cross(&self, other: &Self) -> Self {
         Self::new(
             self.y * other.z - self.z * other.y,

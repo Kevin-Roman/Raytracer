@@ -1,11 +1,11 @@
-// The global material generates a reflection/refraction layer.
-
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    scene::SMALL_ROUNDING_ERROR, vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    environments::scene::ROUNDING_ERROR,
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
-#[derive(Clone, Copy)]
+/// GlobalMaterial is a Material that computes a reflection/refraction layer.
+#[derive(Clone, Copy, Debug)]
 pub struct GlobalMaterial {
     reflect_weight: Colour,
     refract_weight: Colour,
@@ -64,7 +64,7 @@ impl Material for GlobalMaterial {
         environment: &mut dyn Environment,
         viewer: &Ray,
         hit: &Hit,
-        recurse: i32,
+        recurse: u8,
     ) -> Colour {
         let mut colour = Colour::default();
 
@@ -72,20 +72,23 @@ impl Material for GlobalMaterial {
             return colour;
         }
 
+        // Calculate reflection and refraction rays.
         let mut reflection_ray = Ray::default();
         reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
-        reflection_ray.position = hit.position + SMALL_ROUNDING_ERROR * reflection_ray.direction;
+        reflection_ray.position = hit.position + ROUNDING_ERROR * reflection_ray.direction;
 
         let mut refract_ray = Ray::default();
         refract_ray.direction = viewer
             .direction
             .refraction(&hit.normal, self.index_of_refraction)
             .normalise();
-        refract_ray.position = hit.position + SMALL_ROUNDING_ERROR * refract_ray.direction;
+        refract_ray.position = hit.position + ROUNDING_ERROR * refract_ray.direction;
 
+        // Calculate reflection and refraction coefficients.
         let (reflection_coefficient, transmission_coefficient) =
             self.fresnel_coefficients(&viewer.direction, &hit.normal);
 
+        // Recurse on reflection and refraction rays.
         colour += reflection_coefficient
             * self.reflect_weight
             * environment.raytrace(&reflection_ray, recurse - 1).0;

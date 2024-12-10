@@ -4,10 +4,8 @@ use std::rc::Rc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{
-        camera::Camera, colour::Colour, framebuffer::FrameBuffer, material::Material,
-        object::Object, scene::Scene, transform::Transform, vector::Vector, vertex::Vertex,
-    },
+    core::{camera::Camera, framebuffer::FrameBuffer, material::Material, object::Object},
+    environments::scene::Scene,
     lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{
@@ -16,6 +14,7 @@ use raytracer::{
         polymesh_object::PolyMesh,
         quadratic_object::Quadratic,
     },
+    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
 fn build_scene(scene: &mut Scene) {
@@ -104,7 +103,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(Colour::default());
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(

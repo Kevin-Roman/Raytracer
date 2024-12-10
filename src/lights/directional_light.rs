@@ -1,9 +1,9 @@
-// DirectionalLight implements a light with constant value in a
-// given direction. The light has no position and can be treated as
-// infinitely far away.
+use crate::{
+    core::light::Light,
+    primitives::{colour::Colour, vector::Vector, vertex::Vertex},
+};
 
-use crate::core::{colour::Colour, light::Light, vector::Vector, vertex::Vertex};
-
+/// DirectionalLight is a light with constant intensity in a given direction.
 pub struct DirectionalLight {
     direction: Vector,
     intensity: Colour,

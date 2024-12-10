@@ -1,10 +1,11 @@
-// Environment is the trait for raytracing. We use this in material to do recursion as that allows
-// Scene which is derived from this to depend (indirectly) on Material.
+use crate::primitives::{colour::Colour, ray::Ray};
 
-use super::{colour::Colour, ray::Ray};
-
+/// Environment is the trait for raytracing.
 pub trait Environment {
+    /// Shadowtrace returns whether a ray intersects an object in the environment.
     fn shadowtrace(&mut self, ray: &Ray, limit: f32) -> bool;
 
-    fn raytrace(&mut self, ray: &Ray, recurse: i32) -> (Colour, f32);
+    /// Raytrace returns the colour of a ray in the environment.
+    /// Returns the colour of the ray and the distance to the intersection.
+    fn raytrace(&mut self, ray: &Ray, recurse: u8) -> (Colour, f32);
 }

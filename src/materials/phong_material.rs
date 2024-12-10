@@ -1,10 +1,9 @@
-// Phong is Material and implements the simple Phong surface illumination model.
-
-use crate::core::{
-    colour::Colour, environment::Environment, hit::Hit, material::Material, ray::Ray,
-    vector::Vector,
+use crate::{
+    core::{environment::Environment, material::Material},
+    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
+/// PhongMaterial is a Material that implements the Phong surface illumination model.
 pub struct PhongMaterial {
     ambient: Colour,
     diffuse: Colour,
@@ -46,7 +45,7 @@ impl Material for PhongMaterial {
         _environment: &mut dyn Environment,
         _viewer: &Ray,
         _hit: &Hit,
-        _recurse: i32,
+        _recurse: u8,
     ) -> Colour {
         self.calculate_ambient()
     }
