@@ -1,91 +1,54 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use raytracer::{
-    cameras::full_camera::FullCamera,
-    core::{camera::Camera, framebuffer::FrameBuffer, object::Object},
-    environments::scene::Scene,
-    lights::directional_light::DirectionalLight,
-    materials::{
-        ambient_occlusion_material::AmbientOcclusionMaterial, compound_material::CompoundMaterial,
-        global_material::GlobalMaterial, phong_material::PhongMaterial,
-    },
-    objects::{plane_object::Plane, polymesh_object::PolyMesh, sphere_object::Sphere},
+    cameras::sampling_camera::SamplingCamera,
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
+    environments::photon_scene::PhotonScene,
+    materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
+    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
+    utilities::cornell_box::{setup_cornell_box, HEIGHT, LENGTH},
 };
 
-fn build_scene(scene: &mut Scene) {
-    // Floor.
-    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
-    let floor_plane_material = Rc::new(CompoundMaterial::new(vec![
-        Box::new(AmbientOcclusionMaterial::new(
-            Colour::new(0.9, 0.9, 0.9, 1.0),
-            64,
-            0.1,
-        )),
-        Box::new(PhongMaterial::new(
-            Colour::new(0.0, 0.0, 0.0, 1.0),
-            Colour::new(0.5, 0.5, 0.5, 1.0),
-            Colour::new(0.0, 0.0, 0.0, 1.0),
-            20.0,
-        )),
-    ]));
+const NUM_CAMERA_RAY_SAMPLES: u32 = 16;
 
-    floor_plane_object.set_material(floor_plane_material);
-    scene.objects.push(floor_plane_object);
+fn build_scene<T: Environment>(scene: &mut T) {
+    setup_cornell_box(scene, true, true);
 
-    // Main teapot object.
-    let transform: Transform = Transform::new([
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, -10.0],
-        [0.0, 1.0, 0.0, 20.0],
-        [0.0, 0.0, 0.0, 1.0],
-    ]);
+    let mut sphere_object = Box::new(Sphere::new(
+        Vertex::new(-20.0, 20.0, LENGTH * 0.7, 1.0),
+        10.0,
+    ));
+    sphere_object.set_material(Arc::new(GlobalMaterial::new(
+        Colour::new(1.0, 1.0, 1.0, 1.0),
+        Colour::new(1.0, 1.0, 1.0, 1.0),
+        1.52,
+    )));
+    scene.add_object(sphere_object);
 
-    let mut polymesh_object = match PolyMesh::new(
+    let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
     ) {
-        Ok(polymesh_object) => Box::new(polymesh_object),
+        Ok(teapot) => Box::new(teapot),
         Err(e) => {
             eprintln!("Error reading poly mesh object: {}", e);
             return;
         }
     };
-    polymesh_object.apply_transform(&transform);
-
-    let polymesh_material = Rc::new(CompoundMaterial::new(vec![
-        Box::new(AmbientOcclusionMaterial::new(
-            Colour::new(0.05, 0.05, 0.05, 1.0),
-            64,
-            0.05,
-        )),
-        Box::new(PhongMaterial::new(
-            Colour::new(0.0, 0.0, 0.0, 1.0),
-            Colour::new(0.0, 0.5, 0.5, 1.0),
-            Colour::new(0.5, 0.5, 0.5, 1.0),
-            20.0,
-        )),
+    teapot.apply_transform(&Transform::new([
+        [1.5, 0.0, 0.0, 15.0],
+        [0.0, 0.0, 1.5, 0.0],
+        [0.0, 1.5, 0.0, LENGTH * 0.6],
+        [0.0, 0.0, 0.0, 1.0],
     ]));
-    polymesh_object.set_material(polymesh_material);
-    scene.objects.push(polymesh_object);
-
-    // Object used for shadow.
-    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-4.0, 4.0, 10.0, 1.0), 3.0));
-    let sphere_material = Rc::new(GlobalMaterial::new(
-        Colour::new(1.0, 1.0, 1.0, 0.0),
-        Colour::new(1.0, 1.0, 1.0, 0.0),
-        1.52,
-    ));
-    sphere_object.set_material(sphere_material);
-    scene.objects.push(sphere_object);
-
-    // Lighting.
-    let directional_light = Box::new(DirectionalLight::new(
-        Vector::new(1.0, -1.0, 1.0),
-        Colour::new(1.0, 1.0, 1.0, 1.0),
-    ));
-
-    scene.lights.push(directional_light);
+    teapot.set_material(Arc::new(PhongMaterial::new(
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        Colour::new(0.0, 0.5, 0.5, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        10.0,
+    )));
+    scene.add_object(teapot);
 }
 
 fn main() {
@@ -100,25 +63,36 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new(Colour::default());
+    let mut scene = PhotonScene::new();
     build_scene(&mut scene);
 
-    let mut camera = FullCamera::new(
-        0.5,
-        Vertex::new(0.0, 7.0, 0.0, 1.0),
-        Vector::new(0.0, -3.0, 20.0),
-        Vector::new(0.0, 1.0, 1.0),
+    scene.setup();
+
+    let mut camera_front = SamplingCamera::new(
+        0.8,
+        Vertex::new(0.0, HEIGHT / 2.0, 0.05, 1.0),
+        Vector::new(0.0, HEIGHT / 2.0, LENGTH),
+        Vector::new(0.0, 1.0, 0.0),
+        NUM_CAMERA_RAY_SAMPLES,
     );
 
-    camera.render(&mut scene, &mut fb);
+    camera_front.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_front.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
-    if let Err(e) = fb.write_depth_file("./output/showcase_depth.ppm") {
-        eprintln!("Error writing Depth file: {}", e);
-    };
+    let mut camera_back = SamplingCamera::new(
+        0.2,
+        Vertex::new(0.0, HEIGHT / 2.0, LENGTH - 0.05, 1.0),
+        Vector::new(0.0, HEIGHT / 2.0, 0.0),
+        Vector::new(0.0, 1.0, 0.0),
+        NUM_CAMERA_RAY_SAMPLES,
+    );
 
-    println!(" Done")
+    camera_back.render(&mut scene, &mut fb);
+
+    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_back.ppm") {
+        eprintln!("Error writing RGB file: {}", e);
+    };
 }

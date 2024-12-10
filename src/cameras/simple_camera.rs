@@ -42,7 +42,7 @@ impl Default for SimpleCamera {
     }
 }
 
-impl<T: Environment> Camera<T> for SimpleCamera {
+impl<T: Environment + Sync> Camera<T> for SimpleCamera {
     fn render(&mut self, env: &mut T, fb: &mut FrameBuffer) {
         self.width = fb.width;
         self.height = fb.height;

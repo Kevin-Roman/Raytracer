@@ -1,6 +1,6 @@
 // Stage 2.1: Reflection and Refraction.
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
@@ -15,7 +15,7 @@ use raytracer::{
 fn build_scene(scene: &mut Scene) {
     // Floor.
     let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
-    let floor_plane_material = Rc::new(PhongMaterial::new(
+    let floor_plane_material = Arc::new(PhongMaterial::new(
         Colour::new(0.8, 0.8, 0.8, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         Colour::new(0.1, 0.1, 0.1, 1.0),
@@ -46,7 +46,7 @@ fn build_scene(scene: &mut Scene) {
     };
     polymesh_object.apply_transform(&transform);
 
-    let polymesh_material: Rc<dyn Material> = Rc::new(PhongMaterial::new(
+    let polymesh_material: Arc<dyn Material> = Arc::new(PhongMaterial::new(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.0, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
@@ -57,7 +57,7 @@ fn build_scene(scene: &mut Scene) {
 
     // Object used for shadow.
     let mut sphere_object = Box::new(Sphere::new(Vertex::new(-4.0, 4.0, 10.0, 1.0), 3.0));
-    let sphere_material = Rc::new(GlobalMaterial::new(
+    let sphere_material = Arc::new(GlobalMaterial::new(
         Colour::new(1.0, 1.0, 1.0, 0.0),
         Colour::new(1.0, 1.0, 1.0, 0.0),
         1.52,
@@ -87,7 +87,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new(Colour::default());
+    let mut scene = Scene::new();
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -106,6 +106,4 @@ fn main() {
     if let Err(e) = fb.write_depth_file("./output/5_global_material_depth.ppm") {
         eprintln!("Error writing Depth file: {}", e);
     };
-
-    println!(" Done")
 }

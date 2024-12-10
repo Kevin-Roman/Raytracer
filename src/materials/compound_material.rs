@@ -12,6 +12,10 @@ impl CompoundMaterial {
     pub fn new(materials: Vec<Box<dyn Material>>) -> Self {
         Self { materials }
     }
+
+    pub fn add_material(&mut self, material: Box<dyn Material>) {
+        self.materials.push(material);
+    }
 }
 
 impl Default for CompoundMaterial {
@@ -25,7 +29,7 @@ impl Default for CompoundMaterial {
 impl Material for CompoundMaterial {
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         viewer: &Ray,
         hit: &Hit,
         recurse: u8,
@@ -37,11 +41,46 @@ impl Material for CompoundMaterial {
             })
     }
 
-    fn compute_per_light(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+    fn compute_per_light(
+        &self,
+        environment: &dyn Environment,
+        viewer: &Vector,
+        light_direction: &Vector,
+        hit: &Hit,
+        recurse: u8,
+    ) -> Colour {
         self.materials
             .iter()
             .fold(Colour::default(), |acc, material| {
-                acc + material.compute_per_light(viewer, light_direction, hit)
+                acc + material.compute_per_light(environment, viewer, light_direction, hit, recurse)
+            })
+    }
+
+    fn is_specular(&self) -> bool {
+        for material in &self.materials {
+            if material.is_specular() {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn is_transparent(&self) -> bool {
+        for material in &self.materials {
+            if material.is_transparent() {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn brdf(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+        self.materials
+            .iter()
+            .fold(Colour::default(), |acc, material| {
+                acc + material.brdf(viewer, light_direction, hit)
             })
     }
 }

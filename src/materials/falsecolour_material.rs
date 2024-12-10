@@ -1,6 +1,6 @@
 use crate::{
     core::{environment::Environment, material::Material},
-    primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
+    primitives::{colour::Colour, hit::Hit, ray::Ray},
 };
 
 /// Material that maps the x, y, z components of the normal to arbitrary r, g, b components.
@@ -16,7 +16,7 @@ impl FalseColourMaterial {
 impl Material for FalseColourMaterial {
     fn compute_once(
         &self,
-        _environment: &mut dyn Environment,
+        _environment: &dyn Environment,
         _viewer: &Ray,
         hit: &Hit,
         _recurse: u8,
@@ -27,9 +27,5 @@ impl Material for FalseColourMaterial {
             (hit.normal.z + 1.0) * 0.5,
             1.0,
         )
-    }
-
-    fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
-        Colour::default()
     }
 }

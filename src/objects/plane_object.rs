@@ -1,11 +1,9 @@
-use std::rc::Rc;
-
-use sortedlist_rs::SortedList;
+use std::sync::Arc;
 
 use crate::{
     core::{
         material::Material,
-        object::{BaseObject, Object},
+        object::{BaseObject, HitPool, Object},
     },
     primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
@@ -32,24 +30,16 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
-        self.base.get_hitpool()
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
-    }
-
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, ray: &Ray) {
-        let distance_to_plane = self.a * ray.position.vector.x
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
+        let distance_to_plane: f32 = self.a * ray.position.vector.x
             + self.b * ray.position.vector.y
             + self.c * ray.position.vector.z
             + self.d;
@@ -61,13 +51,13 @@ impl Object for Plane {
             // Ray is parallel to the plane.
             if distance_to_plane < 0.0 {
                 // The ray starts outside the plane and will never intersect.
-                self.base.hitpool.insert(Hit::new(
+                hitpool.insert(Hit::new(
                     f32::NEG_INFINITY,
                     true,
                     Vertex::default(),
                     Vector::default(),
                 ));
-                self.base.hitpool.insert(Hit::new(
+                hitpool.insert(Hit::new(
                     f32::INFINITY,
                     false,
                     Vertex::default(),
@@ -89,21 +79,17 @@ impl Object for Plane {
 
         if direction_dot_normal > 0.0 {
             // Ray comes from outside to inside.
-            self.base.hitpool.insert(Hit::new(
+            hitpool.insert(Hit::new(
                 f32::NEG_INFINITY,
                 true,
                 Vertex::default(),
                 Vector::default(),
             ));
-            self.base
-                .hitpool
-                .insert(Hit::new(t, false, hit_position, hit_normal));
+            hitpool.insert(Hit::new(t, false, hit_position, hit_normal));
         } else {
             // Ray comes from inside to outside.
-            self.base
-                .hitpool
-                .insert(Hit::new(t, true, hit_position, hit_normal));
-            self.base.hitpool.insert(Hit::new(
+            hitpool.insert(Hit::new(t, true, hit_position, hit_normal));
+            hitpool.insert(Hit::new(
                 f32::INFINITY,
                 false,
                 Vertex::default(),

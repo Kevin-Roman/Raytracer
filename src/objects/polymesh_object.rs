@@ -1,13 +1,11 @@
-use std::{io, rc::Rc};
-
-use sortedlist_rs::SortedList;
+use std::{io, sync::Arc};
 
 use crate::{
     core::{
         material::Material,
-        object::{BaseObject, Object},
+        object::{BaseObject, HitPool, Object},
     },
-    primitives::{hit::Hit, ray::Ray, transform::Transform, vertex::Vertex},
+    primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
     utilities::obj_reader::{ObjReader, Triangle},
 };
 
@@ -36,7 +34,8 @@ impl PolyMesh {
     }
 
     fn add_hit(
-        &mut self,
+        &self,
+        hitpool: &mut HitPool,
         triangle_index: usize,
         ray: &Ray,
         t: f32,
@@ -65,9 +64,7 @@ impl PolyMesh {
             hit_normal = hit_normal.negate();
         }
 
-        self.base
-            .hitpool
-            .insert(Hit::new(t, entering, hit_position, hit_normal));
+        hitpool.insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 
     /// Triangle intersection using the `Möller–Trumbore intersection algorithm`.
@@ -123,34 +120,26 @@ impl PolyMesh {
         let t = edge2.dot(&q_vec) * inv_det;
 
         // Determine if the intersection is entering or exiting the triangle.
-        let entering = det >= 0.0;
+        let entering = det < 0.0;
 
         Some(((t, u, v), entering))
     }
 }
 
 impl Object for PolyMesh {
-    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
-        self.base.get_hitpool()
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
-    }
-
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, ray: &Ray) {
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         // For each triangle in the model.
         for i in 0..self.triangles.len() {
             if let Some(((t, u, v), entering)) = self.triangle_intersection(ray, i) {
-                self.add_hit(i, ray, t, u, v, entering);
+                self.add_hit(hitpool, i, ray, t, u, v, entering);
             }
         }
     }
@@ -172,5 +161,40 @@ impl Object for PolyMesh {
                 .transpose()
                 .apply_to_vector(&mut triangle.face_normal)
         }
+    }
+
+    fn bounding_sphere(&self) -> Option<(Vertex, f32)> {
+        // Get min and max for each all components:
+        let min = self
+            .vertices
+            .iter()
+            .fold(self.vertices[0].vector, |acc, vertex| {
+                Vector::new(
+                    acc.x.min(vertex.vector.x),
+                    acc.y.min(vertex.vector.y),
+                    acc.z.min(vertex.vector.z),
+                )
+            });
+
+        let max = self
+            .vertices
+            .iter()
+            .fold(self.vertices[0].vector, |acc, vertex| {
+                Vector::new(
+                    acc.x.max(vertex.vector.x),
+                    acc.y.max(vertex.vector.y),
+                    acc.z.max(vertex.vector.z),
+                )
+            });
+
+        let center = (min + max) / 2.0;
+
+        Some((
+            Vertex::new(center.x, center.y, center.z, 1.0),
+            self.vertices
+                .iter()
+                .map(|vertex| (vertex.vector - center).length())
+                .fold(0.0, |acc, length| acc.max(length)),
+        ))
     }
 }

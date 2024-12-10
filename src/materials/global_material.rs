@@ -1,6 +1,10 @@
+use std::f32::consts::PI;
+
 use crate::{
-    core::{environment::Environment, material::Material},
-    environments::scene::ROUNDING_ERROR,
+    core::{
+        environment::{Environment, ROUNDING_ERROR},
+        material::Material,
+    },
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector},
 };
 
@@ -61,7 +65,7 @@ impl GlobalMaterial {
 impl Material for GlobalMaterial {
     fn compute_once(
         &self,
-        environment: &mut dyn Environment,
+        environment: &dyn Environment,
         viewer: &Ray,
         hit: &Hit,
         recurse: u8,
@@ -99,7 +103,19 @@ impl Material for GlobalMaterial {
         colour
     }
 
-    fn compute_per_light(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
-        Colour::default()
+    fn is_specular(&self) -> bool {
+        true
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.index_of_refraction >= 1.0
+    }
+
+    fn get_index_of_refraction(&self) -> Option<f32> {
+        Some(self.index_of_refraction)
+    }
+
+    fn brdf(&self, _viewer: &Vector, _light_direction: &Vector, _hit: &Hit) -> Colour {
+        Colour::new(1.0, 1.0, 1.0, 1.0) / PI
     }
 }

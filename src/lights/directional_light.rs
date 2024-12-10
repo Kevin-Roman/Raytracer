@@ -19,11 +19,11 @@ impl DirectionalLight {
 }
 
 impl Light for DirectionalLight {
-    fn get_direction(&self, _surface: Vertex) -> (Vector, bool) {
-        (self.direction, true)
+    fn get_direction(&self, _surface: Vertex) -> (Option<Vertex>, Vector, bool) {
+        (None, self.direction, true)
     }
 
-    fn get_intensity(&self, _surface: Vertex) -> Colour {
+    fn get_intensity(&self) -> Colour {
         self.intensity
     }
 }

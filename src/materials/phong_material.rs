@@ -4,6 +4,7 @@ use crate::{
 };
 
 /// PhongMaterial is a Material that implements the Phong surface illumination model.
+#[derive(Clone, Copy)]
 pub struct PhongMaterial {
     ambient: Colour,
     diffuse: Colour,
@@ -42,7 +43,7 @@ impl PhongMaterial {
 impl Material for PhongMaterial {
     fn compute_once(
         &self,
-        _environment: &mut dyn Environment,
+        _environment: &dyn Environment,
         _viewer: &Ray,
         _hit: &Hit,
         _recurse: u8,
@@ -50,7 +51,19 @@ impl Material for PhongMaterial {
         self.calculate_ambient()
     }
 
-    fn compute_per_light(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
+    fn compute_per_light(
+        &self,
+        _environment: &dyn Environment,
+        viewer: &Vector,
+        light_direction: &Vector,
+        hit: &Hit,
+        _recurse: u8,
+    ) -> Colour {
+        self.calculate_diffuse(light_direction, hit)
+            + self.calculate_specular(viewer, light_direction, hit)
+    }
+
+    fn brdf(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
         self.calculate_diffuse(light_direction, hit)
             + self.calculate_specular(viewer, light_direction, hit)
     }

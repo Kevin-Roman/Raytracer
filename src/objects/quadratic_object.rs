@@ -1,11 +1,9 @@
-use std::rc::Rc;
-
-use sortedlist_rs::SortedList;
+use std::sync::Arc;
 
 use crate::{
     core::{
         material::Material,
-        object::{BaseObject, Object},
+        object::{BaseObject, HitPool, Object},
     },
     primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
@@ -54,7 +52,7 @@ impl Quadratic {
         }
     }
 
-    fn add_hit(&mut self, ray: &Ray, t: f32, entering: bool) {
+    fn add_hit(&self, hitpool: &mut HitPool, ray: &Ray, t: f32, entering: bool) {
         let hit_position: Vertex = ray.position + t * ray.direction;
         let mut hit_normal = Vector::new(
             self.a * hit_position.vector.x
@@ -77,30 +75,20 @@ impl Quadratic {
             hit_normal = hit_normal.negate();
         }
 
-        self.base
-            .hitpool
-            .insert(Hit::new(t, entering, hit_position, hit_normal));
+        hitpool.insert(Hit::new(t, entering, hit_position, hit_normal));
     }
 }
 
 impl Object for Quadratic {
-    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
-        self.base.get_hitpool()
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
-    }
-
-    fn get_material(&self) -> Option<&Rc<dyn Material>> {
+    fn get_material(&self) -> Option<&Arc<dyn Material>> {
         self.base.get_material()
     }
 
-    fn set_material(&mut self, material: Rc<dyn Material>) {
+    fn set_material(&mut self, material: Arc<dyn Material>) {
         self.base.set_material(material)
     }
 
-    fn add_intersections(&mut self, ray: &Ray) {
+    fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         let (dir_x, dir_y, dir_z) = (ray.direction.x, ray.direction.y, ray.direction.z);
         let (pos_x, pos_y, pos_z) = (
             ray.position.vector.x,
@@ -148,8 +136,8 @@ impl Object for Quadratic {
             return;
         }
 
-        self.add_hit(ray, t0, true);
-        self.add_hit(ray, t1, false);
+        self.add_hit(hitpool, ray, t0, true);
+        self.add_hit(hitpool, ray, t1, false);
     }
 
     fn apply_transform(&mut self, trans: &Transform) {
