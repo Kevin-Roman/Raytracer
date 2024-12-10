@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use sortedlist_rs::SortedList;
+
 use crate::core::{
     hit::Hit,
     material::Material,
@@ -33,6 +35,14 @@ impl Plane {
 }
 
 impl Object for Plane {
+    fn get_hitpool(&mut self) -> &mut SortedList<Hit> {
+        self.base.get_hitpool()
+    }
+
+    fn select_first_hit(&mut self) -> Option<Hit> {
+        self.base.select_first_hit()
+    }
+
     fn get_material(&self) -> Option<&Rc<dyn Material>> {
         self.base.get_material()
     }
@@ -77,7 +87,7 @@ impl Object for Plane {
         let hit_position = ray.position + t * ray.direction;
         let mut hit_normal = Vector::new(self.a, self.b, self.c);
 
-        // Normal must face against the ray's direction.
+        // Flip normal if pointing away from the surface we are looking at.
         if hit_normal.dot(&ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
@@ -126,9 +136,5 @@ impl Object for Plane {
         self.b = v.vector.y;
         self.c = v.vector.z;
         self.d = v.w;
-    }
-
-    fn select_first_hit(&mut self) -> Option<Hit> {
-        self.base.select_first_hit()
     }
 }
