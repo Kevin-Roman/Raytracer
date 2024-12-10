@@ -1,4 +1,4 @@
-use super::framebuffer::{FrameBuffer, FrameBufferError};
+use crate::core::framebuffer::{FrameBuffer, FrameBufferError};
 
 fn draw_x_line(
     fb: &mut FrameBuffer,

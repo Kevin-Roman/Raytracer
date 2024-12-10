@@ -4,7 +4,6 @@ pub mod environment;
 pub mod framebuffer;
 pub mod hit;
 pub mod light;
-pub mod linedrawer;
 pub mod material;
 pub mod object;
 pub mod ray;

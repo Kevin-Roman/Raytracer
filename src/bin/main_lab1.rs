@@ -1,4 +1,4 @@
-use raytracer::core::{framebuffer::FrameBuffer, linedrawer::draw_line};
+use raytracer::{core::framebuffer::FrameBuffer, utilities::linedrawer::draw_line};
 use std::f32::consts::PI;
 
 fn main() {
