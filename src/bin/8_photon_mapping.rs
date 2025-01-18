@@ -78,7 +78,7 @@ fn main() {
 
     camera_front.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_front.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/8_photon_mapping_rgb_front.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 
@@ -92,7 +92,7 @@ fn main() {
 
     camera_back.render(&mut scene, &mut fb);
 
-    if let Err(e) = fb.write_rgb_file("./output/showcase_rgb_back.ppm") {
+    if let Err(e) = fb.write_rgb_file("./output/8_photon_mapping_rgb_back.ppm") {
         eprintln!("Error writing RGB file: {}", e);
     };
 }

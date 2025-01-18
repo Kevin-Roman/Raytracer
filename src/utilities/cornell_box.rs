@@ -34,7 +34,7 @@ fn create_material(
         compound_material.add_material(Box::new(AmbientOcclusionMaterial::new(
             Colour::new(0.1, 0.1, 0.1, 1.0),
             64,
-            0.2,
+            0.1,
         )));
     }
 

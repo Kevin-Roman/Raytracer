@@ -32,6 +32,8 @@ const NUM_PHOTONS: u32 = 202_500;
 const PHOTON_SEARCH_RADIUS: f32 = 5.0;
 const PHOTON_SEARCH_COUNT: u32 = 100;
 
+const USE_SHADOW_ESTIMATION: bool = false;
+
 pub type PhotonMap = KdTree<Photon>;
 
 pub struct PhotonMaps {
@@ -257,37 +259,39 @@ impl PhotonScene {
         light_position: Option<Vertex>,
         light_direction: Vector,
     ) -> bool {
-        // Second pass - Shadow.
-        let photons = self.photon_maps.global.within_radius(
-            &[
-                hit_position.vector.x,
-                hit_position.vector.y,
-                hit_position.vector.z,
-            ],
-            PHOTON_SEARCH_RADIUS,
-        );
+        if USE_SHADOW_ESTIMATION {
+            // Second pass - Shadow.
+            let photons = self.photon_maps.global.within_radius(
+                &[
+                    hit_position.vector.x,
+                    hit_position.vector.y,
+                    hit_position.vector.z,
+                ],
+                PHOTON_SEARCH_RADIUS,
+            );
 
-        let mut num_direct_photons: u32 = 0;
-        let mut num_shadow_photons: u32 = 0;
-        for photon in photons {
-            match photon.photon_type {
-                PhotonType::ShadowPhoton => {
-                    num_shadow_photons += 1;
+            let mut num_direct_photons: u32 = 0;
+            let mut num_shadow_photons: u32 = 0;
+            for photon in photons {
+                match photon.photon_type {
+                    PhotonType::ShadowPhoton => {
+                        num_shadow_photons += 1;
+                    }
+                    PhotonType::DirectionIllumination => {
+                        num_direct_photons += 1;
+                    }
+                    _ => {}
                 }
-                PhotonType::DirectionIllumination => {
-                    num_direct_photons += 1;
-                }
-                _ => {}
             }
-        }
 
-        if num_direct_photons + num_shadow_photons >= PHOTON_SEARCH_COUNT {
-            let shadow_percent =
-                num_shadow_photons as f32 / (num_direct_photons + num_shadow_photons) as f32;
-            if shadow_percent == 1.0 {
-                return true;
-            } else if shadow_percent == 0.0 {
-                return false;
+            if num_direct_photons + num_shadow_photons >= PHOTON_SEARCH_COUNT {
+                let shadow_percent =
+                    num_shadow_photons as f32 / (num_direct_photons + num_shadow_photons) as f32;
+                if shadow_percent == 1.0 {
+                    return true;
+                } else if shadow_percent == 0.0 {
+                    return false;
+                }
             }
         }
 
