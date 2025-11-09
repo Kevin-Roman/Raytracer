@@ -6,7 +6,7 @@ use crate::{
     primitives::{colour::Colour, hit::Hit, photon::PhotonType, ray::Ray, vector::Vector},
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct PhotonMappingMaterial {}
 
 impl PhotonMappingMaterial {

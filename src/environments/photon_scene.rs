@@ -36,6 +36,7 @@ const USE_SHADOW_ESTIMATION: bool = false;
 
 pub type PhotonMap = KdTree<Photon>;
 
+#[derive(Default)]
 pub struct PhotonMaps {
     pub global: PhotonMap,
     pub caustic: PhotonMap,
@@ -124,6 +125,7 @@ fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, 
     }
 }
 
+#[derive(Default)]
 pub struct PhotonScene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
@@ -198,7 +200,7 @@ impl PhotonScene {
             return;
         }
 
-        if let Some(material) = self.objects[object_index].get_material().clone() {
+        if let Some(material) = self.objects[object_index].get_material() {
             let (photon_outcome, probability) =
                 russian_roulette(material.is_specular(), material.is_transparent());
             match photon_outcome {
@@ -329,7 +331,7 @@ impl PhotonScene {
                         self,
                         &viewer_direction,
                         &light_direction,
-                        &hit,
+                        hit,
                         recurse_depth,
                     );
             }

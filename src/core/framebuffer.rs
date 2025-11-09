@@ -89,7 +89,7 @@ impl FrameBuffer {
 
         let diff = if max - min == 0.0 { 1.0 } else { max - min };
 
-        let ppm_writer = PPMWriter::new(self.width as u16, self.height as u16);
+        let ppm_writer = PPMWriter::new(self.width, self.height);
         ppm_writer.write_file(filename, &self.framebuffer, |pixel| {
             let red = (((pixel.colour.r - min) / diff) * 255.0) as u8;
             let green = (((pixel.colour.g - min) / diff) * 255.0) as u8;
@@ -110,7 +110,7 @@ impl FrameBuffer {
             });
         let diff = if max - min == 0.0 { 1.0 } else { max - min };
 
-        let ppm_writer = PPMWriter::new(self.width as u16, self.height as u16);
+        let ppm_writer = PPMWriter::new(self.width, self.height);
         ppm_writer.write_file(filename, &self.framebuffer, |pixel| {
             let depth = (((pixel.depth - min) / diff) * 255.0) as u8;
             (depth, depth, depth)

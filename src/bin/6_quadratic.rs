@@ -12,7 +12,7 @@ use raytracer::{
         csg_object::{Mode, CSG},
         plane_object::Plane,
         polymesh_object::PolyMesh,
-        quadratic_object::Quadratic,
+        quadratic_object::{Quadratic, QuadraticCoefficients},
     },
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
 };
@@ -62,15 +62,33 @@ fn build_scene(scene: &mut Scene) {
 
     // Sphere with radius 3 with centre at [-5, 4, 6]
     // (x + 5)^2 + (y - 4)^2 + (z - 6)^2 = 3^2
-    let sphere_object_1 = Box::new(Quadratic::new(
-        1.0, 0.0, 0.0, 5.0, 1.0, 0.0, -4.0, 1.0, -6.0, 68.0,
-    ));
+    let sphere_object_1 = Box::new(Quadratic::new(QuadraticCoefficients {
+        a: 1.0,
+        b: 0.0,
+        c: 0.0,
+        d: 5.0,
+        e: 1.0,
+        f: 0.0,
+        g: -4.0,
+        h: 1.0,
+        i: -6.0,
+        j: 68.0,
+    }));
 
     // Sphere with radius 3 with centre at [-4, 4, 10]
     // (x + 4)^2 + (y - 4)^2 + (z - 10)^2 = 3^2
-    let sphere_object_2 = Box::new(Quadratic::new(
-        1.0, 0.0, 0.0, 4.0, 1.0, 0.0, -4.0, 1.0, -10.0, 123.0,
-    ));
+    let sphere_object_2 = Box::new(Quadratic::new(QuadraticCoefficients {
+        a: 1.0,
+        b: 0.0,
+        c: 0.0,
+        d: 4.0,
+        e: 1.0,
+        f: 0.0,
+        g: -4.0,
+        h: 1.0,
+        i: -10.0,
+        j: 123.0,
+    }));
 
     let mut csg_object = Box::new(CSG::new(Mode::CsgDiff, sphere_object_2, sphere_object_1));
     let csg_material = Arc::new(GlobalMaterial::new(

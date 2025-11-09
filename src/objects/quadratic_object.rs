@@ -8,6 +8,21 @@ use crate::{
     primitives::{hit::Hit, ray::Ray, transform::Transform, vector::Vector, vertex::Vertex},
 };
 
+/// Coefficients for a quadratic surface: ax² + 2bxy + 2cxz + 2dx + ey² + 2fyz + 2gy + hz² + 2iz + j = 0
+#[derive(Clone, Copy)]
+pub struct QuadraticCoefficients {
+    pub a: f32,
+    pub b: f32,
+    pub c: f32,
+    pub d: f32,
+    pub e: f32,
+    pub f: f32,
+    pub g: f32,
+    pub h: f32,
+    pub i: f32,
+    pub j: f32,
+}
+
 pub struct Quadratic {
     base: BaseObject,
     a: f32,
@@ -25,30 +40,19 @@ pub struct Quadratic {
 // Object defined by a quadratic.
 impl Quadratic {
     /// Quadratic surface `ax^2 + 2bxy + 2cxz + 2dx + ey^2 + 2fyz + 2gy + hz^2 + 2iz + j = 0`.
-    pub fn new(
-        a: f32,
-        b: f32,
-        c: f32,
-        d: f32,
-        e: f32,
-        f: f32,
-        g: f32,
-        h: f32,
-        i: f32,
-        j: f32,
-    ) -> Self {
+    pub fn new(coefficients: QuadraticCoefficients) -> Self {
         Self {
             base: BaseObject::new(),
-            a,
-            b,
-            c,
-            d,
-            e,
-            f,
-            g,
-            h,
-            i,
-            j,
+            a: coefficients.a,
+            b: coefficients.b,
+            c: coefficients.c,
+            d: coefficients.d,
+            e: coefficients.e,
+            f: coefficients.f,
+            g: coefficients.g,
+            h: coefficients.h,
+            i: coefficients.i,
+            j: coefficients.j,
         }
     }
 

@@ -11,6 +11,13 @@ use crate::{
 
 const EPSILON: f32 = 0.000001;
 
+struct IntersectionData {
+    t: f32,
+    u: f32,
+    v: f32,
+    entering: bool,
+}
+
 pub struct PolyMesh {
     base: BaseObject,
     smooth: bool,
@@ -38,21 +45,19 @@ impl PolyMesh {
         hitpool: &mut HitPool,
         triangle_index: usize,
         ray: &Ray,
-        t: f32,
-        u: f32,
-        v: f32,
-        entering: bool,
+        intersection: IntersectionData,
     ) {
-        let hit_position = ray.position + t * ray.direction;
+        let hit_position = ray.position + intersection.t * ray.direction;
 
         let mut hit_normal = if self.smooth {
             let triangle = &self.triangles[triangle_index];
 
             // Interpolate using N(t) = (1 - u - v)N_0 + uN_1 + vN_2
             // to get the normal at the specific point inside the triangle.
-            (1.0 - u - v) * self.vertex_normals[triangle.vertex_normal_indices[0]].vector
-                + u * self.vertex_normals[triangle.vertex_normal_indices[1]].vector
-                + v * self.vertex_normals[triangle.vertex_normal_indices[2]].vector
+            (1.0 - intersection.u - intersection.v)
+                * self.vertex_normals[triangle.vertex_normal_indices[0]].vector
+                + intersection.u * self.vertex_normals[triangle.vertex_normal_indices[1]].vector
+                + intersection.v * self.vertex_normals[triangle.vertex_normal_indices[2]].vector
         } else {
             self.triangles[triangle_index].face_normal
         };
@@ -64,7 +69,12 @@ impl PolyMesh {
             hit_normal = hit_normal.negate();
         }
 
-        hitpool.insert(Hit::new(t, entering, hit_position, hit_normal));
+        hitpool.insert(Hit::new(
+            intersection.t,
+            intersection.entering,
+            hit_position,
+            hit_normal,
+        ));
     }
 
     /// Triangle intersection using the `Möller–Trumbore intersection algorithm`.
@@ -73,11 +83,7 @@ impl PolyMesh {
     /// Tomas Möller and Ben Trumbore. 2005. Fast, minimum storage ray/triangle intersection.
     /// In ACM SIGGRAPH 2005 Courses (SIGGRAPH '05). Association for Computing Machinery,
     /// New York, NY, USA, 7–es. https://doi.org/10.1145/1198555.1198746
-    fn triangle_intersection(
-        &self,
-        ray: &Ray,
-        triangle_index: usize,
-    ) -> Option<((f32, f32, f32), bool)> {
+    fn triangle_intersection(&self, ray: &Ray, triangle_index: usize) -> Option<IntersectionData> {
         // Retrieve the triangle and its vertices.
         let triangle = &self.triangles[triangle_index];
         let vert0 = &self.vertices[triangle.vertex_indices[0]];
@@ -104,7 +110,7 @@ impl PolyMesh {
 
         // Test bounds.
         let u = t_vec.dot(&p_vec) * inv_det;
-        if u < 0.0 || u > 1.0 {
+        if !(0.0..=1.0).contains(&u) {
             return None;
         }
 
@@ -122,7 +128,7 @@ impl PolyMesh {
         // Determine if the intersection is entering or exiting the triangle.
         let entering = det < 0.0;
 
-        Some(((t, u, v), entering))
+        Some(IntersectionData { t, u, v, entering })
     }
 }
 
@@ -138,8 +144,8 @@ impl Object for PolyMesh {
     fn add_intersections(&self, hitpool: &mut HitPool, ray: &Ray) {
         // For each triangle in the model.
         for i in 0..self.triangles.len() {
-            if let Some(((t, u, v), entering)) = self.triangle_intersection(ray, i) {
-                self.add_hit(hitpool, i, ray, t, u, v, entering);
+            if let Some(intersection) = self.triangle_intersection(ray, i) {
+                self.add_hit(hitpool, i, ray, intersection);
             }
         }
     }

@@ -16,7 +16,7 @@ impl Triangle {
     pub fn new(
         vertex_indices: [usize; 3],
         vertex_normal_indices: [usize; 3],
-        vertices: &Vec<Vertex>,
+        vertices: &[Vertex],
     ) -> Self {
         // Calculate face normal through cross product of two of the triangle's edges.
         let vert0 = vertices[vertex_indices[0]];
@@ -57,7 +57,7 @@ impl ObjReader {
         let mut faces: Vec<Vec<VertexData>> = Vec::new();
 
         let lines = Self::read_lines(file_path)?;
-        for line in lines.flatten() {
+        for line in lines.map_while(Result::ok) {
             if line.starts_with("v ") {
                 vertices.push(Self::process_vertex_line(&line));
             } else if line.starts_with("vn ") {
@@ -92,7 +92,7 @@ impl ObjReader {
         triangles
     }
 
-    fn convert_face_to_triangles(&self, face: &Vec<VertexData>) -> Vec<Triangle> {
+    fn convert_face_to_triangles(&self, face: &[VertexData]) -> Vec<Triangle> {
         assert!(face.len() >= 3);
 
         let mut triangles: Vec<Triangle> = Vec::new();
@@ -145,15 +145,7 @@ impl ObjReader {
         let vertex_normals_indices: Vec<usize> = line
             .split_whitespace()
             .skip(1)
-            .map(|s| {
-                s.split("/")
-                    .skip(2)
-                    .next()
-                    .unwrap()
-                    .parse::<usize>()
-                    .unwrap()
-                    - 1
-            })
+            .map(|s| s.split("/").nth(2).unwrap().parse::<usize>().unwrap() - 1)
             .collect();
 
         assert!(vertex_indices.len() >= 3 && vertex_normals_indices.len() >= 3);

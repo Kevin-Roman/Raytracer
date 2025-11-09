@@ -69,7 +69,7 @@ pub trait Sampler {
     fn sample_index(
         num_samples: u32,
         num_sets: u32,
-        shuffled_indices: &Vec<u32>,
+        shuffled_indices: &[u32],
         count: &mut u32,
         jump: &mut u32,
     ) -> usize {

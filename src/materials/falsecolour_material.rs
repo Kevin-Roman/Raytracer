@@ -5,6 +5,7 @@ use crate::{
 
 /// Material that maps the x, y, z components of the normal to arbitrary r, g, b components.
 /// Used for debugging purposes.
+#[derive(Default)]
 pub struct FalseColourMaterial {}
 
 impl FalseColourMaterial {

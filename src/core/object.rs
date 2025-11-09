@@ -10,11 +10,11 @@ use crate::{
 /// Sortedlist uses a list of sorted sublists to store elements.
 /// It has three internal lists:
 /// - `lists`: This is a list of sorted sublists. Each sublist contains a portion of the elements in sorted order.
-/// This allows for insertion and deletion by operating on smaller sublists rather than a single large list.
+///   This allows for insertion and deletion by operating on smaller sublists rather than a single large list.
 /// - `maxes`: This list contains the maximum element of each sublist in `lists`.
-/// It is used for binary search to locate the sublist that may contain a specific element.
+///   It is used for binary search to locate the sublist that may contain a specific element.
 /// - `index`: This is a tree of pair-wise sums of the lengths of the sublists in `lists`.
-/// It is used for indexing, allowing quick computation of the overall position of an element within the entire sortedlist.
+///   It is used for indexing, allowing quick computation of the overall position of an element within the entire sortedlist.
 pub type HitPool = SortedList<Hit>;
 
 /// Object is the trait for objects in the environment.
@@ -55,6 +55,12 @@ pub trait Object: Sync {
 
 pub struct BaseObject {
     pub material: Option<Arc<dyn Material>>,
+}
+
+impl Default for BaseObject {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BaseObject {

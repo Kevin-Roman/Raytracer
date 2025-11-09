@@ -11,6 +11,7 @@ use crate::{
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector, vertex::Vertex},
 };
 
+#[derive(Default)]
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Box<dyn Light>>,
@@ -87,7 +88,7 @@ impl Scene {
                         self,
                         &viewer_direction,
                         &light_direction,
-                        &hit,
+                        hit,
                         recurse_depth,
                     );
             }

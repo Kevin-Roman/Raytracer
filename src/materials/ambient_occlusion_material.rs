@@ -59,7 +59,7 @@ impl Material for AmbientOcclusionMaterial {
             }
         }
 
-        let ambient_occlusion = (ambient_occlusion_sum as f32) / (self.num_samples as f32);
+        let ambient_occlusion = ambient_occlusion_sum / (self.num_samples as f32);
 
         ambient_occlusion * self.ambient
     }

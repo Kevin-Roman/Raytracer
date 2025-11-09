@@ -36,7 +36,7 @@ impl PhongMaterial {
     fn calculate_specular(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
         let reflection = light_direction.negate().reflection(&hit.normal);
 
-        reflection.dot(&viewer).powf(self.control_factor) * self.specular
+        reflection.dot(viewer).powf(self.control_factor) * self.specular
     }
 }
 

@@ -54,7 +54,7 @@ impl GlobalMaterial {
         let transmission_coefficient = 1.0 - reflection_coefficient;
 
         assert!(
-            0.0 <= reflection_coefficient && reflection_coefficient <= 1.0,
+            (0.0..=1.0).contains(&reflection_coefficient),
             "Invalid Fresnel coefficient."
         );
 

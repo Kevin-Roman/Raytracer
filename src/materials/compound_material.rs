@@ -4,6 +4,7 @@ use crate::{
 };
 
 /// CompoundMaterial is a Material that applies multiple materials to a surface.
+#[derive(Default)]
 pub struct CompoundMaterial {
     pub materials: Vec<Box<dyn Material>>,
 }
@@ -15,14 +16,6 @@ impl CompoundMaterial {
 
     pub fn add_material(&mut self, material: Box<dyn Material>) {
         self.materials.push(material);
-    }
-}
-
-impl Default for CompoundMaterial {
-    fn default() -> Self {
-        Self {
-            materials: Vec::new(),
-        }
     }
 }
 
