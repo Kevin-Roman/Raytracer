@@ -10,10 +10,6 @@ use crate::{
     primitives::{colour::Colour, vertex::Vertex},
 };
 
-pub const WIDTH: f32 = 100.0;
-pub const LENGTH: f32 = 150.0;
-pub const HEIGHT: f32 = 90.00;
-
 fn create_material(
     mut ambient: Colour,
     diffuse: Colour,
@@ -49,6 +45,11 @@ pub fn setup_cornell_box<T: Environment>(
     ambient_occlusion: bool,
     photon_mapping: bool,
 ) {
+    let config = scene.config();
+    let width = config.cornell_box.width;
+    let length = config.cornell_box.length;
+    let height = config.cornell_box.height;
+
     let white_material = create_material(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.6, 0.6, 0.6, 1.0),
@@ -77,27 +78,27 @@ pub fn setup_cornell_box<T: Environment>(
     floor.set_material(white_material.clone());
     scene.add_object(Box::new(floor));
 
-    let mut front_wall = Plane::new(0.0, 0.0, -1.0, LENGTH);
+    let mut front_wall = Plane::new(0.0, 0.0, -1.0, length);
     front_wall.set_material(white_material.clone());
     scene.add_object(Box::new(front_wall));
 
     let back_wall = Plane::new(0.0, 0.0, 1.0, 0.0);
     scene.add_object(Box::new(back_wall));
 
-    let mut ceiling = Plane::new(0.0, -1.0, 0.0, HEIGHT);
+    let mut ceiling = Plane::new(0.0, -1.0, 0.0, height);
     ceiling.set_material(white_material.clone());
     scene.add_object(Box::new(ceiling));
 
-    let mut left_wall = Plane::new(1.0, 0.0, 0.0, WIDTH / 2.0);
+    let mut left_wall = Plane::new(1.0, 0.0, 0.0, width / 2.0);
     left_wall.set_material(red_material.clone());
     scene.add_object(Box::new(left_wall));
 
-    let mut right_wall = Plane::new(-1.0, 0.0, 0.0, WIDTH / 2.0);
+    let mut right_wall = Plane::new(-1.0, 0.0, 0.0, width / 2.0);
     right_wall.set_material(blue_material.clone());
     scene.add_object(Box::new(right_wall));
 
     scene.add_light(Light::new_point(
-        Vertex::new(0.0, HEIGHT - 8.0, LENGTH * 0.6, 1.0),
+        Vertex::new(0.0, height - 8.0, length * 0.6, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
     ));
 }

@@ -9,8 +9,6 @@ use crate::{
     utilities::obj_reader::{ObjReader, Triangle},
 };
 
-const EPSILON: f32 = 0.000001;
-
 struct IntersectionData {
     t: f32,
     u: f32,
@@ -84,6 +82,9 @@ impl PolyMesh {
     /// In ACM SIGGRAPH 2005 Courses (SIGGRAPH '05). Association for Computing Machinery,
     /// New York, NY, USA, 7–es. https://doi.org/10.1145/1198555.1198746
     fn triangle_intersection(&self, ray: &Ray, triangle_index: usize) -> Option<IntersectionData> {
+        // Epsilon for floating point comparison
+        const EPSILON: f32 = 0.000001;
+
         // Retrieve the triangle and its vertices.
         let triangle = &self.triangles[triangle_index];
         let vert0 = &self.vertices[triangle.vertex_indices[0]];

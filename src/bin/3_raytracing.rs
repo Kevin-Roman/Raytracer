@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
+    config::RaytracerConfig,
     core::{
         camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
         object::Object,
@@ -57,10 +58,9 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let width = 512;
-    let height = 512;
+    let config = RaytracerConfig::default();
 
-    let mut fb = match FrameBuffer::new(width, height) {
+    let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
         Err(e) => {
             eprintln!("Error creating framebuffer: {}", e);

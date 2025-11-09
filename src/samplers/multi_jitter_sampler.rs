@@ -1,11 +1,10 @@
 use rand::Rng;
 
 use crate::{
+    config::RaytracerConfig,
     core::sampler::{Point2D, Sampler},
     primitives::vector::Vector,
 };
-
-const NUM_SETS: u32 = 4;
 
 pub struct MultiJitterSampler {
     /// Must be a square number.
@@ -22,19 +21,26 @@ impl MultiJitterSampler {
     /// The distribution is controlled by the exponent `e` (how sparse/dense the vectors should be).
     /// The larger the value, the more vectors will be distributed towards the top of the hemisphere.
     pub fn new(num_samples: u32, e: f32) -> Self {
+        Self::new_with_config(num_samples, e, &RaytracerConfig::default())
+    }
+
+    /// Create a new sampler with a custom config
+    pub fn new_with_config(num_samples: u32, e: f32, config: &RaytracerConfig) -> Self {
+        let num_sets = config.sampler.num_sets;
+
         assert!(
             ((num_samples as f64).sqrt() as u32).pow(2) == num_samples,
             "Number of samples must be a square number."
         );
 
-        let samples: Vec<Point2D> = MultiJitterSampler::generate_samples(num_samples, NUM_SETS);
+        let samples: Vec<Point2D> = MultiJitterSampler::generate_samples(num_samples, num_sets);
         let hemisphere_samples: Vec<Vector> =
             MultiJitterSampler::map_samples_hemisphere(&samples, e);
-        let shuffled_indices = MultiJitterSampler::setup_shuffled_indices(num_samples, NUM_SETS);
+        let shuffled_indices = MultiJitterSampler::setup_shuffled_indices(num_samples, num_sets);
 
         Self {
             num_samples,
-            num_sets: NUM_SETS,
+            num_sets,
             samples,
             hemisphere_samples,
             shuffled_indices,

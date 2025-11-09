@@ -2,26 +2,33 @@ use core::f32;
 use std::sync::Arc;
 
 use crate::{
-    core::{
-        environment::{Environment, ROUNDING_ERROR},
-        light::Light,
-        material::Material,
-        object::Object,
-    },
+    config::RaytracerConfig,
+    core::{environment::Environment, light::Light, material::Material, object::Object},
     primitives::{colour::Colour, hit::Hit, ray::Ray, vector::Vector, vertex::Vertex},
 };
 
-#[derive(Default)]
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Light>,
+    pub config: RaytracerConfig,
+}
+
+impl Default for Scene {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Scene {
     pub fn new() -> Self {
+        Self::with_config(RaytracerConfig::default())
+    }
+
+    pub fn with_config(config: RaytracerConfig) -> Self {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
+            config,
         }
     }
 
@@ -49,10 +56,11 @@ impl Scene {
         light_position: Option<Vertex>,
         light_direction: Vector,
     ) -> bool {
+        let rounding_error = self.config.objects.rounding_error;
         let to_light_direction = light_direction.negate();
         // Move the shadow ray point slightly along the ray (towards the light) to avoid self-shadowing.
         let shadow_ray = Ray::new(
-            hit_position + ROUNDING_ERROR * to_light_direction,
+            hit_position + rounding_error * to_light_direction,
             to_light_direction,
         );
 
@@ -99,6 +107,10 @@ impl Scene {
 }
 
 impl Environment for Scene {
+    fn config(&self) -> &RaytracerConfig {
+        &self.config
+    }
+
     fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool {
         for object in &self.objects {
             if let Some(hit) = object.select_first_hit(ray) {

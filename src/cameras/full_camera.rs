@@ -6,11 +6,7 @@ use std::{
 };
 
 use crate::{
-    core::{
-        camera::{Camera, RAYTRACE_RECURSE},
-        environment::Environment,
-        framebuffer::FrameBuffer,
-    },
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer},
     primitives::{ray::Ray, vector::Vector, vertex::Vertex},
 };
 
@@ -84,6 +80,7 @@ impl<T: Environment + Sync> Camera<T> for FullCamera {
         self.width = fb.width;
         self.height = fb.height;
 
+        let raytrace_recurse = env.config().camera.raytrace_recurse;
         let fb = Arc::new(Mutex::new(fb));
 
         let start_time = Instant::now();
@@ -93,7 +90,7 @@ impl<T: Environment + Sync> Camera<T> for FullCamera {
             for x in 0..self.width {
                 let ray = self.get_pixel_ray(x, y);
 
-                let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
+                let (colour, depth) = env.raytrace(&ray, raytrace_recurse);
 
                 let mut fb = fb.lock().unwrap();
                 let _ = fb.plot_pixel(x as i32, y as i32, colour);

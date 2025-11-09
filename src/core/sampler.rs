@@ -76,7 +76,7 @@ pub trait Sampler {
         let mut rng = rand::thread_rng();
 
         // Update the jump if the count is a multiple of num_samples.
-        if *count % num_samples == 0 {
+        if (*count).is_multiple_of(num_samples) {
             *jump = rng.gen_range(0..num_sets) * num_samples;
         }
 

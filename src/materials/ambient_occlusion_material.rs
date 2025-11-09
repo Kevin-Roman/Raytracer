@@ -1,14 +1,8 @@
 use crate::{
-    core::{
-        environment::{Environment, ROUNDING_ERROR},
-        material::Material,
-        sampler::Sampler,
-    },
+    core::{environment::Environment, material::Material, sampler::Sampler},
     primitives::{colour::Colour, hit::Hit, ray::Ray},
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
-
-const SHADOW_DISTANCE_LIMIT: f32 = 50.0;
 
 /// AmbientOcclusionMaterial is a Material that computes ambient occlusion.
 pub struct AmbientOcclusionMaterial {
@@ -43,6 +37,10 @@ impl Material for AmbientOcclusionMaterial {
         hit: &Hit,
         _recurse: u8,
     ) -> Colour {
+        let config = environment.config();
+        let rounding_error = config.objects.rounding_error;
+        let shadow_distance_limit = config.materials.shadow_distance_limit;
+
         let mut sampler: MultiJitterSampler = MultiJitterSampler::new(self.num_samples, 1.0);
 
         let mut ambient_occlusion_sum = 0.0;
@@ -50,8 +48,8 @@ impl Material for AmbientOcclusionMaterial {
             let sample = sampler.sample_hemisphere();
             let sample_direction = (hit.normal + sample).normalise();
 
-            let shadow_ray = Ray::new(hit.position + ROUNDING_ERROR * hit.normal, sample_direction);
-            if !environment.shadowtrace(&shadow_ray, SHADOW_DISTANCE_LIMIT) {
+            let shadow_ray = Ray::new(hit.position + rounding_error * hit.normal, sample_direction);
+            if !environment.shadowtrace(&shadow_ray, shadow_distance_limit) {
                 ambient_occlusion_sum += 1.0;
             } else {
                 // If ray hits object, add only the minimum amount of ambient light.

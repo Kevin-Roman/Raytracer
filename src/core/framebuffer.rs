@@ -2,12 +2,10 @@ use std::io;
 use thiserror::Error as ThiserrorError;
 
 use crate::{
+    config::RaytracerConfig,
     primitives::{colour::Colour, pixel::Pixel},
     utilities::ppm_writer::PPMWriter,
 };
-
-const MAX_WIDTH: u16 = 2048;
-const MAX_HEIGHT: u16 = 2048;
 
 #[derive(Debug, ThiserrorError)]
 pub enum FrameBufferError {
@@ -32,19 +30,22 @@ impl FrameBuffer {
     /// Creates a new FrameBuffer with the given width and height.
     ///
     /// Returns an error if the dimensions exceeds the maximum allowed size.
-    pub fn new(w: u16, h: u16) -> Result<Self, FrameBufferError> {
-        if w > MAX_WIDTH || h > MAX_HEIGHT {
-            return Err(FrameBufferError::DimensionError {
-                width: w,
-                height: h,
-            });
+    pub fn new(config: &RaytracerConfig) -> Result<Self, FrameBufferError> {
+        let width = config.framebuffer.width;
+        let height = config.framebuffer.height;
+
+        let max_width = config.framebuffer.max_width;
+        let max_height = config.framebuffer.max_height;
+
+        if width > max_width || height > max_height {
+            return Err(FrameBufferError::DimensionError { width, height });
         }
 
-        let framebuffer = vec![Pixel::default(); (w as usize) * (h as usize)];
+        let framebuffer = vec![Pixel::default(); (width as usize) * (height as usize)];
 
         Ok(Self {
-            width: w,
-            height: h,
+            width,
+            height,
             framebuffer,
         })
     }

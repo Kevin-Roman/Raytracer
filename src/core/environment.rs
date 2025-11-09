@@ -1,4 +1,5 @@
 use crate::{
+    config::RaytracerConfig,
     core::light::Light,
     environments::photon_scene::PhotonMaps,
     primitives::{colour::Colour, ray::Ray},
@@ -6,13 +7,12 @@ use crate::{
 
 use super::object::Object;
 
-/// Small rounding error used to move shadow ray point along the ray by a small amount
-/// in case the shadow position is behind the hit (due to floating point precision).
-pub const ROUNDING_ERROR: f32 = 0.001;
-
 /// Environment is the trait for raytracing.
 pub trait Environment {
     fn setup(&mut self) {}
+
+    /// Get the configuration for this environment
+    fn config(&self) -> &RaytracerConfig;
 
     /// Shadowtrace returns whether a ray intersects an object in the environment.
     fn shadowtrace(&self, ray: &Ray, limit: f32) -> bool;

@@ -3,11 +3,9 @@ use rand::Rng;
 use std::{collections::HashSet, f32::consts::E};
 
 use crate::{
+    config::RaytracerConfig,
     core::{
-        environment::{Environment, ROUNDING_ERROR},
-        light::Light,
-        material::Material,
-        object::Object,
+        environment::Environment, light::Light, material::Material, object::Object,
         sampler::Sampler,
     },
     primitives::{
@@ -26,14 +24,6 @@ use crate::{materials::phong_material::PhongMaterial, objects::sphere_object::Sp
 #[cfg(feature = "debugging")]
 use std::sync::Arc;
 
-const RECURSE_APPROXIMATE_THRESHOLD: u8 = 2;
-const PHOTON_RECURSE: u8 = 3;
-const NUM_PHOTONS: u32 = 202_500;
-const PHOTON_SEARCH_RADIUS: f32 = 5.0;
-const PHOTON_SEARCH_COUNT: u32 = 100;
-
-const USE_SHADOW_ESTIMATION: bool = false;
-
 pub type PhotonMap = KdTree<Photon>;
 
 #[derive(Default)]
@@ -49,8 +39,9 @@ impl PhotonMaps {
         hit: &Hit,
         material: &dyn Material,
         photon_types: &HashSet<PhotonType>,
+        config: &RaytracerConfig,
     ) -> Colour {
-        self.radiance_estimate(viewer, hit, material, photon_types, &self.global)
+        self.radiance_estimate(viewer, hit, material, photon_types, &self.global, config)
     }
 
     pub fn caustic_radiance_estimate(
@@ -59,8 +50,9 @@ impl PhotonMaps {
         hit: &Hit,
         material: &dyn Material,
         photon_types: &HashSet<PhotonType>,
+        config: &RaytracerConfig,
     ) -> Colour {
-        self.radiance_estimate(viewer, hit, material, photon_types, &self.caustic)
+        self.radiance_estimate(viewer, hit, material, photon_types, &self.caustic, config)
     }
 
     fn radiance_estimate(
@@ -70,7 +62,9 @@ impl PhotonMaps {
         material: &dyn Material,
         photon_types: &HashSet<PhotonType>,
         photon_map: &PhotonMap,
+        config: &RaytracerConfig,
     ) -> Colour {
+        let photon_search_radius = config.photon_mapping.photon_search_radius;
         let mut colour = Colour::default();
 
         let photons = photon_map.within_radius(
@@ -79,7 +73,7 @@ impl PhotonMaps {
                 hit.position.vector.y,
                 hit.position.vector.z,
             ],
-            PHOTON_SEARCH_RADIUS,
+            photon_search_radius,
         );
 
         for photon in photons {
@@ -91,7 +85,7 @@ impl PhotonMaps {
                     * (1.0
                         - ((1.0
                             - E.powf(
-                                -BETA * (distance.powi(2) / (2.0 * PHOTON_SEARCH_RADIUS.powi(2))),
+                                -BETA * (distance.powi(2) / (2.0 * photon_search_radius.powi(2))),
                             ))
                             / (1.0 - E.powf(-BETA))));
                 colour += filter_weight
@@ -125,15 +119,25 @@ fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, 
     }
 }
 
-#[derive(Default)]
 pub struct PhotonScene {
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Light>,
     pub photon_maps: PhotonMaps,
+    pub config: RaytracerConfig,
+}
+
+impl Default for PhotonScene {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PhotonScene {
     pub fn new() -> Self {
+        Self::with_config(RaytracerConfig::default())
+    }
+
+    pub fn with_config(config: RaytracerConfig) -> Self {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
@@ -141,6 +145,7 @@ impl PhotonScene {
                 global: KdTree::default(),
                 caustic: KdTree::default(),
             },
+            config,
         }
     }
 
@@ -201,13 +206,14 @@ impl PhotonScene {
         }
 
         if let Some(material) = self.objects[object_index].get_material() {
+            let rounding_error = self.config.objects.rounding_error;
             let (photon_outcome, probability) =
                 russian_roulette(material.is_specular(), material.is_transparent());
             match photon_outcome {
                 PhotonOutcome::Reflect => {
                     let reflection_direction = ray.direction.reflection(hit.normal).normalise();
                     let reflected_ray = Ray::new(
-                        hit.position + ROUNDING_ERROR * reflection_direction,
+                        hit.position + rounding_error * reflection_direction,
                         reflection_direction,
                     );
                     self.photon_trace(
@@ -221,7 +227,7 @@ impl PhotonScene {
                 }
                 PhotonOutcome::Absorb => {
                     let absorbed_ray =
-                        Ray::new(hit.position + ROUNDING_ERROR * ray.direction, ray.direction);
+                        Ray::new(hit.position + rounding_error * ray.direction, ray.direction);
                     self.photon_trace(
                         photon_map,
                         &absorbed_ray,
@@ -239,7 +245,7 @@ impl PhotonScene {
                             .refraction(hit.normal, index_of_refraction)
                             .normalise();
                         transmitted_ray.position =
-                            hit.position + ROUNDING_ERROR * transmitted_ray.direction;
+                            hit.position + rounding_error * transmitted_ray.direction;
                         self.photon_trace(
                             photon_map,
                             &transmitted_ray,
@@ -261,7 +267,12 @@ impl PhotonScene {
         light_position: Option<Vertex>,
         light_direction: Vector,
     ) -> bool {
-        if USE_SHADOW_ESTIMATION {
+        let use_shadow_estimation = self.config.photon_mapping.use_shadow_estimation;
+        let photon_search_radius = self.config.photon_mapping.photon_search_radius;
+        let photon_search_count = self.config.photon_mapping.photon_search_count;
+        let rounding_error = self.config.objects.rounding_error;
+
+        if use_shadow_estimation {
             // Second pass - Shadow.
             let photons = self.photon_maps.global.within_radius(
                 &[
@@ -269,7 +280,7 @@ impl PhotonScene {
                     hit_position.vector.y,
                     hit_position.vector.z,
                 ],
-                PHOTON_SEARCH_RADIUS,
+                photon_search_radius,
             );
 
             let mut num_direct_photons: u32 = 0;
@@ -286,7 +297,7 @@ impl PhotonScene {
                 }
             }
 
-            if num_direct_photons + num_shadow_photons >= PHOTON_SEARCH_COUNT {
+            if num_direct_photons + num_shadow_photons >= photon_search_count {
                 let shadow_percent =
                     num_shadow_photons as f32 / (num_direct_photons + num_shadow_photons) as f32;
                 if shadow_percent == 1.0 {
@@ -300,7 +311,7 @@ impl PhotonScene {
         let to_light_direction = light_direction.negate();
         // Move the shadow ray point slightly along the ray (towards the light) to avoid self-shadowing.
         let shadow_ray = Ray::new(
-            hit_position + ROUNDING_ERROR * to_light_direction,
+            hit_position + rounding_error * to_light_direction,
             to_light_direction,
         );
 
@@ -351,6 +362,7 @@ impl PhotonScene {
             hit,
             material,
             &HashSet::from([PhotonType::DirectionIllumination]),
+            &self.config,
         )
     }
 
@@ -390,17 +402,24 @@ impl PhotonScene {
 }
 
 impl Environment for PhotonScene {
+    fn config(&self) -> &RaytracerConfig {
+        &self.config
+    }
+
     /// Pass 1: Constructing the Photon Maps.
     fn setup(&mut self) {
-        let mut sampler = MultiJitterSampler::new(NUM_PHOTONS, 1.0);
+        let num_photons = self.config.photon_mapping.num_photons;
+        let photon_recurse = self.config.photon_mapping.photon_recurse;
 
-        let mut global_photon_map: Vec<Photon> = Vec::with_capacity(NUM_PHOTONS as usize);
-        let mut caustic_photon_map: Vec<Photon> = Vec::with_capacity(NUM_PHOTONS as usize);
+        let mut sampler = MultiJitterSampler::new(num_photons, 1.0);
+
+        let mut global_photon_map: Vec<Photon> = Vec::with_capacity(num_photons as usize);
+        let mut caustic_photon_map: Vec<Photon> = Vec::with_capacity(num_photons as usize);
 
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
                 // Create global map.
-                for _ in 0..NUM_PHOTONS {
+                for _ in 0..num_photons {
                     let sample_direction = sampler.sample_hemisphere();
                     // Project samples onto a sphere, so that the photons are emitted in all directions.
                     let sign = if rand::random::<f32>() > 0.5 {
@@ -416,7 +435,7 @@ impl Environment for PhotonScene {
                     );
                     let photon_ray = Ray::new(light_position, photon_direction);
 
-                    let photon_power = 1.0 / NUM_PHOTONS as f32;
+                    let photon_power = 1.0 / num_photons as f32;
 
                     self.photon_trace(
                         &mut global_photon_map,
@@ -424,7 +443,7 @@ impl Environment for PhotonScene {
                         PhotonType::DirectionIllumination,
                         photon_power * light.get_intensity(),
                         None,
-                        PHOTON_RECURSE,
+                        photon_recurse,
                     );
                 }
 
@@ -439,7 +458,7 @@ impl Environment for PhotonScene {
                     }
 
                     if let Some(bounding_sphere) = object.bounding_sphere() {
-                        for _ in 0..NUM_PHOTONS {
+                        for _ in 0..num_photons {
                             let sample_direction = sampler.sample_hemisphere();
                             // Shoot photons towards the object.
                             let target_point =
@@ -448,7 +467,7 @@ impl Environment for PhotonScene {
                                 (target_point.vector - light_position.vector).normalise();
                             let photon_ray = Ray::new(light_position, photon_direction);
 
-                            let photon_power = 1.0 / NUM_PHOTONS as f32;
+                            let photon_power = 1.0 / num_photons as f32;
 
                             self.photon_trace(
                                 &mut caustic_photon_map,
@@ -456,7 +475,7 @@ impl Environment for PhotonScene {
                                 PhotonType::DirectionIllumination,
                                 photon_power * light.get_intensity(),
                                 None,
-                                PHOTON_RECURSE,
+                                photon_recurse,
                             );
                         }
                     }
@@ -495,10 +514,12 @@ impl Environment for PhotonScene {
             depth = hit.distance;
 
             if let Some(material) = self.objects[object_index].get_material().cloned() {
+                let recurse_approximate_threshold =
+                    self.config.photon_mapping.recurse_approximate_threshold;
                 // Compute direct material contribution.
                 colour += material.compute_once(self, ray, &hit, recurse);
 
-                if recurse > RECURSE_APPROXIMATE_THRESHOLD {
+                if recurse > recurse_approximate_threshold {
                     colour += self.compute_lighting(&hit, material.as_ref(), recurse);
                 } else {
                     // Second pass - direction illumination.

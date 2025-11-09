@@ -1,4 +1,5 @@
 pub mod cameras;
+pub mod config;
 pub mod core;
 pub mod environments;
 pub mod materials;

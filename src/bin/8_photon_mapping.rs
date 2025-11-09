@@ -2,21 +2,23 @@ use std::sync::Arc;
 
 use raytracer::{
     cameras::sampling_camera::SamplingCamera,
+    config::RaytracerConfig,
     core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
     environments::photon_scene::PhotonScene,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
-    utilities::cornell_box::{setup_cornell_box, HEIGHT, LENGTH},
+    utilities::cornell_box::setup_cornell_box,
 };
-
-const NUM_CAMERA_RAY_SAMPLES: u32 = 16;
 
 fn build_scene<T: Environment>(scene: &mut T) {
     setup_cornell_box(scene, true, true);
 
+    let config = scene.config();
+    let length = config.cornell_box.length;
+
     let mut sphere_object = Box::new(Sphere::new(
-        Vertex::new(-20.0, 20.0, LENGTH * 0.7, 1.0),
+        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
         10.0,
     ));
     sphere_object.set_material(Arc::new(GlobalMaterial::new(
@@ -39,7 +41,7 @@ fn build_scene<T: Environment>(scene: &mut T) {
     teapot.apply_transform(&Transform::new([
         [1.5, 0.0, 0.0, 15.0],
         [0.0, 0.0, 1.5, 0.0],
-        [0.0, 1.5, 0.0, LENGTH * 0.6],
+        [0.0, 1.5, 0.0, length * 0.6],
         [0.0, 0.0, 0.0, 1.0],
     ]));
     teapot.set_material(Arc::new(PhongMaterial::new(
@@ -52,10 +54,9 @@ fn build_scene<T: Environment>(scene: &mut T) {
 }
 
 fn main() {
-    let width = 512;
-    let height = 512;
+    let config = RaytracerConfig::default();
 
-    let mut fb = match FrameBuffer::new(width, height) {
+    let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
         Err(e) => {
             eprintln!("Error creating framebuffer: {}", e);
@@ -68,12 +69,16 @@ fn main() {
 
     scene.setup();
 
+    let config = *scene.config();
+    let cornell_height = config.cornell_box.height;
+    let cornell_length = config.cornell_box.length;
+
     let mut camera_front = SamplingCamera::new(
         0.8,
-        Vertex::new(0.0, HEIGHT / 2.0, 0.05, 1.0),
-        Vector::new(0.0, HEIGHT / 2.0, LENGTH),
+        Vertex::new(0.0, cornell_height / 2.0, 0.05, 1.0),
+        Vector::new(0.0, cornell_height / 2.0, cornell_length),
         Vector::new(0.0, 1.0, 0.0),
-        NUM_CAMERA_RAY_SAMPLES,
+        config.camera.num_camera_ray_samples,
     );
 
     camera_front.render(&mut scene, &mut fb);
@@ -84,10 +89,10 @@ fn main() {
 
     let mut camera_back = SamplingCamera::new(
         0.2,
-        Vertex::new(0.0, HEIGHT / 2.0, LENGTH - 0.05, 1.0),
-        Vector::new(0.0, HEIGHT / 2.0, 0.0),
+        Vertex::new(0.0, cornell_height / 2.0, cornell_length - 0.05, 1.0),
+        Vector::new(0.0, cornell_height / 2.0, 0.0),
         Vector::new(0.0, 1.0, 0.0),
-        NUM_CAMERA_RAY_SAMPLES,
+        config.camera.num_camera_ray_samples,
     );
 
     camera_back.render(&mut scene, &mut fb);

@@ -1,4 +1,5 @@
 use raytracer::{
+    config::RaytracerConfig,
     core::{framebuffer::FrameBuffer, object::Object},
     objects::polymesh_object::PolyMesh,
     primitives::transform::Transform,
@@ -6,8 +7,9 @@ use raytracer::{
 };
 
 fn main() {
+    let config = RaytracerConfig::default();
     // Create a framebuffer.
-    let mut fb = match FrameBuffer::new(512, 512) {
+    let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
         Err(e) => {
             eprintln!("Error creating framebuffer: {}", e);

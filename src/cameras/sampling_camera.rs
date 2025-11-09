@@ -6,12 +6,7 @@ use std::{
 };
 
 use crate::{
-    core::{
-        camera::{Camera, RAYTRACE_RECURSE},
-        environment::Environment,
-        framebuffer::FrameBuffer,
-        sampler::Sampler,
-    },
+    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, sampler::Sampler},
     primitives::{colour::Colour, ray::Ray, vector::Vector, vertex::Vertex},
     samplers::multi_jitter_sampler::MultiJitterSampler,
 };
@@ -92,6 +87,8 @@ impl<T: Environment + Sync> Camera<T> for SamplingCamera {
         let pb = ProgressBar::new(self.height as u64);
 
         // Multithread the rendering process for each row.
+        let raytrace_recurse = env.config().camera.raytrace_recurse;
+
         (0..self.height).into_par_iter().for_each(|y| {
             let mut sampler = MultiJitterSampler::new(self.num_samples, 1.0);
 
@@ -102,7 +99,7 @@ impl<T: Environment + Sync> Camera<T> for SamplingCamera {
                 for _ in 0..self.num_samples {
                     let sample = sampler.sample_unit_square();
                     let ray = self.get_pixel_ray(x, y, sample.x - 0.5, sample.y - 0.5);
-                    let (colour, depth) = env.raytrace(&ray, RAYTRACE_RECURSE);
+                    let (colour, depth) = env.raytrace(&ray, raytrace_recurse);
                     sampled_colour += colour;
                     sampled_depth += depth;
                 }
