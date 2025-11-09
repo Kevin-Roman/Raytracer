@@ -14,7 +14,7 @@ use crate::{
 #[derive(Default)]
 pub struct Scene {
     pub objects: Vec<Box<dyn Object>>,
-    pub lights: Vec<Box<dyn Light>>,
+    pub lights: Vec<Light>,
 }
 
 impl Scene {
@@ -77,7 +77,7 @@ impl Scene {
             let (light_position, light_direction, is_lit) = light.get_direction(hit.position);
 
             // Skip lights that are facing the wrong direction.
-            if light_direction.dot(&hit.normal) > 0.0 {
+            if light_direction.dot(hit.normal) > 0.0 {
                 continue;
             }
 
@@ -134,7 +134,7 @@ impl Environment for Scene {
         self.objects.push(object);
     }
 
-    fn add_light(&mut self, light: Box<dyn Light>) {
+    fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }
 }

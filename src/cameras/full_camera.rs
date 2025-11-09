@@ -35,8 +35,8 @@ pub struct FullCamera {
 impl FullCamera {
     pub fn new(fov: f32, position: Vertex, lookat: Vector, up: Vector) -> Self {
         let w = (position.vector - lookat).normalise();
-        let u = w.cross(&up).normalise();
-        let v = u.cross(&w);
+        let u = w.cross(up).normalise();
+        let v = u.cross(w);
 
         Self {
             width: u16::default(),

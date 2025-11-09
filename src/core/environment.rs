@@ -1,9 +1,10 @@
 use crate::{
+    core::light::Light,
     environments::photon_scene::PhotonMaps,
     primitives::{colour::Colour, ray::Ray},
 };
 
-use super::{light::Light, object::Object};
+use super::object::Object;
 
 /// Small rounding error used to move shadow ray point along the ray by a small amount
 /// in case the shadow position is behind the hit (due to floating point precision).
@@ -22,7 +23,7 @@ pub trait Environment {
 
     fn add_object(&mut self, object: Box<dyn Object>);
 
-    fn add_light(&mut self, light: Box<dyn Light>);
+    fn add_light(&mut self, light: Light);
 
     fn get_photon_maps(&self) -> Option<&PhotonMaps> {
         None

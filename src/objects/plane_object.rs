@@ -73,7 +73,7 @@ impl Object for Plane {
         let mut hit_normal = Vector::new(self.a, self.b, self.c);
 
         // Flip normal if pointing away from the surface we are looking at.
-        if hit_normal.dot(&ray.direction) > 0.0 {
+        if hit_normal.dot(ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
 

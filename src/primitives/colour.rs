@@ -18,14 +18,14 @@ impl Colour {
         Self { r, g, b, a }
     }
 
-    pub fn scale(&mut self, scaling: &Self) {
+    pub fn scale(&mut self, scaling: Self) {
         self.r *= scaling.r;
         self.g *= scaling.g;
         self.b *= scaling.b;
         self.a *= scaling.a;
     }
 
-    pub fn add(&mut self, adjust: &Self) {
+    pub fn add(&mut self, adjust: Self) {
         self.r += adjust.r;
         self.g += adjust.g;
         self.b += adjust.b;
@@ -83,13 +83,13 @@ impl Div<f32> for Colour {
 
 impl AddAssign<Self> for Colour {
     fn add_assign(&mut self, other: Self) {
-        self.add(&other);
+        self.add(other);
     }
 }
 
 impl MulAssign<Self> for Colour {
     fn mul_assign(&mut self, other: Self) {
-        self.scale(&other);
+        self.scale(other);
     }
 }
 

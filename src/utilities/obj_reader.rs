@@ -26,7 +26,7 @@ impl Triangle {
         let edge1 = vert1.vector - vert0.vector;
         let edge2 = vert2.vector - vert0.vector;
 
-        let face_normal = edge1.cross(&edge2).normalise();
+        let face_normal = edge1.cross(edge2).normalise();
 
         Self {
             vertex_indices,
@@ -74,16 +74,16 @@ impl ObjReader {
         })
     }
 
-    pub fn vertices(&self) -> Vec<Vertex> {
-        self.vertices.clone()
+    pub fn vertices(&self) -> &[Vertex] {
+        &self.vertices
     }
 
-    pub fn vertex_normals(&self) -> Vec<Vertex> {
-        self.vertex_normals.clone()
+    pub fn vertex_normals(&self) -> &[Vertex] {
+        &self.vertex_normals
     }
 
     pub fn triangles(&self) -> Vec<Triangle> {
-        let mut triangles: Vec<Triangle> = Vec::new();
+        let mut triangles: Vec<Triangle> = Vec::with_capacity(self.faces.len());
 
         for face in &self.faces {
             triangles.extend(self.convert_face_to_triangles(face));
@@ -95,7 +95,7 @@ impl ObjReader {
     fn convert_face_to_triangles(&self, face: &[VertexData]) -> Vec<Triangle> {
         assert!(face.len() >= 3);
 
-        let mut triangles: Vec<Triangle> = Vec::new();
+        let mut triangles: Vec<Triangle> = Vec::with_capacity(face.len() - 2);
 
         for i in 1..face.len() - 1 {
             triangles.push(Triangle::new(

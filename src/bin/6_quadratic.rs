@@ -4,9 +4,11 @@ use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{camera::Camera, framebuffer::FrameBuffer, material::Material, object::Object},
+    core::{
+        camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
+        material::Material, object::Object,
+    },
     environments::scene::Scene,
-    lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{
         csg_object::{Mode, CSG},
@@ -102,11 +104,10 @@ fn build_scene(scene: &mut Scene) {
     scene.objects.push(csg_object);
 
     // Lighting.
-    let directional_light = Box::new(DirectionalLight::new(
+    scene.add_light(Light::new_directional(
         Vector::new(1.0, -1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 0.0),
     ));
-    scene.lights.push(directional_light);
 
     // let mut cylinder = Box::new(Quadratic::new(
     //     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -25.0,

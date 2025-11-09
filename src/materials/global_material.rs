@@ -29,7 +29,7 @@ impl GlobalMaterial {
     /// between an incident vector and a surface normal based on the material's index of refraction.
     ///
     /// Returns (reflection_coefficient, transmission_coefficient)
-    fn fresnel_coefficients(self, incident: &Vector, normal: &Vector) -> (f32, f32) {
+    fn fresnel_coefficients(self, incident: Vector, normal: Vector) -> (f32, f32) {
         // Cosine of the angle of incidence.
         let cos_i = normal.dot(incident).abs();
 
@@ -78,19 +78,19 @@ impl Material for GlobalMaterial {
 
         // Calculate reflection and refraction rays.
         let mut reflection_ray = Ray::default();
-        reflection_ray.direction = viewer.direction.reflection(&hit.normal).normalise();
+        reflection_ray.direction = viewer.direction.reflection(hit.normal).normalise();
         reflection_ray.position = hit.position + ROUNDING_ERROR * reflection_ray.direction;
 
         let mut refract_ray = Ray::default();
         refract_ray.direction = viewer
             .direction
-            .refraction(&hit.normal, self.index_of_refraction)
+            .refraction(hit.normal, self.index_of_refraction)
             .normalise();
         refract_ray.position = hit.position + ROUNDING_ERROR * refract_ray.direction;
 
         // Calculate reflection and refraction coefficients.
         let (reflection_coefficient, transmission_coefficient) =
-            self.fresnel_coefficients(&viewer.direction, &hit.normal);
+            self.fresnel_coefficients(viewer.direction, hit.normal);
 
         // Recurse on reflection and refraction rays.
         colour += reflection_coefficient

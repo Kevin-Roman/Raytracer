@@ -34,8 +34,8 @@ impl PolyMesh {
         Ok(Self {
             base: BaseObject::new(),
             smooth,
-            vertices: obj_reader.vertices(),
-            vertex_normals: obj_reader.vertex_normals(),
+            vertices: obj_reader.vertices().to_vec(),
+            vertex_normals: obj_reader.vertex_normals().to_vec(),
             triangles: obj_reader.triangles(),
         })
     }
@@ -65,7 +65,7 @@ impl PolyMesh {
         hit_normal = hit_normal.normalise();
 
         // Flip normal if pointing away from the surface we are looking at.
-        if hit_normal.dot(&ray.direction) > 0.0 {
+        if hit_normal.dot(ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
 
@@ -95,8 +95,8 @@ impl PolyMesh {
         let edge2 = vert2.vector - vert0.vector;
 
         // Calculate the determinant.
-        let p_vec = ray.direction.cross(&edge2);
-        let det = edge1.dot(&p_vec);
+        let p_vec = ray.direction.cross(edge2);
+        let det = edge1.dot(p_vec);
 
         // If the determinant is near zero, the ray lies in the plane of the triangle.
         if -EPSILON < det && det < EPSILON {
@@ -109,21 +109,21 @@ impl PolyMesh {
         let t_vec = ray.position.vector - vert0.vector;
 
         // Test bounds.
-        let u = t_vec.dot(&p_vec) * inv_det;
+        let u = t_vec.dot(p_vec) * inv_det;
         if !(0.0..=1.0).contains(&u) {
             return None;
         }
 
-        let q_vec = t_vec.cross(&edge1);
+        let q_vec = t_vec.cross(edge1);
 
         // Test bounds for the barycentric coordinate.
-        let v = ray.direction.dot(&q_vec) * inv_det;
+        let v = ray.direction.dot(q_vec) * inv_det;
         if v < 0.0 || u + v > 1.0 {
             return None;
         }
 
         // Calculate the distance from the ray origin to the intersection point.
-        let t = edge2.dot(&q_vec) * inv_det;
+        let t = edge2.dot(q_vec) * inv_det;
 
         // Determine if the intersection is entering or exiting the triangle.
         let entering = det < 0.0;

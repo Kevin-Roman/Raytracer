@@ -17,15 +17,15 @@ impl Vector {
     }
 
     /// The squared length of the vector.
-    pub fn len_sqr(&self) -> f32 {
+    pub fn len_sqr(self) -> f32 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
-    pub fn length(&self) -> f32 {
+    pub fn length(self) -> f32 {
         self.len_sqr().sqrt()
     }
 
-    pub fn normalise(&self) -> Self {
+    pub fn normalise(self) -> Self {
         let len = self.length();
         if len > 0.0 {
             Self::new(self.x / len, self.y / len, self.z / len)
@@ -34,19 +34,19 @@ impl Vector {
         }
     }
 
-    pub fn dot(&self, other: &Self) -> f32 {
+    pub fn dot(self, other: Self) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    pub fn reflection(&self, normal: &Self) -> Self {
+    pub fn reflection(self, normal: Self) -> Self {
         let incident = self;
-        *incident - 2.0 * incident.dot(normal) * *normal
+        incident - 2.0 * incident.dot(normal) * normal
     }
 
     /// The refraction of a vector based on the normal of the surface it is hitting
     /// and the index of refraction of the material.
     /// Using Snell's Law.
-    pub fn refraction(&self, normal: &Self, index_of_refraction: f32) -> Self {
+    pub fn refraction(self, normal: Self, index_of_refraction: f32) -> Self {
         let incident = self;
         let cos_theta_i = normal.dot(incident).abs();
 
@@ -58,16 +58,16 @@ impl Vector {
             return incident.reflection(normal);
         }
 
-        (1.0 / index_of_refraction) * *incident
-            - (cos_theta_t - (1.0 / index_of_refraction) * cos_theta_i) * *normal
+        (1.0 / index_of_refraction) * incident
+            - (cos_theta_t - (1.0 / index_of_refraction) * cos_theta_i) * normal
     }
 
-    pub fn negate(&self) -> Self {
+    pub fn negate(self) -> Self {
         Self::new(-self.x, -self.y, -self.z)
     }
 
     /// The cross product (vector that is perpendicular to two given vectors).
-    pub fn cross(&self, other: &Self) -> Self {
+    pub fn cross(self, other: Self) -> Self {
         Self::new(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,

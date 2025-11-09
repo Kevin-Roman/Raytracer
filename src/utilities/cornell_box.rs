@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    core::{environment::Environment, material::Material, object::Object},
-    lights::point_light::PointLight,
+    core::{environment::Environment, light::Light, material::Material, object::Object},
     materials::{
         ambient_occlusion_material::AmbientOcclusionMaterial, compound_material::CompoundMaterial,
         phong_material::PhongMaterial, photon_mapping_material::PhotonMappingMaterial,
@@ -97,9 +96,8 @@ pub fn setup_cornell_box<T: Environment>(
     right_wall.set_material(blue_material.clone());
     scene.add_object(Box::new(right_wall));
 
-    let point_light = PointLight::new(
+    scene.add_light(Light::new_point(
         Vertex::new(0.0, HEIGHT - 8.0, LENGTH * 0.6, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
-    );
-    scene.add_light(Box::new(point_light));
+    ));
 }

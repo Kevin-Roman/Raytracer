@@ -75,7 +75,7 @@ impl Quadratic {
         hit_normal = hit_normal.normalise();
 
         // Flip normal if pointing away from the surface we are looking at.
-        if hit_normal.dot(&ray.direction) > 0.0 {
+        if hit_normal.dot(ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
 

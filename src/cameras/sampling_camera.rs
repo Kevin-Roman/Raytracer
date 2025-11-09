@@ -35,8 +35,8 @@ pub struct SamplingCamera {
 impl SamplingCamera {
     pub fn new(fov: f32, position: Vertex, lookat: Vector, up: Vector, num_samples: u32) -> Self {
         let w = (position.vector - lookat).normalise();
-        let u = w.cross(&up).normalise();
-        let v = u.cross(&w);
+        let u = w.cross(up).normalise();
+        let v = u.cross(w);
 
         Self {
             width: u16::default(),

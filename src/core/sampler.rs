@@ -20,7 +20,7 @@ pub trait Sampler {
     /// Chapter 7.3: Mapping Samples to a Hemisphere - Implementation.
     /// Page 129,
     /// ISBN 9781568812724,
-    fn map_samples_hemisphere(samples: &Vec<Point2D>, e: f32) -> Vec<Vector> {
+    fn map_samples_hemisphere(samples: &[Point2D], e: f32) -> Vec<Vector> {
         let mut hemisphere_samples: Vec<Vector> = Vec::with_capacity(samples.len());
 
         for sample in samples {

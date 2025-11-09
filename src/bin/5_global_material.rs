@@ -4,9 +4,11 @@ use std::sync::Arc;
 
 use raytracer::{
     cameras::full_camera::FullCamera,
-    core::{camera::Camera, framebuffer::FrameBuffer, material::Material, object::Object},
+    core::{
+        camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
+        material::Material, object::Object,
+    },
     environments::scene::Scene,
-    lights::directional_light::DirectionalLight,
     materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
     objects::{plane_object::Plane, polymesh_object::PolyMesh, sphere_object::Sphere},
     primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
@@ -68,11 +70,10 @@ fn build_scene(scene: &mut Scene) {
     scene.objects.push(sphere_object);
 
     // Lighting.
-    let directional_light = Box::new(DirectionalLight::new(
-        Vector::new(1.0, -1.0, 1.0),
-        Colour::new(1.0, 1.0, 1.0, 0.0),
+    scene.add_light(Light::new_directional(
+        Vector::new(-1.0, -1.0, -1.0),
+        Colour::new(1.0, 1.0, 1.0, 1.0),
     ));
-    scene.lights.push(directional_light);
 }
 
 fn main() {

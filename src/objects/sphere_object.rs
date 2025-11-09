@@ -29,7 +29,7 @@ impl Sphere {
         hit_normal = hit_normal.normalise();
 
         // Flip normal if pointing away from the surface we are looking at.
-        if hit_normal.dot(&ray.direction) > 0.0 {
+        if hit_normal.dot(ray.direction) > 0.0 {
             hit_normal = hit_normal.negate();
         }
 
@@ -50,9 +50,9 @@ impl Object for Sphere {
         let ray_to_sphere = ray.position.vector - self.center.vector;
 
         // Quadratic equation.
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * ray.direction.dot(&ray_to_sphere);
-        let c = ray_to_sphere.dot(&ray_to_sphere) - self.radius.powi(2);
+        let a = ray.direction.dot(ray.direction);
+        let b = 2.0 * ray.direction.dot(ray_to_sphere);
+        let c = ray_to_sphere.dot(ray_to_sphere) - self.radius.powi(2);
 
         let discriminant = b.powi(2) - 4.0 * a * c;
 

@@ -128,7 +128,7 @@ fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, 
 #[derive(Default)]
 pub struct PhotonScene {
     pub objects: Vec<Box<dyn Object>>,
-    pub lights: Vec<Box<dyn Light>>,
+    pub lights: Vec<Light>,
     pub photon_maps: PhotonMaps,
 }
 
@@ -205,7 +205,7 @@ impl PhotonScene {
                 russian_roulette(material.is_specular(), material.is_transparent());
             match photon_outcome {
                 PhotonOutcome::Reflect => {
-                    let reflection_direction = ray.direction.reflection(&hit.normal).normalise();
+                    let reflection_direction = ray.direction.reflection(hit.normal).normalise();
                     let reflected_ray = Ray::new(
                         hit.position + ROUNDING_ERROR * reflection_direction,
                         reflection_direction,
@@ -236,7 +236,7 @@ impl PhotonScene {
                         let mut transmitted_ray = Ray::default();
                         transmitted_ray.direction = ray
                             .direction
-                            .refraction(&hit.normal, index_of_refraction)
+                            .refraction(hit.normal, index_of_refraction)
                             .normalise();
                         transmitted_ray.position =
                             hit.position + ROUNDING_ERROR * transmitted_ray.direction;
@@ -320,7 +320,7 @@ impl PhotonScene {
             let (light_position, light_direction, is_lit) = light.get_direction(hit.position);
 
             // Skip lights that are facing the wrong direction.
-            if light_direction.dot(&hit.normal) > 0.0 {
+            if light_direction.dot(hit.normal) > 0.0 {
                 continue;
             }
 
@@ -355,7 +355,7 @@ impl PhotonScene {
     }
 
     #[cfg(feature = "debugging")]
-    fn display_photons(&mut self, photon_map: &Vec<Photon>) {
+    fn display_photons(&mut self, photon_map: &[Photon]) {
         // Testing purposes
         for photon in photon_map {
             let mut sphere = Sphere::new(photon.position, 0.1);
@@ -394,8 +394,8 @@ impl Environment for PhotonScene {
     fn setup(&mut self) {
         let mut sampler = MultiJitterSampler::new(NUM_PHOTONS, 1.0);
 
-        let mut global_photon_map: Vec<Photon> = Vec::new();
-        let mut caustic_photon_map: Vec<Photon> = Vec::new();
+        let mut global_photon_map: Vec<Photon> = Vec::with_capacity(NUM_PHOTONS as usize);
+        let mut caustic_photon_map: Vec<Photon> = Vec::with_capacity(NUM_PHOTONS as usize);
 
         for light in &self.lights {
             if let Some(light_position) = light.get_position() {
@@ -516,7 +516,7 @@ impl Environment for PhotonScene {
         self.objects.push(object);
     }
 
-    fn add_light(&mut self, light: Box<dyn Light>) {
+    fn add_light(&mut self, light: Light) {
         self.lights.push(light);
     }
 

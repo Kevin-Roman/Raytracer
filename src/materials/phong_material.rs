@@ -28,15 +28,15 @@ impl PhongMaterial {
     }
 
     fn calculate_diffuse(&self, light_direction: &Vector, hit: &Hit) -> Colour {
-        let cosine_angle_of_incidence: f32 = light_direction.negate().dot(&hit.normal);
+        let cosine_angle_of_incidence: f32 = light_direction.negate().dot(hit.normal);
 
         cosine_angle_of_incidence * self.diffuse
     }
 
     fn calculate_specular(&self, viewer: &Vector, light_direction: &Vector, hit: &Hit) -> Colour {
-        let reflection = light_direction.negate().reflection(&hit.normal);
+        let reflection = light_direction.negate().reflection(hit.normal);
 
-        reflection.dot(viewer).powf(self.control_factor) * self.specular
+        reflection.dot(*viewer).powf(self.control_factor) * self.specular
     }
 }
 
