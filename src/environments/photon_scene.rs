@@ -449,7 +449,7 @@ impl Environment for PhotonScene {
 
                 // Create caustic map.
                 for object in &self.objects {
-                    if let Some(material) = object.get_material().cloned() {
+                    if let Some(material) = object.get_material() {
                         if !material.is_specular() {
                             continue;
                         }
@@ -513,7 +513,7 @@ impl Environment for PhotonScene {
         if let Some((hit, object_index)) = self.ray_trace(ray) {
             depth = hit.distance;
 
-            if let Some(material) = self.objects[object_index].get_material().cloned() {
+            if let Some(material) = self.objects[object_index].get_material() {
                 let recurse_approximate_threshold =
                     self.config.photon_mapping.recurse_approximate_threshold;
                 // Compute direct material contribution.

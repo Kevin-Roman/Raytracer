@@ -130,7 +130,7 @@ impl Environment for Scene {
         if let Some((hit, object_index)) = self.trace(ray) {
             depth = hit.distance;
 
-            if let Some(material) = self.objects[object_index].get_material().cloned() {
+            if let Some(material) = self.objects[object_index].get_material() {
                 // Compute direct material contribution.
                 colour += material.compute_once(self, ray, &hit, recurse);
 
