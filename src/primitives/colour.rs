@@ -31,6 +31,11 @@ impl Colour {
         self.b += adjust.b;
         self.a += adjust.a;
     }
+
+    /// Calculate the average of RGB components
+    pub fn average(&self) -> f32 {
+        (self.r + self.g + self.b) / 3.0
+    }
 }
 
 impl Default for Colour {

@@ -1,16 +1,11 @@
-use std::sync::Arc;
-
 use raytracer::{
-    cameras::full_camera::FullCamera,
     config::RaytracerConfig,
-    core::{
-        camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
-        object::Object,
-    },
-    environments::scene::Scene,
-    materials::{falsecolour_material::FalseColourMaterial, phong_material::PhongMaterial},
-    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
-    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
+    geometry::{traits::Transformable, PolyMesh, SceneObject, Sphere},
+    primitives::{Colour, Transform, Vector, Vertex},
+    rendering::{cameras::full::FullCamera, Camera, FrameBuffer, Light},
+    scene::Scene,
+    shading::SceneMaterial,
+    SceneBuilder,
 };
 
 fn build_scene(scene: &mut Scene) {
@@ -21,34 +16,39 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    // Main object.
-    let mut polymesh_object = match PolyMesh::new(
+    // Main object - Phong material
+    let polymesh_material = SceneMaterial::phong(
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        Colour::new(0.0, 0.5, 0.5, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        50.0,
+    );
+    let polymesh_mat_id = scene.add_material(polymesh_material);
+
+    let mut polymesh = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
     ) {
-        Ok(polymesh_object) => Box::new(polymesh_object),
+        Ok(polymesh) => polymesh,
         Err(e) => {
             eprintln!("Error reading poly mesh object: {}", e);
             return;
         }
     };
-    polymesh_object.apply_transform(&transform);
+    polymesh.transform(&transform);
+    let polymesh = polymesh.with_material(polymesh_mat_id);
+    scene.add_object(SceneObject::PolyMesh(polymesh));
 
-    let polymesh_material = Arc::new(PhongMaterial::new(
-        Colour::new(0.1, 0.1, 0.1, 1.0),
-        Colour::new(0.0, 0.5, 0.5, 1.0),
+    // Object used for shadow - Simple grey phong material
+    let sphere_material = SceneMaterial::phong(
+        Colour::new(0.2, 0.2, 0.2, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
-        50.0,
-    ));
-    polymesh_object.set_material(polymesh_material);
-    scene.objects.push(polymesh_object);
-
-    // Object used for shadow.
-    let mut sphere_object = Box::new(Sphere::new(Vertex::new(-10.0, 0.0, 10.0, 1.0), 3.0));
-    let sphere_material = Arc::new(FalseColourMaterial::new());
-    sphere_object.set_material(sphere_material);
-
-    scene.objects.push(sphere_object);
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        10.0,
+    );
+    let sphere_mat_id = scene.add_material(sphere_material);
+    let sphere = Sphere::new(Vertex::new(-10.0, 0.0, 10.0, 1.0), 3.0).with_material(sphere_mat_id);
+    scene.add_object(SceneObject::Sphere(sphere));
 
     // Lighting.
     scene.add_light(Light::new_directional(
@@ -58,7 +58,7 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
 
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -68,7 +68,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(&config);
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -78,7 +78,7 @@ fn main() {
         Vector::new(0.0, 1.5, 1.0),
     );
 
-    camera.render(&mut scene, &mut fb);
+    camera.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/3_raytracing_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// Core raytracing configuration
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
@@ -10,6 +11,12 @@ pub struct RaytracerConfig {
     pub sampler: SamplerConfig,
     pub framebuffer: FramebufferConfig,
     pub cornell_box: CornellBoxConfig,
+}
+
+impl fmt::Display for RaytracerConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#?}", self)
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -92,7 +99,7 @@ impl Default for PhotonMappingConfig {
         Self {
             recurse_approximate_threshold: 2,
             photon_recurse: 3,
-            num_photons: 202_500,
+            num_photons: 10000,
             photon_search_radius: 5.0,
             photon_search_count: 100,
             use_shadow_estimation: false,
@@ -126,8 +133,8 @@ impl Default for SamplerConfig {
 impl Default for FramebufferConfig {
     fn default() -> Self {
         Self {
-            width: 512,
-            height: 512,
+            width: 256,
+            height: 256,
             max_width: 2048,
             max_height: 2048,
         }

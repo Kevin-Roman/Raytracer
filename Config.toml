@@ -25,8 +25,8 @@ polymesh_epsilon = 0.000001
 num_sets = 4
 
 [framebuffer]
-width = 512
-height = 512
+width = 256
+height = 256
 max_width = 2048
 max_height = 2048
 

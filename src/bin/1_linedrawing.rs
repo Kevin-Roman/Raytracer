@@ -1,11 +1,11 @@
 use raytracer::{
-    config::RaytracerConfig, core::framebuffer::FrameBuffer, utilities::linedrawer::draw_line,
+    config::RaytracerConfig, rendering::FrameBuffer, utilities::linedrawer::draw_line,
 };
 use std::f32::consts::PI;
 
 fn main() {
     // Create a framebuffer.
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
         Err(e) => {

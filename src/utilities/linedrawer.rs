@@ -1,7 +1,4 @@
-use crate::{
-    core::framebuffer::{FrameBuffer, FrameBufferError},
-    primitives::colour::Colour,
-};
+use crate::{primitives::Colour, rendering::framebuffer::FrameBufferError, FrameBuffer};
 
 /// Draw a line between two points.
 /// Using Bresenham's Line Algorithm which doesn't use floating point variables.

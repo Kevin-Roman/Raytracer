@@ -3,7 +3,7 @@ use std::{
     io::{self, BufRead},
 };
 
-use crate::primitives::{vector::Vector, vertex::Vertex};
+use crate::primitives::{Vector, Vertex};
 
 #[derive(Debug)]
 pub struct Triangle {

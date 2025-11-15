@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use super::{vector::Vector, vertex::Vertex};
+use super::{Vector, Vertex};
 
 /// Hit stores information about an intersection between a ray and an object.
 #[derive(Clone, Copy, Debug)]

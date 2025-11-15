@@ -1,6 +1,6 @@
 use kd_tree::KdPoint;
 
-use super::{colour::Colour, vector::Vector, vertex::Vertex};
+use super::{Colour, Vector, Vertex};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum PhotonOutcome {

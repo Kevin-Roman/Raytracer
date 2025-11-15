@@ -1,4 +1,4 @@
-use super::{vector::Vector, vertex::Vertex};
+use super::{Vector, Vertex};
 
 /// Ray consisting of a position and a (normalised) direction.
 #[derive(Debug)]

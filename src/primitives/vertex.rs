@@ -1,6 +1,6 @@
 use std::ops::{Add, Neg, Sub};
 
-use super::vector::Vector;
+use super::Vector;
 
 /// A 3D vertex (homogeneous coordinate).
 #[derive(Copy, Clone, Debug)]

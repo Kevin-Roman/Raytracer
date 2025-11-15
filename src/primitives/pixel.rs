@@ -1,4 +1,4 @@
-use super::colour::Colour;
+use super::Colour;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pixel {

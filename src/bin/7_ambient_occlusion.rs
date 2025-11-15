@@ -1,43 +1,25 @@
-// Stage 2.3: Ambient Occlusion.
-
-use std::sync::Arc;
-
 use raytracer::{
-    cameras::full_camera::FullCamera,
     config::RaytracerConfig,
-    core::{
-        camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
-        object::Object,
-    },
-    environments::scene::Scene,
-    materials::ambient_occlusion_material::AmbientOcclusionMaterial,
-    objects::{plane_object::Plane, sphere_object::Sphere},
-    primitives::{colour::Colour, vector::Vector, vertex::Vertex},
+    geometry::{Plane, SceneObject, Sphere},
+    primitives::{Colour, Vector, Vertex},
+    rendering::{cameras::full::FullCamera, Camera, FrameBuffer, Light},
+    scene::Scene,
+    shading::SceneMaterial,
+    SceneBuilder,
 };
 
 fn build_scene(scene: &mut Scene) {
-    // Floor.
-    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 3.0));
-    let floor_plane_material = Arc::new(AmbientOcclusionMaterial::new(
-        Colour::new(1.0, 1.0, 1.0, 1.0),
-        64,
-        0.1,
-    ));
+    let floor_material = SceneMaterial::ambient_occlusion(Colour::new(1.0, 1.0, 1.0, 1.0), 64, 0.1);
+    let floor_mat_id = scene.add_material(floor_material);
+    let floor = Plane::new(0.0, 1.0, 0.0, 3.0).with_material(floor_mat_id);
+    scene.add_object(SceneObject::Plane(floor));
 
-    floor_plane_object.set_material(floor_plane_material);
-    scene.objects.push(floor_plane_object);
+    let sphere_material =
+        SceneMaterial::ambient_occlusion(Colour::new(1.0, 1.0, 0.0, 1.0), 64, 0.1);
+    let sphere_mat_id = scene.add_material(sphere_material);
+    let sphere = Sphere::new(Vertex::new(0.0, 0.0, 10.0, 1.0), 3.0).with_material(sphere_mat_id);
+    scene.add_object(SceneObject::Sphere(sphere));
 
-    // Object used for shadow.
-    let mut sphere_object = Box::new(Sphere::new(Vertex::new(0.0, 0.0, 10.0, 1.0), 3.0));
-    let sphere_material = Arc::new(AmbientOcclusionMaterial::new(
-        Colour::new(1.0, 1.0, 0.0, 1.0),
-        64,
-        0.1,
-    ));
-    sphere_object.set_material(sphere_material);
-    scene.objects.push(sphere_object);
-
-    // Lighting.
     scene.add_light(Light::new_directional(
         Vector::new(0.0, -1.0, 0.0),
         Colour::new(1.0, 0.75, 0.75, 1.0),
@@ -45,7 +27,7 @@ fn build_scene(scene: &mut Scene) {
 }
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
 
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -55,7 +37,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(&config);
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -65,7 +47,7 @@ fn main() {
         Vector::new(0.0, 1.0, 1.0),
     );
 
-    camera.render(&mut scene, &mut fb);
+    camera.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/7_ambient_occlusion_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);

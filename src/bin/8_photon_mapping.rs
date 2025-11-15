@@ -1,60 +1,60 @@
-use std::sync::Arc;
-
 use raytracer::{
-    cameras::sampling_camera::SamplingCamera,
     config::RaytracerConfig,
-    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
-    environments::photon_scene::PhotonScene,
-    materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
-    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
-    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
+    geometry::{traits::Transformable, PolyMesh, SceneObject, Sphere},
+    primitives::{Colour, Transform, Vector, Vertex},
+    rendering::{cameras::sampling::SamplingCamera, Camera, FrameBuffer},
+    scene::{PhotonScene, SceneBuilder},
+    shading::SceneMaterial,
     utilities::cornell_box::setup_cornell_box,
 };
 
-fn build_scene<T: Environment>(scene: &mut T) {
-    setup_cornell_box(scene, true, true);
+fn build_scene(scene: &mut PhotonScene) {
+    setup_cornell_box(scene);
 
     let config = scene.config();
     let length = config.cornell_box.length;
 
-    let mut sphere_object = Box::new(Sphere::new(
-        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
-        10.0,
-    ));
-    sphere_object.set_material(Arc::new(GlobalMaterial::new(
+    let sphere_material = SceneMaterial::global(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
-    )));
-    scene.add_object(sphere_object);
+    );
+    let sphere_mat_id = scene.add_material(sphere_material);
+    let sphere =
+        Sphere::new(Vertex::new(-20.0, 20.0, length * 0.7, 1.0), 10.0).with_material(sphere_mat_id);
+    scene.add_object(SceneObject::Sphere(sphere));
+
+    // Teapot - Phong material
+    let teapot_material = SceneMaterial::phong(
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        Colour::new(0.0, 0.5, 0.5, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        10.0,
+    );
+    let teapot_mat_id = scene.add_material(teapot_material);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
     ) {
-        Ok(teapot) => Box::new(teapot),
+        Ok(teapot) => teapot,
         Err(e) => {
             eprintln!("Error reading poly mesh object: {}", e);
             return;
         }
     };
-    teapot.apply_transform(&Transform::new([
+    teapot.transform(&Transform::new([
         [1.5, 0.0, 0.0, 15.0],
         [0.0, 0.0, 1.5, 0.0],
         [0.0, 1.5, 0.0, length * 0.6],
         [0.0, 0.0, 0.0, 1.0],
     ]));
-    teapot.set_material(Arc::new(PhongMaterial::new(
-        Colour::new(0.1, 0.1, 0.1, 1.0),
-        Colour::new(0.0, 0.5, 0.5, 1.0),
-        Colour::new(0.5, 0.5, 0.5, 1.0),
-        10.0,
-    )));
-    scene.add_object(teapot);
+    let teapot_obj = SceneObject::PolyMesh(teapot.with_material(teapot_mat_id));
+    scene.add_object(teapot_obj);
 }
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
 
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -64,7 +64,7 @@ fn main() {
         }
     };
 
-    let mut scene = PhotonScene::new();
+    let mut scene = PhotonScene::new(&config);
     build_scene(&mut scene);
 
     scene.setup();
@@ -81,7 +81,7 @@ fn main() {
         config.camera.num_camera_ray_samples,
     );
 
-    camera_front.render(&mut scene, &mut fb);
+    camera_front.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/8_photon_mapping_rgb_front.ppm") {
         eprintln!("Error writing RGB file: {}", e);
@@ -95,7 +95,7 @@ fn main() {
         config.camera.num_camera_ray_samples,
     );
 
-    camera_back.render(&mut scene, &mut fb);
+    camera_back.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/8_photon_mapping_rgb_back.ppm") {
         eprintln!("Error writing RGB file: {}", e);

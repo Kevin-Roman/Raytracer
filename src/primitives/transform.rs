@@ -1,6 +1,6 @@
 use std::ops::Mul;
 
-use super::{vector::Vector, vertex::Vertex};
+use super::{Vector, Vertex};
 
 /// A 4x4 transformation matrix.
 #[derive(Clone, Copy, Debug)]

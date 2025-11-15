@@ -1,88 +1,94 @@
-use std::sync::Arc;
-
 use raytracer::{
-    cameras::full_camera::FullCamera,
     config::RaytracerConfig,
-    core::{camera::Camera, environment::Environment, framebuffer::FrameBuffer, object::Object},
-    environments::scene::Scene,
-    materials::{
-        compound_material::CompoundMaterial, global_material::GlobalMaterial,
-        phong_material::PhongMaterial,
-    },
-    objects::{polymesh_object::PolyMesh, sphere_object::Sphere},
-    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
+    geometry::{traits::Transformable, PolyMesh, SceneObject, Sphere},
+    primitives::{Colour, Transform, Vector, Vertex},
+    rendering::{cameras::full::FullCamera, Camera, FrameBuffer},
+    scene::Scene,
+    shading::SceneMaterial,
     utilities::cornell_box::setup_cornell_box,
+    SceneBuilder,
 };
 
-fn build_scene<T: Environment>(scene: &mut T) {
-    setup_cornell_box(scene, true, true);
+fn build_scene(scene: &mut Scene) {
+    setup_cornell_box(scene);
 
-    let config = scene.config();
+    let config = &scene.config;
     let length = config.cornell_box.length;
 
-    let mut sphere_object = Box::new(Sphere::new(
-        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
-        10.0,
-    ));
-    sphere_object.set_material(Arc::new(GlobalMaterial::new(
+    let glass_material = SceneMaterial::global(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
-    )));
-    scene.add_object(sphere_object);
+    );
+    let glass_mat_id = scene.add_material(glass_material);
+
+    let sphere =
+        Sphere::new(Vertex::new(-20.0, 20.0, length * 0.7, 1.0), 10.0).with_material(glass_mat_id);
+    scene.add_object(SceneObject::from(sphere));
+
+    // Create reflective teapot
+    let teapot_material = SceneMaterial::global(
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        0.0,
+    );
+    let teapot_mat_id = scene.add_material(teapot_material);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
     ) {
-        Ok(teapot) => Box::new(teapot),
+        Ok(mesh) => mesh,
         Err(e) => {
-            eprintln!("Error reading poly mesh object: {}", e);
+            eprintln!("Error reading teapot mesh: {}", e);
             return;
         }
     };
-    teapot.apply_transform(&Transform::new([
+
+    teapot.geometry.transform(&Transform::new([
         [1.4, 0.0, 0.0, 20.0],
         [0.0, 0.0, 1.4, 0.0],
         [0.0, 1.4, 0.0, length * 0.5],
         [0.0, 0.0, 0.0, 1.0],
     ]));
-    teapot.set_material(Arc::new(GlobalMaterial::new(
-        Colour::new(0.5, 0.5, 0.5, 1.0),
-        Colour::new(0.5, 0.5, 0.5, 1.0),
-        0.0,
-    )));
-    scene.add_object(teapot);
+
+    let teapot = teapot.with_material(teapot_mat_id);
+    scene.add_object(SceneObject::from(teapot));
+
+    // Create green tree with Phong shading
+    let tree_material = SceneMaterial::phong(
+        Colour::default(),
+        Colour::new(0.0, 0.6, 0.0, 1.0),
+        Colour::new(0.1, 0.3, 0.1, 1.0),
+        20.0,
+    );
+    let tree_mat_id = scene.add_material(tree_material);
 
     let mut tree = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/tree.obj",
         false,
     ) {
-        Ok(tree) => Box::new(tree),
+        Ok(mesh) => mesh,
         Err(e) => {
-            eprintln!("Error reading poly mesh object: {}", e);
+            eprintln!("Error reading tree mesh: {}", e);
             return;
         }
     };
-    tree.apply_transform(&Transform::new([
+
+    tree.geometry.transform(&Transform::new([
         [6.0, 0.0, 0.0, 10.0],
         [0.0, 6.0, 0.0, 0.0],
         [0.0, 0.0, 6.0, length * 0.65],
         [0.0, 0.0, 0.0, 1.0],
     ]));
-    tree.set_material(Arc::new(CompoundMaterial::new(vec![Box::new(
-        PhongMaterial::new(
-            Colour::default(),
-            Colour::new(0.0, 0.6, 0.0, 1.0),
-            Colour::new(0.1, 0.3, 0.1, 1.0),
-            20.0,
-        ),
-    )])));
-    scene.add_object(tree);
+
+    let tree = tree.with_material(tree_mat_id);
+    scene.add_object(SceneObject::from(tree));
 }
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
+    println!("{}", config);
 
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -92,14 +98,17 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(&config);
     build_scene(&mut scene);
 
-    scene.setup();
+    let cornell_height = scene.config.cornell_box.height;
+    let cornell_length = scene.config.cornell_box.length;
 
-    let config = scene.config();
-    let cornell_height = config.cornell_box.height;
-    let cornell_length = config.cornell_box.length;
+    println!(
+        "Rendering Cornell Box with {} objects and {} lights...",
+        scene.objects.len(),
+        scene.lights.len()
+    );
 
     let mut camera_front = FullCamera::new(
         0.8,
@@ -108,9 +117,11 @@ fn main() {
         Vector::new(0.0, 1.0, 0.0),
     );
 
-    camera_front.render(&mut scene, &mut fb);
+    camera_front.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/quick_final_image_rgb_front.ppm") {
         eprintln!("Error writing RGB file: {}", e);
-    };
+    } else {
+        println!("\nRendered: ./output/quick_final_image_rgb_front.ppm");
+    }
 }

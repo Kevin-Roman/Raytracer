@@ -1,13 +1,13 @@
 use raytracer::{
     config::RaytracerConfig,
-    core::{framebuffer::FrameBuffer, object::Object},
-    objects::polymesh_object::PolyMesh,
-    primitives::transform::Transform,
+    geometry::{traits::Transformable, PolyMesh},
+    primitives::Transform,
+    rendering::FrameBuffer,
     utilities::linedrawer::draw_line,
 };
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
     // Create a framebuffer.
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -34,11 +34,11 @@ fn main() {
             return;
         }
     };
-    pm.apply_transform(&transform);
+    pm.transform(&transform);
 
-    let vertices = &pm.vertices;
+    let vertices = &pm.geometry.vertices;
     // For each triangle in the model.
-    for triangle in pm.triangles.iter() {
+    for triangle in pm.geometry.triangles.iter() {
         // The following lines project the point onto the 2D image from 3D space.
         let x0 = (vertices[triangle.vertex_indices[0]].vector.x
             / vertices[triangle.vertex_indices[0]].vector.z)

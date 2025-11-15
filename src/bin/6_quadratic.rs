@@ -1,40 +1,29 @@
-// Stage 2.2: Quadratic Surfaces.
-
-use std::sync::Arc;
-
 use raytracer::{
-    cameras::full_camera::FullCamera,
     config::RaytracerConfig,
-    core::{
-        camera::Camera, environment::Environment, framebuffer::FrameBuffer, light::Light,
-        material::Material, object::Object,
+    geometry::{
+        csg::{Mode, CSG},
+        quadratic::QuadraticCoefficients,
+        traits::Transformable,
+        Plane, PolyMesh, Quadratic, SceneObject,
     },
-    environments::scene::Scene,
-    materials::{global_material::GlobalMaterial, phong_material::PhongMaterial},
-    objects::{
-        csg_object::{Mode, CSG},
-        plane_object::Plane,
-        polymesh_object::PolyMesh,
-        quadratic_object::{Quadratic, QuadraticCoefficients},
-    },
-    primitives::{colour::Colour, transform::Transform, vector::Vector, vertex::Vertex},
+    primitives::{Colour, Transform, Vector, Vertex},
+    rendering::{cameras::full::FullCamera, Camera, FrameBuffer, Light},
+    scene::Scene,
+    shading::SceneMaterial,
+    SceneBuilder,
 };
 
 fn build_scene(scene: &mut Scene) {
-    // Floor.
-    let mut floor_plane_object = Box::new(Plane::new(0.0, 1.0, 0.0, 10.0));
-    let floor_plane_material = Arc::new(PhongMaterial::new(
+    let floor_material = SceneMaterial::phong(
         Colour::new(0.8, 0.8, 0.8, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         Colour::new(0.1, 0.1, 0.1, 1.0),
         20.0,
-    ));
+    );
+    let floor_mat_id = scene.add_material(floor_material);
+    let floor = Plane::new(0.0, 1.0, 0.0, 10.0).with_material(floor_mat_id);
+    scene.add_object(SceneObject::Plane(floor));
 
-    floor_plane_object.set_material(floor_plane_material);
-
-    scene.objects.push(floor_plane_object);
-
-    // Main teapot object.
     let transform: Transform = Transform::new([
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 1.0, -10.0],
@@ -42,30 +31,38 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    let mut polymesh_object = match PolyMesh::new(
+    let polymesh_material = SceneMaterial::phong(
+        Colour::new(0.1, 0.1, 0.1, 1.0),
+        Colour::new(0.0, 0.5, 0.5, 1.0),
+        Colour::new(0.5, 0.5, 0.5, 1.0),
+        50.0,
+    );
+    let polymesh_mat_id = scene.add_material(polymesh_material);
+
+    let mut polymesh = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
     ) {
-        Ok(polymesh_object) => Box::new(polymesh_object),
+        Ok(polymesh) => polymesh,
         Err(e) => {
             eprintln!("Error reading poly mesh object: {}", e);
             return;
         }
     };
-    polymesh_object.apply_transform(&transform);
+    polymesh.transform(&transform);
+    let polymesh_obj = SceneObject::PolyMesh(polymesh.with_material(polymesh_mat_id));
+    scene.add_object(polymesh_obj);
 
-    let polymesh_material: Arc<dyn Material> = Arc::new(PhongMaterial::new(
-        Colour::new(0.1, 0.1, 0.1, 1.0),
-        Colour::new(0.0, 0.5, 0.5, 1.0),
-        Colour::new(0.5, 0.5, 0.5, 1.0),
-        50.0,
-    ));
-    polymesh_object.set_material(polymesh_material);
-    scene.objects.push(polymesh_object);
+    let csg_material = SceneMaterial::global(
+        Colour::new(1.0, 1.0, 1.0, 0.0),
+        Colour::new(1.0, 1.0, 1.0, 0.0),
+        1.52,
+    );
+    let csg_mat_id = scene.add_material(csg_material);
 
     // Sphere with radius 3 with centre at [-5, 4, 6]
     // (x + 5)^2 + (y - 4)^2 + (z - 6)^2 = 3^2
-    let sphere_object_1 = Box::new(Quadratic::new(QuadraticCoefficients {
+    let sphere_1 = Quadratic::new(QuadraticCoefficients {
         a: 1.0,
         b: 0.0,
         c: 0.0,
@@ -76,11 +73,11 @@ fn build_scene(scene: &mut Scene) {
         h: 1.0,
         i: -6.0,
         j: 68.0,
-    }));
+    });
 
     // Sphere with radius 3 with centre at [-4, 4, 10]
     // (x + 4)^2 + (y - 4)^2 + (z - 10)^2 = 3^2
-    let sphere_object_2 = Box::new(Quadratic::new(QuadraticCoefficients {
+    let sphere_2 = Quadratic::new(QuadraticCoefficients {
         a: 1.0,
         b: 0.0,
         c: 0.0,
@@ -91,53 +88,25 @@ fn build_scene(scene: &mut Scene) {
         h: 1.0,
         i: -10.0,
         j: 123.0,
-    }));
+    });
 
-    let mut csg_object = Box::new(CSG::new(Mode::CsgDiff, sphere_object_2, sphere_object_1));
-    let csg_material = Arc::new(GlobalMaterial::new(
-        Colour::new(1.0, 1.0, 1.0, 0.0),
-        Colour::new(1.0, 1.0, 1.0, 0.0),
-        1.52,
-    ));
-
-    csg_object.set_material(csg_material);
-
-    scene.objects.push(csg_object);
+    let csg = CSG::new(
+        Mode::CsgDiff,
+        SceneObject::Quadratic(sphere_2),
+        SceneObject::Quadratic(sphere_1),
+    )
+    .with_material(csg_mat_id);
+    scene.add_object(SceneObject::CSG(Box::new(csg)));
 
     // Lighting.
     scene.add_light(Light::new_directional(
         Vector::new(1.0, -1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 0.0),
     ));
-
-    // let mut cylinder = Box::new(Quadratic::new(
-    //     1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -25.0,
-    // ));
-    // cylinder.apply_transform(&Transform::new([
-    //     [1.0, 0.0, 0.0, 0.0],
-    //     [0.0, 1.0, 0.0, 0.0],
-    //     [0.0, 0.0, 1.0, -20.0],
-    //     [0.0, 0.0, 0.0, 1.0],
-    // ]));
-    // cylinder.set_material(Arc::new(PhongMaterial::new(
-    //     Colour::new(0.1, 0.1, 0.1, 1.0),
-    //     Colour::new(0.0, 0.5, 0.5, 1.0),
-    //     Colour::new(0.5, 0.5, 0.5, 1.0),
-    //     50.0,
-    // )));
-
-    // scene.objects.push(cylinder);
-
-    // // Lighting.
-    // let directional_light = Box::new(DirectionalLight::new(
-    //     Vector::new(1.0, -1.0, 1.0),
-    //     Colour::new(1.0, 1.0, 1.0, 0.0),
-    // ));
-    // scene.lights.push(directional_light);
 }
 
 fn main() {
-    let config = RaytracerConfig::default();
+    let config = RaytracerConfig::new();
 
     let mut fb = match FrameBuffer::new(&config) {
         Ok(fb) => fb,
@@ -147,7 +116,7 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new();
+    let mut scene = Scene::new(&config);
     build_scene(&mut scene);
 
     let mut camera = FullCamera::new(
@@ -157,7 +126,7 @@ fn main() {
         Vector::new(0.0, 1.0, 0.0),
     );
 
-    camera.render(&mut scene, &mut fb);
+    camera.render(&scene, &mut fb);
 
     if let Err(e) = fb.write_rgb_file("./output/6_quadratic_rgb.ppm") {
         eprintln!("Error writing RGB file: {}", e);
