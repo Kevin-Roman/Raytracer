@@ -58,3 +58,46 @@ impl Neg for Vertex {
         Self::new(-self.vector.x, -self.vector.y, -self.vector.z, -self.w)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vertex_add_vector() {
+        let v = Vertex::new(1.0, 2.0, 3.0, 1.0);
+        let vec = Vector::new(4.0, 5.0, 6.0);
+        let result = v + vec;
+        assert_eq!(result.vector.x, 5.0);
+        assert_eq!(result.vector.y, 7.0);
+        assert_eq!(result.vector.z, 9.0);
+        assert_eq!(result.w, 1.0);
+    }
+
+    #[test]
+    fn test_vertex_subtract_vector() {
+        let v = Vertex::new(5.0, 7.0, 9.0, 1.0);
+        let vec = Vector::new(4.0, 5.0, 6.0);
+        let result = v - vec;
+        assert_eq!(result.vector.x, 1.0);
+        assert_eq!(result.vector.y, 2.0);
+        assert_eq!(result.vector.z, 3.0);
+        assert_eq!(result.w, 1.0);
+    }
+
+    #[test]
+    fn test_vertex_negation() {
+        let v = Vertex::new(1.0, 2.0, 3.0, 1.0);
+        let result = -v;
+        assert_eq!(result.vector.x, -1.0);
+        assert_eq!(result.vector.y, -2.0);
+        assert_eq!(result.vector.z, -3.0);
+        assert_eq!(result.w, -1.0);
+    }
+
+    #[test]
+    fn test_vertex_homogeneous_coordinates() {
+        let v = Vertex::new(2.0, 4.0, 6.0, 2.0);
+        assert_eq!(v.w, 2.0);
+    }
+}

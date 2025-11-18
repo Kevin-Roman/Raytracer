@@ -46,3 +46,34 @@ impl PartialEq for Hit {
 }
 
 impl Eq for Hit {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hit_ordering() {
+        let pos = Vertex::default();
+        let norm = Vector::new(0.0, 1.0, 0.0);
+
+        let hit1 = Hit::new(1.0, true, pos, norm);
+        let hit2 = Hit::new(2.0, true, pos, norm);
+        let hit3 = Hit::new(1.5, true, pos, norm);
+
+        assert!(hit1 < hit2);
+        assert!(hit3 > hit1);
+        assert!(hit3 < hit2);
+    }
+
+    #[test]
+    fn test_hit_equality() {
+        let pos = Vertex::default();
+        let norm = Vector::new(0.0, 1.0, 0.0);
+
+        let hit1 = Hit::new(1.0, true, pos, norm);
+        let hit2 = Hit::new(1.0, false, pos, norm);
+
+        // Equality is based on distance only
+        assert_eq!(hit1, hit2);
+    }
+}

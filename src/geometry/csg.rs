@@ -169,3 +169,48 @@ impl Transformable for CSG {
         self.right_object.transform(trans);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{geometry::sphere::Sphere, primitives::Vertex};
+
+    #[test]
+    fn test_csg_union_creation() {
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+
+        let csg = CSG::new(Mode::CsgUnion, sphere1.into(), sphere2.into());
+
+        match csg.mode {
+            Mode::CsgUnion => {}
+            _ => panic!("Expected CsgUnion mode"),
+        }
+    }
+
+    #[test]
+    fn test_csg_intersection_creation() {
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+
+        let csg = CSG::new(Mode::CsgInter, sphere1.into(), sphere2.into());
+
+        match csg.mode {
+            Mode::CsgInter => {}
+            _ => panic!("Expected CsgInter mode"),
+        }
+    }
+
+    #[test]
+    fn test_csg_difference_creation() {
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+
+        let csg = CSG::new(Mode::CsgDiff, sphere1.into(), sphere2.into());
+
+        match csg.mode {
+            Mode::CsgDiff => {}
+            _ => panic!("Expected CsgDiff mode"),
+        }
+    }
+}

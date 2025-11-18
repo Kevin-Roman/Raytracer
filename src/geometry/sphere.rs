@@ -103,3 +103,115 @@ impl Bounded for Sphere {
         self.geometry.bounding_sphere()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::{Ray, Vector, Vertex};
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_sphere_ray_intersection_hit() {
+        let center = Vertex::new(0.0, 0.0, 0.0, 1.0);
+        let sphere = SphereGeometry::new(center, 1.0);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hitpool = sphere.generate_hitpool(&ray);
+        // 2 hits (entry and exit)
+        assert_eq!(hitpool.len(), 2);
+    }
+
+    #[test]
+    fn test_sphere_ray_intersection_miss() {
+        let center = Vertex::new(0.0, 0.0, 0.0, 1.0);
+        let sphere = SphereGeometry::new(center, 1.0);
+
+        let ray = Ray::new(Vertex::new(5.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hitpool = sphere.generate_hitpool(&ray);
+        assert_eq!(hitpool.len(), 0);
+    }
+
+    #[test]
+    fn test_sphere_first_hit() {
+        let center = Vertex::new(0.0, 0.0, 0.0, 1.0);
+        let sphere = SphereGeometry::new(center, 1.0);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hit = sphere.first_hit(&ray).unwrap();
+        assert_relative_eq!(hit.distance, 4.0, epsilon = 1e-5);
+        assert_eq!(hit.entering, true);
+    }
+
+    #[test]
+    fn test_sphere_normal_at_hit() {
+        let center = Vertex::new(0.0, 0.0, 0.0, 1.0);
+        let sphere = SphereGeometry::new(center, 1.0);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hit = sphere.first_hit(&ray).unwrap();
+        // Normal at (0, 0, -1) should point toward -z
+        assert_relative_eq!(hit.normal.z, -1.0, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_sphere_bounding_sphere() {
+        let center = Vertex::new(1.0, 2.0, 3.0, 1.0);
+        let sphere: SphereGeometry = SphereGeometry::new(center, 5.0);
+
+        let (bs_center, bs_radius) = sphere.bounding_sphere().unwrap();
+        assert_eq!(bs_center.vector.x, 1.0);
+        assert_eq!(bs_radius, 5.0);
+    }
+
+    #[test]
+    fn test_sphere_transform() {
+        let center = Vertex::new(0.0, 0.0, 0.0, 1.0);
+        let mut sphere = SphereGeometry::new(center, 1.0);
+
+        let transform = Transform::new([
+            [1.0, 0.0, 0.0, 5.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        sphere.transform(&transform);
+        assert_eq!(sphere.center.vector.x, 5.0);
+    }
+
+    #[test]
+    fn test_sphere_ray_tangent() {
+        let sphere = SphereGeometry::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        // Ray tangent to sphere
+        let ray = Ray::new(Vertex::new(1.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hitpool = sphere.generate_hitpool(&ray);
+        // Tangent hit may have discriminant = 0
+        assert!(hitpool.len() <= 2);
+    }
+
+    #[test]
+    fn test_sphere_very_large_radius() {
+        let sphere = SphereGeometry::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1000.0);
+        let ray = Ray::new(Vertex::new(0.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hit = sphere.first_hit(&ray);
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn test_sphere_ray_from_center() {
+        let sphere = SphereGeometry::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 2.0);
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0));
+
+        let hit = sphere.first_hit(&ray);
+        assert!(hit.is_some());
+        if let Some(h) = hit {
+            assert_relative_eq!(h.distance, 2.0, epsilon = 1e-5);
+        }
+    }
+}

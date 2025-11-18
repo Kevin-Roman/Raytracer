@@ -35,6 +35,14 @@ pub fn setup_cornell_box<S: SceneBuilder>(scene: &mut S) {
     );
     let blue_mat_id = scene.add_material(blue_material);
 
+    let black_material = SceneMaterial::phong(
+        Colour::new(0.0, 0.0, 0.0, 1.0),
+        Colour::new(0.0, 0.0, 0.0, 1.0),
+        Colour::new(0.0, 0.0, 0.0, 1.0),
+        0.0,
+    );
+    let black_mat_id = scene.add_material(black_material);
+
     // Create walls using composition pattern
     let floor = Plane::new(0.0, 1.0, 0.0, 0.0).with_material(white_mat_id);
     scene.add_object(SceneObject::from(floor));
@@ -42,7 +50,7 @@ pub fn setup_cornell_box<S: SceneBuilder>(scene: &mut S) {
     let front_wall = Plane::new(0.0, 0.0, -1.0, length).with_material(white_mat_id);
     scene.add_object(SceneObject::from(front_wall));
 
-    let back_wall = Plane::new(0.0, 0.0, 1.0, 0.0).with_material(white_mat_id);
+    let back_wall = Plane::new(0.0, 0.0, 1.0, 0.0).with_material(black_mat_id);
     scene.add_object(SceneObject::from(back_wall));
 
     let ceiling = Plane::new(0.0, -1.0, 0.0, height).with_material(white_mat_id);

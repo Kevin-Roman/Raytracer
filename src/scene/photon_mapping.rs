@@ -558,3 +558,86 @@ impl<'a> SceneBuilder for PhotonScene<'a> {
         self.config
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::sphere::Sphere;
+
+    fn test_config() -> RaytracerConfig {
+        RaytracerConfig::default()
+    }
+
+    #[test]
+    fn test_photon_maps_initialization() {
+        let config = test_config();
+        let scene = PhotonScene::new(&config);
+
+        let maps = scene.get_photon_maps();
+        // Photon maps should be empty initially
+        assert_eq!(maps.global.len(), 0);
+        assert_eq!(maps.caustic.len(), 0);
+    }
+
+    #[test]
+    fn test_russian_roulette_probabilities() {
+        let (_, prob1) = russian_roulette(false, false);
+        let (_, prob2) = russian_roulette(true, false);
+        let (_, prob3) = russian_roulette(false, true);
+
+        // Each probability should be valid
+        assert!(prob1 > 0.0 && prob1 <= 1.0);
+        assert!(prob2 > 0.0 && prob2 <= 1.0);
+        assert!(prob3 > 0.0 && prob3 <= 1.0);
+    }
+
+    #[test]
+    fn test_photon_scene_find_hit() {
+        let config = test_config();
+        let mut scene = PhotonScene::new(&config);
+
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        scene.add_object(SceneObject::from(sphere));
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let result = scene.find_hit(&ray);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn test_photon_scene_trace_returns_valid() {
+        let config = test_config();
+        let mut scene = PhotonScene::new(&config);
+
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        scene.add_object(SceneObject::from(sphere));
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let (colour, depth) = scene.trace(&ray, 0);
+
+        // Should hit something
+        assert!(depth > 0.0);
+        assert!(colour.r.is_finite());
+        assert!(colour.g.is_finite());
+        assert!(colour.b.is_finite());
+    }
+
+    #[test]
+    fn test_photon_scene_recursion_limit() {
+        let config = test_config();
+        let scene = PhotonScene::new(&config);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        // Should stop at max recursion depth
+        let max_depth = config.camera.raytrace_recurse;
+        let (colour, _) = scene.trace(&ray, max_depth);
+
+        // At max depth, should return default (black) colour
+        assert_eq!(colour.r, 0.0);
+        assert_eq!(colour.g, 0.0);
+        assert_eq!(colour.b, 0.0);
+    }
+}

@@ -130,3 +130,91 @@ impl Transformable for Plane {
         self.geometry.transform(trans)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_plane_normal() {
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -5.0);
+        let normal = plane.normal();
+        assert_eq!(normal.x, 0.0);
+        assert_eq!(normal.y, 1.0);
+        assert_eq!(normal.z, 0.0);
+    }
+
+    #[test]
+    fn test_plane_ray_intersection_perpendicular() {
+        // Plane at y = 5 (0x + 1y + 0z - 5 = 0)
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -5.0);
+
+        // Ray shooting upward from origin
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 1.0, 0.0));
+
+        let hitpool = plane.generate_hitpool(&ray);
+        assert!(hitpool.len() > 0);
+    }
+
+    #[test]
+    fn test_plane_ray_intersection_parallel() {
+        // Plane at y = 5
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -5.0);
+
+        // Ray parallel to plane
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0));
+
+        let hitpool = plane.generate_hitpool(&ray);
+        // Parallel rays should not intersect or have special handling
+        // Length could be 0 or 2 depending on implementation
+        let _ = hitpool;
+    }
+
+    #[test]
+    fn test_plane_first_hit() {
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -5.0);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 1.0, 0.0));
+
+        if let Some(hit) = plane.first_hit(&ray) {
+            assert!(hit.distance > 0.0);
+            assert_relative_eq!(hit.position.vector.y, 5.0, epsilon = 1e-5);
+        }
+    }
+
+    #[test]
+    fn test_plane_ray_on_plane() {
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, 0.0);
+        // Ray starting on the plane
+        let ray = Ray::new(Vertex::new(5.0, 0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0));
+
+        let hitpool = plane.generate_hitpool(&ray);
+        // Check it doesn't panic
+        drop(hitpool);
+    }
+
+    #[test]
+    fn test_plane_oblique_intersection() {
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -2.0);
+        // Ray at 45 degrees
+        let ray = Ray::new(
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vector::new(0.0, 0.707, 0.707).normalise(),
+        );
+
+        let hit = plane.first_hit(&ray);
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn test_plane_away_facing_ray() {
+        let plane = PlaneGeometry::new(0.0, 1.0, 0.0, -5.0);
+        // Ray pointing away from plane
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, -1.0, 0.0));
+
+        let hitpool = plane.generate_hitpool(&ray);
+        // Check it doesn't panic
+        drop(hitpool);
+    }
+}

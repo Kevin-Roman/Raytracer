@@ -141,3 +141,82 @@ impl<R: Raytracer> Shader<R> for GlobalMaterial {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_global_material_reflective() {
+        let material = GlobalMaterial::reflective(0.9);
+        assert_eq!(material.reflect_weight.r, 0.9);
+        assert_eq!(material.refract_weight.r, 0.0);
+    }
+
+    #[test]
+    fn test_global_material_transparent() {
+        let material = GlobalMaterial::transparent(0.8, 1.5);
+        assert_eq!(material.refract_weight.r, 0.8);
+        assert_eq!(material.index_of_refraction, 1.5);
+        assert_eq!(material.reflect_weight.r, 0.0);
+    }
+
+    #[test]
+    fn test_fresnel_normal_incidence() {
+        let material = GlobalMaterial::new(
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            1.5,
+        );
+
+        let incident = Vector::new(0.0, 0.0, -1.0);
+        let normal = Vector::new(0.0, 0.0, 1.0);
+
+        let (reflection, transmission) = material.fresnel_coefficients(incident, normal);
+
+        // At normal incidence, some reflection occurs
+        assert!(reflection >= 0.0 && reflection <= 1.0);
+        assert!(transmission >= 0.0 && transmission <= 1.0);
+        assert!((reflection + transmission - 1.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_surface_properties() {
+        let material = GlobalMaterial::reflective(0.7);
+        let props = material.get_surface_properties();
+
+        assert!(props.reflectivity > 0.0);
+        assert_eq!(props.is_specular, true);
+    }
+
+    #[test]
+    fn test_fresnel_total_internal_reflection() {
+        let material = GlobalMaterial::new(
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            0.67, // From dense to less dense
+        );
+
+        let incident = Vector::new(0.9, 0.0, -0.436).normalise();
+        let normal = Vector::new(0.0, 0.0, 1.0);
+
+        let (reflection, _) = material.fresnel_coefficients(incident, normal);
+
+        // Should have high or total reflection
+        assert_relative_eq!(reflection, 1.0, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_global_material_no_effects() {
+        let material = GlobalMaterial::new(
+            Colour::new(0.0, 0.0, 0.0, 0.0),
+            Colour::new(0.0, 0.0, 0.0, 0.0),
+            1.0,
+        );
+
+        let props = material.get_surface_properties();
+        assert_eq!(props.reflectivity, 0.0);
+        assert_eq!(props.transparency, 0.0);
+    }
+}

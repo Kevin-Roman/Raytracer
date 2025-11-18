@@ -2,7 +2,7 @@ use std::io;
 
 use crate::{
     geometry::traits::{Bounded, HitPool, Intersection, Transformable},
-    primitives::{Hit, ray::Ray, Transform, Vector, Vertex},
+    primitives::{ray::Ray, Hit, Transform, Vector, Vertex},
     shading::scene_material::MaterialId,
     utilities::obj_reader::{ObjReader, Triangle},
 };
@@ -238,5 +238,210 @@ impl Transformable for PolyMesh {
 impl Bounded for PolyMesh {
     fn bounding_sphere(&self) -> Option<(Vertex, f32)> {
         self.geometry.bounding_sphere()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    fn create_triangle() -> PolyMeshGeometry {
+        let vertices = vec![
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vertex::new(1.0, 0.0, 0.0, 1.0),
+            Vertex::new(0.5, 1.0, 0.0, 1.0),
+        ];
+
+        let vertex_normals = vec![
+            Vertex::new(0.0, 0.0, 1.0, 1.0),
+            Vertex::new(0.0, 0.0, 1.0, 1.0),
+            Vertex::new(0.0, 0.0, 1.0, 1.0),
+        ];
+
+        let triangles = vec![Triangle {
+            vertex_indices: [0, 1, 2],
+            vertex_normal_indices: [0, 1, 2],
+            face_normal: Vector::new(0.0, 0.0, 1.0),
+        }];
+
+        PolyMeshGeometry {
+            smooth: false,
+            vertices,
+            vertex_normals,
+            triangles,
+        }
+    }
+
+    #[test]
+    fn test_triangle_intersection_hit() {
+        let mesh = create_triangle();
+
+        // Ray pointing straight at the triangle
+        let ray = Ray::new(Vertex::new(0.5, 0.5, -1.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let intersection = mesh.triangle_intersection(&ray, 0);
+        assert!(intersection.is_some());
+    }
+
+    #[test]
+    fn test_triangle_intersection_miss() {
+        let mesh = create_triangle();
+
+        // Ray pointing away from triangle
+        let ray = Ray::new(Vertex::new(5.0, 5.0, -1.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let intersection = mesh.triangle_intersection(&ray, 0);
+        assert!(intersection.is_none());
+    }
+
+    #[test]
+    fn test_triangle_intersection_parallel() {
+        let mesh = create_triangle();
+
+        // Ray parallel to triangle plane
+        let ray = Ray::new(Vertex::new(0.5, 0.5, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0));
+
+        let intersection = mesh.triangle_intersection(&ray, 0);
+        assert!(intersection.is_none());
+    }
+
+    #[test]
+    fn test_add_hit_normal_calculation() {
+        let mesh = create_triangle();
+        let mut hitpool = HitPool::new();
+
+        let ray = Ray::new(Vertex::new(0.5, 0.5, -1.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let intersection = IntersectionData {
+            t: 1.0,
+            u: 0.3,
+            v: 0.3,
+            entering: true,
+        };
+
+        mesh.add_hit(&mut hitpool, 0, &ray, intersection);
+
+        assert_eq!(hitpool.len(), 1);
+        let hits = hitpool.flatten();
+        assert_eq!(hits[0].entering, true);
+        // Normal is flipped to face the incoming ray
+        assert_relative_eq!(hits[0].normal.z, -1.0, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_smoothness() {
+        let mut flat_mesh = create_triangle();
+        flat_mesh.smooth = false;
+
+        let mut smooth_mesh = create_triangle();
+        smooth_mesh.smooth = true;
+
+        let ray = Ray::new(Vertex::new(0.5, 0.5, -1.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let mut flat_hitpool = HitPool::new();
+        let mut smooth_hitpool = HitPool::new();
+
+        flat_mesh.intersect(&ray, &mut flat_hitpool);
+        smooth_mesh.intersect(&ray, &mut smooth_hitpool);
+
+        assert_eq!(flat_hitpool.len(), 1);
+        assert_eq!(smooth_hitpool.len(), 1);
+    }
+
+    #[test]
+    fn test_bounding_sphere_calculation() {
+        let mesh = create_triangle();
+        let bounding = mesh.bounding_sphere();
+
+        assert!(bounding.is_some());
+
+        let (center, radius) = bounding.unwrap();
+
+        assert!(center.vector.x >= 0.0 && center.vector.x <= 1.0);
+        assert!(center.vector.y >= 0.0 && center.vector.y <= 1.0);
+
+        for vertex in &mesh.vertices {
+            let distance = (vertex.vector - center.vector).length();
+            assert!(distance <= radius + 1e-5);
+        }
+    }
+
+    #[test]
+    fn test_bounding_sphere_empty_mesh() {
+        let empty_mesh = PolyMeshGeometry {
+            smooth: false,
+            vertices: Vec::new(),
+            vertex_normals: Vec::new(),
+            triangles: Vec::new(),
+        };
+
+        let bounding = empty_mesh.bounding_sphere();
+        assert!(bounding.is_none());
+    }
+
+    #[test]
+    fn test_transform_vertices() {
+        let mut mesh = create_triangle();
+        let original_vertices = mesh.vertices.clone();
+
+        let translation = Transform::new([
+            [1.0, 0.0, 0.0, 5.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        mesh.transform(&translation);
+
+        // Vertices should be translated
+        for i in 0..mesh.vertices.len() {
+            assert_relative_eq!(
+                mesh.vertices[i].vector.x,
+                original_vertices[i].vector.x + 5.0,
+                epsilon = 1e-5
+            );
+        }
+    }
+
+    #[test]
+    fn test_normal_flipping() {
+        let mesh = create_triangle();
+
+        // Ray from behind (should flip normal)
+        let ray = Ray::new(Vertex::new(0.5, 0.5, 1.0, 1.0), Vector::new(0.0, 0.0, -1.0));
+
+        let mut hitpool = HitPool::new();
+        mesh.intersect(&ray, &mut hitpool);
+
+        if hitpool.len() > 0 {
+            let hits = hitpool.flatten();
+            // Normal should be flipped to face the ray
+            assert!(hits[0].normal.dot(ray.direction) <= 0.0);
+        }
+    }
+
+    #[test]
+    fn test_multiple_triangles_intersection() {
+        let mut mesh = create_triangle();
+
+        mesh.vertices.push(Vertex::new(0.0, 0.0, 1.0, 1.0));
+        mesh.vertices.push(Vertex::new(1.0, 0.0, 1.0, 1.0));
+        mesh.vertices.push(Vertex::new(0.5, 1.0, 1.0, 1.0));
+        mesh.vertex_normals.push(Vertex::new(0.0, 0.0, 1.0, 1.0));
+        mesh.vertex_normals.push(Vertex::new(0.0, 0.0, 1.0, 1.0));
+        mesh.vertex_normals.push(Vertex::new(0.0, 0.0, 1.0, 1.0));
+        mesh.triangles.push(Triangle {
+            vertex_indices: [3, 4, 5],
+            vertex_normal_indices: [3, 4, 5],
+            face_normal: Vector::new(0.0, 0.0, 1.0),
+        });
+
+        let ray = Ray::new(Vertex::new(0.5, 0.5, -1.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let mut hitpool = HitPool::new();
+        mesh.intersect(&ray, &mut hitpool);
+
+        assert!(hitpool.len() > 0);
     }
 }

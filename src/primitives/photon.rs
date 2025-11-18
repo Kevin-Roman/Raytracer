@@ -2,7 +2,7 @@ use kd_tree::KdPoint;
 
 use super::{Colour, Vector, Vertex};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PhotonOutcome {
     Reflect,
     Absorb,

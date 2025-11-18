@@ -60,3 +60,51 @@ impl<S: Raytracer + Sync> Camera<S> for SimpleCamera {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pixel_ray_center_pixel() {
+        let mut camera = SimpleCamera::new(0.5);
+        camera.width = 100;
+        camera.height = 100;
+
+        // Center pixel should have ray direction close to (0, 0, fov)
+        let ray = camera.get_pixel_ray(50, 50);
+        assert!(ray.direction.x.abs() < 0.1);
+        assert!(ray.direction.y.abs() < 0.1);
+        assert!(ray.direction.z > 0.0);
+    }
+
+    #[test]
+    fn test_pixel_ray_normalized() {
+        let mut camera = SimpleCamera::new(0.5);
+        camera.width = 100;
+        camera.height = 100;
+
+        let ray = camera.get_pixel_ray(25, 25);
+        let length = (ray.direction.x * ray.direction.x
+            + ray.direction.y * ray.direction.y
+            + ray.direction.z * ray.direction.z)
+            .sqrt();
+
+        assert!((length - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_pixel_ray_corners() {
+        let mut camera = SimpleCamera::new(0.5);
+        camera.width = 100;
+        camera.height = 100;
+
+        let top_left = camera.get_pixel_ray(0, 0);
+        assert!(top_left.direction.x < 0.0);
+        assert!(top_left.direction.y > 0.0);
+
+        let bottom_right = camera.get_pixel_ray(99, 99);
+        assert!(bottom_right.direction.x > 0.0);
+        assert!(bottom_right.direction.y < 0.0);
+    }
+}

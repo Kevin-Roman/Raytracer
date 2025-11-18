@@ -68,3 +68,57 @@ impl<R: Raytracer> Shader<R> for AmbientOcclusionMaterial {
         self.get_surface_properties()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Number of samples must be a square number.")]
+    fn test_ao_material_requires_square_samples() {
+        let ambient = Colour::new(0.8, 0.8, 0.8, 1.0);
+        AmbientOcclusionMaterial::new(ambient, 15, 0.2);
+    }
+
+    #[test]
+    fn test_ao_material_valid_square_samples() {
+        let ambient = Colour::new(0.8, 0.8, 0.8, 1.0);
+
+        let ao_4 = AmbientOcclusionMaterial::new(ambient, 4, 0.2);
+        assert_eq!(ao_4.num_samples, 4);
+
+        let ao_9 = AmbientOcclusionMaterial::new(ambient, 9, 0.2);
+        assert_eq!(ao_9.num_samples, 9);
+    }
+
+    #[test]
+    fn test_ao_surface_properties() {
+        let ambient = Colour::new(0.8, 0.8, 0.8, 1.0);
+        let ao = AmbientOcclusionMaterial::new(ambient, 16, 0.2);
+
+        let props = ao.get_surface_properties();
+        let default_props = SurfaceProperties::default();
+
+        assert_eq!(props.is_specular, default_props.is_specular);
+        assert_eq!(props.reflectivity, default_props.reflectivity);
+        assert_eq!(props.transparency, default_props.transparency);
+        assert_eq!(props.index_of_refraction, default_props.index_of_refraction);
+    }
+
+    #[test]
+    fn test_ao_min_ambient_edge_cases() {
+        let ambient = Colour::new(1.0, 1.0, 1.0, 1.0);
+
+        // Completely dark when occluded
+        let ao_zero = AmbientOcclusionMaterial::new(ambient, 4, 0.0);
+        assert_eq!(ao_zero.min_ambient_amount, 0.0);
+
+        // No darkening when occluded
+        let ao_full = AmbientOcclusionMaterial::new(ambient, 4, 1.0);
+        assert_eq!(ao_full.min_ambient_amount, 1.0);
+
+        // 50% darkening
+        let ao_half = AmbientOcclusionMaterial::new(ambient, 4, 0.5);
+        assert_eq!(ao_half.min_ambient_amount, 0.5);
+    }
+}

@@ -128,3 +128,53 @@ impl<S: Raytracer + Sync> Camera<S> for SamplingCamera {
         );
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_sampling_camera_fractional_coordinates() {
+        let mut camera = SamplingCamera::new(
+            0.5,
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vector::new(0.0, 0.0, 1.0),
+            Vector::new(0.0, 1.0, 0.0),
+            4,
+        );
+
+        camera.width = 100;
+        camera.height = 100;
+
+        // Test fractional pixel coordinate (for jittered sampling)
+        let ray = camera.get_pixel_ray(50.25, 50.75);
+
+        assert_relative_eq!(ray.direction.length(), 1.0, epsilon = 1e-5);
+        assert_eq!(ray.position.vector, camera.position.vector);
+    }
+
+    #[test]
+    fn test_sampling_camera_multiple_samples_differ() {
+        let mut camera = SamplingCamera::new(
+            1.0,
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vector::new(0.0, 0.0, 1.0),
+            Vector::new(0.0, 1.0, 0.0),
+            16,
+        );
+
+        camera.width = 100;
+        camera.height = 100;
+
+        // Different jittered positions should produce different rays
+        let ray1 = camera.get_pixel_ray(50.0, 50.0);
+        let ray2 = camera.get_pixel_ray(50.5, 50.5);
+
+        // Rays should be slightly different due to jitter
+        assert!(
+            (ray1.direction.x - ray2.direction.x).abs() > 1e-6
+                || (ray1.direction.y - ray2.direction.y).abs() > 1e-6
+        );
+    }
+}

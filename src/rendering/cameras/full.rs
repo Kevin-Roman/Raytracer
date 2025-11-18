@@ -109,3 +109,68 @@ impl<S: Raytracer + Sync> Camera<S> for FullCamera {
         );
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_full_camera_basis_vectors() {
+        let camera = FullCamera::new(
+            0.5,
+            Vertex::new(0.0, 0.0, -10.0, 1.0),
+            Vector::new(0.0, 0.0, 0.0),
+            Vector::new(0.0, 1.0, 0.0),
+        );
+
+        // w should point backward (from lookat to position)
+        assert_relative_eq!(camera.w.z, -1.0, epsilon = 1e-5);
+        // u should be right vector (perpendicular to w and up)
+        assert_relative_eq!(camera.u.length(), 1.0, epsilon = 1e-5);
+        // v should be up vector
+        assert_relative_eq!(camera.v.length(), 1.0, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_full_camera_ray_direction() {
+        let mut camera = FullCamera::new(
+            0.5,
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vector::new(0.0, 0.0, 1.0),
+            Vector::new(0.0, 1.0, 0.0),
+        );
+
+        camera.width = 100;
+        camera.height = 100;
+
+        let ray = camera.get_pixel_ray(50, 50);
+
+        // Center ray should point forward
+        assert_relative_eq!(ray.direction.length(), 1.0, epsilon = 1e-5);
+        assert_eq!(ray.position.vector, camera.position.vector);
+    }
+
+    #[test]
+    fn test_full_camera_corner_rays() {
+        let mut camera = FullCamera::new(
+            1.0,
+            Vertex::new(0.0, 0.0, 0.0, 1.0),
+            Vector::new(0.0, 0.0, 1.0),
+            Vector::new(0.0, 1.0, 0.0),
+        );
+
+        camera.width = 100;
+        camera.height = 100;
+
+        // Top-left corner should have negative u, positive v
+        let ray_tl = camera.get_pixel_ray(0, 0);
+        assert!(ray_tl.direction.x < 0.0);
+        assert!(ray_tl.direction.y > 0.0);
+
+        // Bottom-right corner should have positive u, negative v
+        let ray_br = camera.get_pixel_ray(99, 99);
+        assert!(ray_br.direction.x > 0.0);
+        assert!(ray_br.direction.y < 0.0);
+    }
+}

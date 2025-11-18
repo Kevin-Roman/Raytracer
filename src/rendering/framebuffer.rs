@@ -3,7 +3,7 @@ use thiserror::Error as ThiserrorError;
 
 use crate::{
     config::RaytracerConfig,
-    primitives::{Colour, pixel::Pixel},
+    primitives::{pixel::Pixel, Colour},
     utilities::ppm_writer::PPMWriter,
 };
 
@@ -127,5 +127,84 @@ impl FrameBuffer {
         } else {
             Ok(())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_config(width: u16, height: u16) -> RaytracerConfig {
+        let mut config = RaytracerConfig::default();
+        config.framebuffer.width = width;
+        config.framebuffer.height = height;
+        config
+    }
+
+    #[test]
+    fn test_framebuffer_plot_pixel() {
+        let config = create_test_config(10, 10);
+        let mut fb = FrameBuffer::new(&config).unwrap();
+
+        let colour = Colour::new(0.5, 0.6, 0.7, 1.0);
+        let result = fb.plot_pixel(5, 5, colour);
+        assert!(result.is_ok());
+
+        let pixel = fb.get_pixel(5, 5).unwrap();
+        assert_eq!(pixel.colour.r, 0.5);
+    }
+
+    #[test]
+    fn test_framebuffer_plot_depth() {
+        let config = create_test_config(10, 10);
+        let mut fb = FrameBuffer::new(&config).unwrap();
+
+        let result = fb.plot_depth(5, 5, 10.0);
+        assert!(result.is_ok());
+
+        let pixel = fb.get_pixel(5, 5).unwrap();
+        assert_eq!(pixel.depth, 10.0);
+    }
+
+    #[test]
+    fn test_framebuffer_out_of_bounds() {
+        let config = create_test_config(10, 10);
+        let mut fb = FrameBuffer::new(&config).unwrap();
+
+        let colour = Colour::new(0.5, 0.6, 0.7, 1.0);
+        let result = fb.plot_pixel(15, 5, colour);
+        assert!(result.is_err());
+
+        match result {
+            Err(FrameBufferError::PixelOutOfBounds { x, y }) => {
+                assert_eq!(x, 15);
+                assert_eq!(y, 5);
+            }
+            _ => panic!("Expected PixelOutOfBounds error"),
+        }
+    }
+
+    #[test]
+    fn test_framebuffer_negative_coordinates() {
+        let config = create_test_config(10, 10);
+        let fb = FrameBuffer::new(&config).unwrap();
+
+        let result = fb.get_pixel(-1, 5);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_framebuffer_get_pixel() {
+        let config = create_test_config(10, 10);
+        let mut fb = FrameBuffer::new(&config).unwrap();
+
+        let colour = Colour::new(0.1, 0.2, 0.3, 1.0);
+        fb.plot_pixel(3, 4, colour).unwrap();
+        fb.plot_depth(3, 4, 5.5).unwrap();
+
+        let pixel = fb.get_pixel(3, 4).unwrap();
+        assert_eq!(pixel.colour.r, 0.1);
+        assert_eq!(pixel.colour.g, 0.2);
+        assert_eq!(pixel.depth, 5.5);
     }
 }

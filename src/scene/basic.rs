@@ -145,3 +145,75 @@ impl<'a> SceneBuilder for Scene<'a> {
         self.config
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::sphere::Sphere;
+
+    fn test_config() -> RaytracerConfig {
+        RaytracerConfig::default()
+    }
+
+    #[test]
+    fn test_scene_add_object() {
+        let config = test_config();
+        let mut scene = Scene::new(&config);
+
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        scene.add_object(SceneObject::from(sphere));
+
+        assert_eq!(scene.objects.len(), 1);
+    }
+
+    #[test]
+    fn test_scene_add_light() {
+        let config = test_config();
+        let mut scene = Scene::new(&config);
+
+        let light =
+            Light::new_directional(Vector::new(0.0, -1.0, 0.0), Colour::new(1.0, 1.0, 1.0, 1.0));
+        scene.add_light(light);
+
+        assert_eq!(scene.lights.len(), 1);
+    }
+
+    #[test]
+    fn test_scene_find_hit() {
+        let config = test_config();
+        let mut scene = Scene::new(&config);
+
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        scene.add_object(SceneObject::from(sphere));
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let result = scene.find_hit(&ray);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn test_scene_no_hit() {
+        let config = test_config();
+        let scene = Scene::new(&config);
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let result = scene.find_hit(&ray);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_scene_is_occluded() {
+        let config = test_config();
+        let mut scene = Scene::new(&config);
+
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        scene.add_object(SceneObject::from(sphere));
+
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        assert!(scene.is_occluded(&ray, 10.0));
+        assert!(!scene.is_occluded(&ray, 2.0)); // Too short to reach sphere
+    }
+}

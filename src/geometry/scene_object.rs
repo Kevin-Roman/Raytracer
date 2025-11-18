@@ -6,7 +6,6 @@ use crate::{
 
 use super::{csg::CSG, plane::Plane, polymesh::PolyMesh, quadratic::Quadratic, sphere::Sphere};
 
-/// Uses enum dispatch instead of trait objects for better performance.
 #[derive(Debug)]
 pub enum SceneObject {
     Sphere(Sphere),

@@ -139,3 +139,222 @@ impl Neg for Vector {
         Self::new(-self.x, -self.y, -self.z)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_vector_length() {
+        let v = Vector::new(3.0, 4.0, 0.0);
+        assert_relative_eq!(v.length(), 5.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_len_sqr() {
+        let v = Vector::new(3.0, 4.0, 0.0);
+        assert_relative_eq!(v.len_sqr(), 25.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_normalise() {
+        let v = Vector::new(3.0, 4.0, 0.0);
+        let normalized = v.normalise();
+        assert_relative_eq!(normalized.length(), 1.0, epsilon = 1e-6);
+        assert_relative_eq!(normalized.x, 0.6, epsilon = 1e-6);
+        assert_relative_eq!(normalized.y, 0.8, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_normalise_zero() {
+        let v = Vector::new(0.0, 0.0, 0.0);
+        let normalized = v.normalise();
+        assert_eq!(normalized.x, 0.0);
+        assert_eq!(normalized.y, 0.0);
+        assert_eq!(normalized.z, 0.0);
+    }
+
+    #[test]
+    fn test_vector_dot_product() {
+        let v1 = Vector::new(1.0, 2.0, 3.0);
+        let v2 = Vector::new(4.0, 5.0, 6.0);
+        assert_relative_eq!(v1.dot(v2), 32.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_dot_product_perpendicular() {
+        let v1 = Vector::new(1.0, 0.0, 0.0);
+        let v2 = Vector::new(0.0, 1.0, 0.0);
+        assert_relative_eq!(v1.dot(v2), 0.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_cross_product() {
+        let v1 = Vector::new(1.0, 0.0, 0.0);
+        let v2 = Vector::new(0.0, 1.0, 0.0);
+        let cross = v1.cross(v2);
+        assert_relative_eq!(cross.x, 0.0, epsilon = 1e-6);
+        assert_relative_eq!(cross.y, 0.0, epsilon = 1e-6);
+        assert_relative_eq!(cross.z, 1.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_addition() {
+        let v1 = Vector::new(1.0, 2.0, 3.0);
+        let v2 = Vector::new(4.0, 5.0, 6.0);
+        let result = v1 + v2;
+        assert_eq!(result.x, 5.0);
+        assert_eq!(result.y, 7.0);
+        assert_eq!(result.z, 9.0);
+    }
+
+    #[test]
+    fn test_vector_subtraction() {
+        let v1 = Vector::new(5.0, 7.0, 9.0);
+        let v2 = Vector::new(1.0, 2.0, 3.0);
+        let result = v1 - v2;
+        assert_eq!(result.x, 4.0);
+        assert_eq!(result.y, 5.0);
+        assert_eq!(result.z, 6.0);
+    }
+
+    #[test]
+    fn test_vector_scalar_multiplication() {
+        let v = Vector::new(1.0, 2.0, 3.0);
+        let result = 2.0 * v;
+        assert_eq!(result.x, 2.0);
+        assert_eq!(result.y, 4.0);
+        assert_eq!(result.z, 6.0);
+    }
+
+    #[test]
+    fn test_vector_scalar_division() {
+        let v = Vector::new(2.0, 4.0, 6.0);
+        let result = v / 2.0;
+        assert_eq!(result.x, 1.0);
+        assert_eq!(result.y, 2.0);
+        assert_eq!(result.z, 3.0);
+    }
+
+    #[test]
+    fn test_vector_negation() {
+        let v = Vector::new(1.0, 2.0, 3.0);
+        let result = -v;
+        assert_eq!(result.x, -1.0);
+        assert_eq!(result.y, -2.0);
+        assert_eq!(result.z, -3.0);
+    }
+
+    #[test]
+    fn test_vector_negate_method() {
+        let v = Vector::new(1.0, 2.0, 3.0);
+        let result = v.negate();
+        assert_eq!(result.x, -1.0);
+        assert_eq!(result.y, -2.0);
+        assert_eq!(result.z, -3.0);
+    }
+
+    #[test]
+    fn test_vector_component_wise_multiplication() {
+        let v1 = Vector::new(2.0, 3.0, 4.0);
+        let v2 = Vector::new(5.0, 6.0, 7.0);
+        let result = v1 * v2;
+        assert_eq!(result.x, 10.0);
+        assert_eq!(result.y, 18.0);
+        assert_eq!(result.z, 28.0);
+    }
+
+    #[test]
+    fn test_vector_reflection() {
+        let incident = Vector::new(1.0, -1.0, 0.0).normalise();
+        let normal = Vector::new(0.0, 1.0, 0.0);
+        let reflected = incident.reflection(normal);
+        assert_relative_eq!(reflected.x, incident.x, epsilon = 1e-6);
+        assert_relative_eq!(reflected.y, -incident.y, epsilon = 1e-6);
+        assert_relative_eq!(reflected.z, incident.z, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_refraction_air_to_glass() {
+        let incident = Vector::new(0.0, -1.0, 0.0);
+        let normal = Vector::new(0.0, 1.0, 0.0);
+        let ior = 1.52; // Glass
+        let refracted = incident.refraction(normal, ior);
+        // At normal incidence, direction should not change much
+        assert!(refracted.y < 0.0); // Should still be going down
+    }
+
+    #[test]
+    fn test_vector_refraction_total_internal_reflection() {
+        // High angle of incidence from denser to less dense medium
+        let incident = Vector::new(0.8, -0.6, 0.0).normalise();
+        let normal = Vector::new(0.0, 1.0, 0.0);
+        let ior = 0.67; // From glass to air
+        let result = incident.refraction(normal, ior);
+        // Should reflect instead of refract
+        assert!(result.y > 0.0); // Should be going up (reflected)
+    }
+
+    #[test]
+    fn test_vector_equality() {
+        let v1 = Vector::new(1.0, 2.0, 3.0);
+        let v2 = Vector::new(1.0, 2.0, 3.0);
+        let v3 = Vector::new(1.0, 2.0, 4.0);
+        assert_eq!(v1, v2);
+        assert_ne!(v1, v3);
+    }
+
+    #[test]
+    fn test_vector_large_values() {
+        let v = Vector::new(1e10, 1e10, 1e10);
+        assert!(v.length().is_finite());
+    }
+
+    #[test]
+    fn test_vector_small_values() {
+        let v = Vector::new(1e-10, 1e-10, 1e-10);
+        assert!(v.length() >= 0.0);
+    }
+
+    #[test]
+    fn test_vector_mixed_signs() {
+        let v = Vector::new(-1.0, 2.0, -3.0);
+        assert_relative_eq!(v.len_sqr(), 14.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_cross_parallel_vectors() {
+        let v1 = Vector::new(1.0, 0.0, 0.0);
+        let v2 = Vector::new(2.0, 0.0, 0.0);
+        let cross = v1.cross(v2);
+        assert_relative_eq!(cross.len_sqr(), 0.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_vector_refraction_perpendicular() {
+        let incident = Vector::new(0.0, -1.0, 0.0);
+        let normal = Vector::new(0.0, 1.0, 0.0);
+        let ior = 1.5;
+        let refracted = incident.refraction(normal, ior);
+        // Should refract straight through at normal incidence
+        assert!(refracted.y < 0.0);
+    }
+
+    #[test]
+    fn test_vector_division_by_small_scalar() {
+        let v = Vector::new(1.0, 2.0, 3.0);
+        let result = v / 0.1;
+        assert_eq!(result.x, 10.0);
+        assert_eq!(result.y, 20.0);
+        assert_eq!(result.z, 30.0);
+    }
+
+    #[test]
+    fn test_vector_normalize_already_normalized() {
+        let v = Vector::new(1.0, 0.0, 0.0);
+        let normalized = v.normalise();
+        assert_relative_eq!(normalized.x, 1.0, epsilon = 1e-6);
+        assert_relative_eq!(normalized.length(), 1.0, epsilon = 1e-6);
+    }
+}

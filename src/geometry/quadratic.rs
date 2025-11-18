@@ -19,7 +19,6 @@ pub struct QuadraticCoefficients {
     pub j: f32,
 }
 
-/// Quadratic surface geometry - pure data structure
 #[derive(Clone, Copy, Debug)]
 pub struct QuadraticGeometry {
     coeffs: QuadraticCoefficients,
@@ -178,5 +177,83 @@ impl Intersection for Quadratic {
 impl Transformable for Quadratic {
     fn transform(&mut self, trans: &Transform) {
         self.geometry.transform(trans)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_quadratic_sphere() {
+        // x^2 + y^2 + z^2 - 1 = 0 (unit sphere)
+        let coeffs = QuadraticCoefficients {
+            a: 1.0,
+            b: 0.0,
+            c: 0.0,
+            d: 0.0,
+            e: 1.0,
+            f: 0.0,
+            g: 0.0,
+            h: 1.0,
+            i: 0.0,
+            j: -1.0,
+        };
+
+        let quad = QuadraticGeometry::new(coeffs);
+        let ray = Ray::new(Vertex::new(0.0, 0.0, -5.0, 1.0), Vector::new(0.0, 0.0, 1.0));
+
+        let hit = quad.first_hit(&ray);
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn test_quadratic_cylinder() {
+        // Cylinder along z-axis: x^2 + y^2 - 1 = 0
+        let coeffs = QuadraticCoefficients {
+            a: 1.0,
+            b: 0.0,
+            c: 0.0,
+            d: 0.0,
+            e: 1.0,
+            f: 0.0,
+            g: 0.0,
+            h: 0.0,
+            i: 0.0,
+            j: -1.0,
+        };
+
+        let quad = QuadraticGeometry::new(coeffs);
+        // Ray from inside the cylinder pointing outward
+        let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0));
+
+        let hit = quad.first_hit(&ray);
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn test_quadratic_miss() {
+        // x^2 + y^2 + z^2 - 1 = 0 (unit sphere)
+        let coeffs = QuadraticCoefficients {
+            a: 1.0,
+            b: 0.0,
+            c: 0.0,
+            d: 0.0,
+            e: 1.0,
+            f: 0.0,
+            g: 0.0,
+            h: 1.0,
+            i: 0.0,
+            j: -1.0,
+        };
+
+        let quad = QuadraticGeometry::new(coeffs);
+        let ray = Ray::new(
+            Vertex::new(10.0, 0.0, -5.0, 1.0),
+            Vector::new(0.0, 0.0, 1.0),
+        );
+
+        let hit = quad.first_hit(&ray);
+        assert!(hit.is_none());
     }
 }

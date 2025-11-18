@@ -145,3 +145,55 @@ impl Sampler for MultiJitterSampler {
         self.hemisphere_samples[index]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::RaytracerConfig;
+
+    fn get_test_config() -> RaytracerConfig {
+        RaytracerConfig::default()
+    }
+
+    #[test]
+    #[should_panic(expected = "Number of samples must be a square number.")]
+    fn test_multi_jitter_sampler_requires_square_samples() {
+        let config = get_test_config();
+        MultiJitterSampler::new(15, 1.0, &config);
+    }
+
+    #[test]
+    fn test_multi_jitter_sampler_valid_square_numbers() {
+        let config = get_test_config();
+
+        let sampler4 = MultiJitterSampler::new(4, 1.0, &config);
+        assert_eq!(sampler4.num_samples, 4);
+
+        let sampler9 = MultiJitterSampler::new(9, 1.0, &config);
+        assert_eq!(sampler9.num_samples, 9);
+    }
+
+    #[test]
+    fn test_sample_unit_square_in_bounds() {
+        let config = get_test_config();
+        let mut sampler = MultiJitterSampler::new(16, 1.0, &config);
+
+        for _ in 0..16 {
+            let sample = sampler.sample_unit_square();
+            assert!(sample.x >= 0.0 && sample.x <= 1.0);
+            assert!(sample.y >= 0.0 && sample.y <= 1.0);
+        }
+    }
+
+    #[test]
+    fn test_sample_hemisphere_normalized() {
+        let config = get_test_config();
+        let mut sampler = MultiJitterSampler::new(16, 1.0, &config);
+
+        for _ in 0..16 {
+            let sample = sampler.sample_hemisphere();
+            let length_sq = sample.x * sample.x + sample.y * sample.y + sample.z * sample.z;
+            assert!(length_sq > 0.0);
+        }
+    }
+}

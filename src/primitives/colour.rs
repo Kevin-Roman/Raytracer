@@ -105,3 +105,114 @@ impl DivAssign<f32> for Colour {
         self.b /= denom;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_colour_scale() {
+        let mut c = Colour::new(0.5, 0.6, 0.7, 1.0);
+        c.scale(Colour::new(2.0, 2.0, 2.0, 0.5));
+        assert_eq!(c.r, 1.0);
+        assert_eq!(c.g, 1.2);
+        assert_eq!(c.b, 1.4);
+        assert_eq!(c.a, 0.5);
+    }
+
+    #[test]
+    fn test_colour_add_method() {
+        let mut c = Colour::new(0.1, 0.2, 0.3, 0.5);
+        c += Colour::new(0.4, 0.3, 0.2, 0.1);
+        assert_relative_eq!(c.r, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.g, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.b, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.a, 0.6, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_colour_average() {
+        let c = Colour::new(0.3, 0.6, 0.9, 1.0);
+        assert_relative_eq!(c.average(), 0.6, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_colour_multiplication() {
+        let c1 = Colour::new(0.5, 0.6, 0.7, 1.0);
+        let c2 = Colour::new(2.0, 2.0, 2.0, 0.5);
+        let result = c1 * c2;
+        assert_eq!(result.r, 1.0);
+        assert_eq!(result.g, 1.2);
+        assert_eq!(result.b, 1.4);
+        assert_eq!(result.a, 0.5);
+    }
+
+    #[test]
+    fn test_colour_addition() {
+        let c1 = Colour::new(0.1, 0.2, 0.3, 0.5);
+        let c2 = Colour::new(0.4, 0.3, 0.2, 0.1);
+        let result = c1 + c2;
+        assert_relative_eq!(result.r, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(result.g, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(result.b, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(result.a, 0.6, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_colour_scalar_multiplication() {
+        let c = Colour::new(0.5, 0.6, 0.7, 1.0);
+        let result = 2.0 * c;
+        assert_eq!(result.r, 1.0);
+        assert_eq!(result.g, 1.2);
+        assert_eq!(result.b, 1.4);
+        assert_eq!(result.a, 1.0);
+    }
+
+    #[test]
+    fn test_colour_scalar_division() {
+        let c = Colour::new(1.0, 1.2, 1.4, 1.0);
+        let result = c / 2.0;
+        assert_eq!(result.r, 0.5);
+        assert_eq!(result.g, 0.6);
+        assert_eq!(result.b, 0.7);
+        assert_eq!(result.a, 1.0);
+    }
+
+    #[test]
+    fn test_colour_add_assign() {
+        let mut c = Colour::new(0.1, 0.2, 0.3, 0.5);
+        c += Colour::new(0.4, 0.3, 0.2, 0.1);
+        assert_relative_eq!(c.r, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.g, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.b, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(c.a, 0.6, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_colour_mul_assign() {
+        let mut c = Colour::new(0.5, 0.6, 0.7, 1.0);
+        c *= Colour::new(2.0, 2.0, 2.0, 0.5);
+        assert_eq!(c.r, 1.0);
+        assert_eq!(c.g, 1.2);
+        assert_eq!(c.b, 1.4);
+        assert_eq!(c.a, 0.5);
+    }
+
+    #[test]
+    fn test_colour_div_assign() {
+        let mut c = Colour::new(1.0, 1.2, 1.4, 1.0);
+        c /= 2.0;
+        assert_eq!(c.r, 0.5);
+        assert_eq!(c.g, 0.6);
+        assert_eq!(c.b, 0.7);
+        assert_eq!(c.a, 1.0);
+    }
+
+    #[test]
+    fn test_colour_negative_multiplication() {
+        let c = Colour::new(1.0, 1.0, 1.0, 1.0);
+        let result = -1.0 * c;
+        assert_eq!(result.r, -1.0);
+    }
+}
