@@ -4,7 +4,7 @@ use raytracer::{
     primitives::{Colour, Transform, Vector, Vertex},
     rendering::{cameras::full::FullCamera, Camera, FrameBuffer},
     scene::Scene,
-    shading::SceneMaterial,
+    shading::Material,
     utilities::cornell_box::setup_cornell_box,
     SceneBuilder,
 };
@@ -15,28 +15,30 @@ fn build_scene(scene: &mut Scene) {
     let config = &scene.config;
     let length = config.cornell_box.length;
 
-    let glass_material = SceneMaterial::global(
+    let glass_material = Material::global(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
     );
-    let glass_mat_id = scene.add_material(glass_material);
 
-    let sphere =
-        Sphere::new(Vertex::new(-20.0, 20.0, length * 0.7, 1.0), 10.0).with_material(glass_mat_id);
+    let sphere = Sphere::new(
+        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
+        10.0,
+        glass_material,
+    );
     scene.add_object(SceneObject::from(sphere));
 
     // Create reflective teapot
-    let teapot_material = SceneMaterial::global(
+    let teapot_material = Material::global(
         Colour::new(0.5, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         0.0,
     );
-    let teapot_mat_id = scene.add_material(teapot_material);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
+        teapot_material,
     ) {
         Ok(mesh) => mesh,
         Err(e) => {
@@ -52,21 +54,19 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]));
 
-    let teapot = teapot.with_material(teapot_mat_id);
     scene.add_object(SceneObject::from(teapot));
 
-    // Create green tree with Phong shading
-    let tree_material = SceneMaterial::phong(
+    let tree_material = Material::phong(
         Colour::default(),
         Colour::new(0.0, 0.6, 0.0, 1.0),
         Colour::new(0.1, 0.3, 0.1, 1.0),
         20.0,
     );
-    let tree_mat_id = scene.add_material(tree_material);
 
     let mut tree = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/tree.obj",
         false,
+        tree_material,
     ) {
         Ok(mesh) => mesh,
         Err(e) => {
@@ -82,7 +82,6 @@ fn build_scene(scene: &mut Scene) {
         [0.0, 0.0, 0.0, 1.0],
     ]));
 
-    let tree = tree.with_material(tree_mat_id);
     scene.add_object(SceneObject::from(tree));
 }
 

@@ -1,7 +1,7 @@
 use crate::{
     geometry::traits::{HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Hit, Transform},
-    shading::scene_material::MaterialId,
+    shading::Material,
 };
 
 use super::scene_object::SceneObject;
@@ -67,22 +67,22 @@ pub struct CSG {
     pub mode: Mode,
     pub left_object: SceneObject,
     pub right_object: SceneObject,
-    pub material_id: MaterialId,
+    pub material: Material,
 }
 
 impl CSG {
-    pub fn new(mode: Mode, left_object: SceneObject, right_object: SceneObject) -> Self {
+    pub fn new(
+        mode: Mode,
+        left_object: SceneObject,
+        right_object: SceneObject,
+        material: Material,
+    ) -> Self {
         Self {
             mode,
             left_object,
             right_object,
-            material_id: MaterialId::default(),
+            material,
         }
-    }
-
-    pub fn with_material(mut self, material_id: MaterialId) -> Self {
-        self.material_id = material_id;
-        self
     }
 }
 
@@ -176,11 +176,16 @@ mod tests {
     use crate::{geometry::sphere::Sphere, primitives::Vertex};
 
     #[test]
-    fn test_csg_union_creation() {
-        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
-        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+    fn test_csg_union() {
+        use crate::primitives::Colour;
+        use crate::shading::Material;
 
-        let csg = CSG::new(Mode::CsgUnion, sphere1.into(), sphere2.into());
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0, material);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0, material);
+
+        let csg = CSG::new(Mode::CsgUnion, sphere1.into(), sphere2.into(), material);
 
         match csg.mode {
             Mode::CsgUnion => {}
@@ -189,11 +194,16 @@ mod tests {
     }
 
     #[test]
-    fn test_csg_intersection_creation() {
-        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
-        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+    fn test_csg_intersection() {
+        use crate::primitives::Colour;
+        use crate::shading::Material;
 
-        let csg = CSG::new(Mode::CsgInter, sphere1.into(), sphere2.into());
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0, material);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0, material);
+
+        let csg = CSG::new(Mode::CsgInter, sphere1.into(), sphere2.into(), material);
 
         match csg.mode {
             Mode::CsgInter => {}
@@ -202,11 +212,16 @@ mod tests {
     }
 
     #[test]
-    fn test_csg_difference_creation() {
-        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
-        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0);
+    fn test_csg_difference() {
+        use crate::primitives::Colour;
+        use crate::shading::Material;
 
-        let csg = CSG::new(Mode::CsgDiff, sphere1.into(), sphere2.into());
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere1 = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0, material);
+        let sphere2 = Sphere::new(Vertex::new(2.0, 0.0, 0.0, 1.0), 1.0, material);
+
+        let csg = CSG::new(Mode::CsgDiff, sphere1.into(), sphere2.into(), material);
 
         match csg.mode {
             Mode::CsgDiff => {}

@@ -1,8 +1,9 @@
 use raytracer::{
     config::RaytracerConfig,
     geometry::{traits::Transformable, PolyMesh},
-    primitives::Transform,
+    primitives::{Colour, Transform},
     rendering::FrameBuffer,
+    shading::Material,
     utilities::linedrawer::draw_line,
 };
 
@@ -24,9 +25,18 @@ fn main() {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
+    // Dummy material for object reader
+    let material = Material::phong(
+        Colour::default(),
+        Colour::default(),
+        Colour::default(),
+        f32::default(),
+    );
+
     let mut pm: PolyMesh = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         false,
+        material,
     ) {
         Ok(pm) => pm,
         Err(e) => {

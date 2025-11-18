@@ -1,11 +1,11 @@
 pub mod ambient_occlusion;
 pub mod global;
+pub mod material;
 pub mod phong;
-pub mod scene_material;
 pub mod traits;
 
 pub use ambient_occlusion::AmbientOcclusionMaterial;
 pub use global::GlobalMaterial;
+pub use material::Material;
 pub use phong::PhongMaterial;
-pub use scene_material::{MaterialId, MaterialStorage, SceneMaterial};
-pub use traits::{BRDF, Shader, SurfaceProperties};
+pub use traits::{Shader, SurfaceProperties, BRDF};

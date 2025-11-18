@@ -3,7 +3,7 @@ use std::io;
 use crate::{
     geometry::traits::{Bounded, HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Hit, Transform, Vector, Vertex},
-    shading::scene_material::MaterialId,
+    shading::Material,
     utilities::obj_reader::{ObjReader, Triangle},
 };
 
@@ -206,20 +206,15 @@ impl Bounded for PolyMeshGeometry {
 #[derive(Debug)]
 pub struct PolyMesh {
     pub geometry: PolyMeshGeometry,
-    pub material_id: MaterialId,
+    pub material: Material,
 }
 
 impl PolyMesh {
-    pub fn new(file_path: &str, smooth: bool) -> io::Result<Self> {
+    pub fn new(file_path: &str, smooth: bool, material: Material) -> io::Result<Self> {
         Ok(Self {
             geometry: PolyMeshGeometry::from_obj(file_path, smooth)?,
-            material_id: MaterialId::default(),
+            material,
         })
-    }
-
-    pub fn with_material(mut self, material_id: MaterialId) -> Self {
-        self.material_id = material_id;
-        self
     }
 }
 

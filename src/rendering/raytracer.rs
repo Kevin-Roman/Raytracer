@@ -25,7 +25,6 @@ impl<'a> RenderContext<'a> {
     }
 }
 
-/// Raytracer trait - focused interface for ray tracing operations.
 pub trait Raytracer: Sync {
     /// Trace a ray and return its colour and distance
     fn trace(&self, ray: &Ray, recurse_depth: u8) -> (Colour, f32);
@@ -33,6 +32,5 @@ pub trait Raytracer: Sync {
     /// Test if a ray is occluded up to a certain distance
     fn is_occluded(&self, ray: &Ray, max_distance: f32) -> bool;
 
-    /// Get the configuration
     fn config(&self) -> &RaytracerConfig;
 }

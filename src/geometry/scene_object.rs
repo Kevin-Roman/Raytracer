@@ -1,7 +1,7 @@
 use crate::{
     geometry::traits::{Bounded, HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Transform, Vertex},
-    shading::scene_material::MaterialId,
+    shading::Material,
 };
 
 use super::{csg::CSG, plane::Plane, polymesh::PolyMesh, quadratic::Quadratic, sphere::Sphere};
@@ -16,23 +16,13 @@ pub enum SceneObject {
 }
 
 impl SceneObject {
-    pub fn material_id(&self) -> MaterialId {
+    pub fn material(&self) -> &Material {
         match self {
-            SceneObject::Sphere(s) => s.material_id,
-            SceneObject::Plane(p) => p.material_id,
-            SceneObject::Quadratic(q) => q.material_id,
-            SceneObject::PolyMesh(pm) => pm.material_id,
-            SceneObject::CSG(csg) => csg.material_id,
-        }
-    }
-
-    pub fn set_material_id(&mut self, material_id: MaterialId) {
-        match self {
-            SceneObject::Sphere(s) => s.material_id = material_id,
-            SceneObject::Plane(p) => p.material_id = material_id,
-            SceneObject::Quadratic(q) => q.material_id = material_id,
-            SceneObject::PolyMesh(pm) => pm.material_id = material_id,
-            SceneObject::CSG(csg) => csg.material_id = material_id,
+            SceneObject::Sphere(s) => &s.material,
+            SceneObject::Plane(p) => &p.material,
+            SceneObject::Quadratic(q) => &q.material,
+            SceneObject::PolyMesh(pm) => &pm.material,
+            SceneObject::CSG(csg) => &csg.material,
         }
     }
 }

@@ -2,14 +2,13 @@ use crate::{
     config::RaytracerConfig,
     geometry::traits::Intersection,
     primitives::{ray::Ray, Colour, Hit, Vector, Vertex},
-    shading::{traits::Shader, MaterialStorage},
-    Light, MaterialId, Raytracer, SceneBuilder, SceneMaterial, SceneObject,
+    shading::traits::Shader,
+    Light, Material, Raytracer, SceneBuilder, SceneObject,
 };
 
 pub struct Scene<'a> {
     pub objects: Vec<SceneObject>,
     pub lights: Vec<Light>,
-    pub materials: MaterialStorage,
     pub config: &'a RaytracerConfig,
 }
 
@@ -18,20 +17,19 @@ impl<'a> Scene<'a> {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
-            materials: MaterialStorage::new(),
             config,
         }
     }
 
     /// Trace and determine the nearest ray's hit in front of the camera.
-    /// Returns the hit and the material ID.
-    fn find_hit(&self, ray: &Ray) -> Option<(Hit, MaterialId)> {
-        let mut nearest_hit: Option<(Hit, MaterialId)> = None;
+    /// Returns the hit and a reference to the material.
+    fn find_hit(&self, ray: &Ray) -> Option<(Hit, &Material)> {
+        let mut nearest_hit: Option<(Hit, &Material)> = None;
 
         for object in &self.objects {
             if let Some(hit) = object.first_hit(ray) {
                 if nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance {
-                    nearest_hit = Some((hit, object.material_id()));
+                    nearest_hit = Some((hit, object.material()));
                 }
             }
         }
@@ -63,7 +61,7 @@ impl<'a> Scene<'a> {
     }
 
     /// Compute contribution of all lights to the hit point.
-    fn compute_lighting(&self, hit: &Hit, material: &SceneMaterial) -> Colour {
+    fn compute_lighting(&self, hit: &Hit, material: &Material) -> Colour {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
 
         for light in &self.lights {
@@ -96,16 +94,14 @@ impl<'a> Raytracer for Scene<'a> {
         let mut colour = Colour::new(0.0, 0.0, 0.0, 0.0);
         let mut depth = 0.0;
 
-        if let Some((hit, material_id)) = self.find_hit(ray) {
+        if let Some((hit, material)) = self.find_hit(ray) {
             depth = hit.distance;
 
-            if let Some(material) = self.materials.get(material_id.0) {
-                // Compute direct material contribution (ambient/emission).
-                colour += material.shade_ambient(self, ray, &hit, recurse_depth);
+            // Compute direct material contribution (ambient/emission).
+            colour += material.shade_ambient(self, ray, &hit, recurse_depth);
 
-                // Calculate contributions from lights.
-                colour += self.compute_lighting(&hit, material);
-            }
+            // Calculate contributions from lights.
+            colour += self.compute_lighting(&hit, material);
         }
 
         (colour, depth)
@@ -137,10 +133,6 @@ impl<'a> SceneBuilder for Scene<'a> {
         self.lights.push(light);
     }
 
-    fn add_material(&mut self, material: SceneMaterial) -> MaterialId {
-        self.materials.add(material)
-    }
-
     fn config(&self) -> &RaytracerConfig {
         self.config
     }
@@ -160,7 +152,9 @@ mod tests {
         let config = test_config();
         let mut scene = Scene::new(&config);
 
-        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0);
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 0.0, 1.0), 1.0, material);
         scene.add_object(SceneObject::from(sphere));
 
         assert_eq!(scene.objects.len(), 1);
@@ -183,7 +177,9 @@ mod tests {
         let config = test_config();
         let mut scene = Scene::new(&config);
 
-        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0, material);
         scene.add_object(SceneObject::from(sphere));
 
         let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
@@ -208,7 +204,9 @@ mod tests {
         let config = test_config();
         let mut scene = Scene::new(&config);
 
-        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        let material =
+            Material::phong(Colour::default(), Colour::default(), Colour::default(), 1.0);
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0, material);
         scene.add_object(SceneObject::from(sphere));
 
         let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));

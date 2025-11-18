@@ -1,7 +1,7 @@
 use crate::{
     geometry::traits::{HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Hit, Transform, Vector, Vertex},
-    shading::scene_material::MaterialId,
+    shading::Material,
 };
 
 /// Represents plane equation: ax + by + cz + d = 0
@@ -102,20 +102,15 @@ impl Transformable for PlaneGeometry {
 #[derive(Debug)]
 pub struct Plane {
     pub geometry: PlaneGeometry,
-    pub material_id: MaterialId,
+    pub material: Material,
 }
 
 impl Plane {
-    pub fn new(a: f32, b: f32, c: f32, d: f32) -> Self {
+    pub fn new(a: f32, b: f32, c: f32, d: f32, material: Material) -> Self {
         Self {
             geometry: PlaneGeometry::new(a, b, c, d),
-            material_id: MaterialId::default(),
+            material,
         }
-    }
-
-    pub fn with_material(mut self, material_id: MaterialId) -> Self {
-        self.material_id = material_id;
-        self
     }
 }
 

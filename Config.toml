@@ -1,7 +1,3 @@
-# Raytracer Configuration File
-# This file defines the default settings for the raytracer.
-# The raytracer will automatically load this file on startup.
-
 [camera]
 raytrace_recurse = 5
 num_camera_ray_samples = 16
@@ -25,8 +21,8 @@ polymesh_epsilon = 0.000001
 num_sets = 4
 
 [framebuffer]
-width = 256
-height = 256
+width = 512
+height = 512
 max_width = 2048
 max_height = 2048
 

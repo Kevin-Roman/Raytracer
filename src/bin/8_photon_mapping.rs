@@ -4,7 +4,7 @@ use raytracer::{
     primitives::{Colour, Transform, Vector, Vertex},
     rendering::{cameras::sampling::SamplingCamera, Camera, FrameBuffer},
     scene::{PhotonScene, SceneBuilder},
-    shading::SceneMaterial,
+    shading::Material,
     utilities::cornell_box::setup_cornell_box,
 };
 
@@ -14,28 +14,30 @@ fn build_scene(scene: &mut PhotonScene) {
     let config = scene.config();
     let length = config.cornell_box.length;
 
-    let sphere_material = SceneMaterial::global(
+    let sphere_material = Material::global(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
     );
-    let sphere_mat_id = scene.add_material(sphere_material);
-    let sphere =
-        Sphere::new(Vertex::new(-20.0, 20.0, length * 0.7, 1.0), 10.0).with_material(sphere_mat_id);
+    let sphere = Sphere::new(
+        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
+        10.0,
+        sphere_material,
+    );
     scene.add_object(SceneObject::Sphere(sphere));
 
     // Teapot - Phong material
-    let teapot_material = SceneMaterial::phong(
+    let teapot_material = Material::phong(
         Colour::new(0.1, 0.1, 0.1, 1.0),
         Colour::new(0.0, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         10.0,
     );
-    let teapot_mat_id = scene.add_material(teapot_material);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
+        teapot_material,
     ) {
         Ok(teapot) => teapot,
         Err(e) => {
@@ -49,7 +51,7 @@ fn build_scene(scene: &mut PhotonScene) {
         [0.0, 1.5, 0.0, length * 0.6],
         [0.0, 0.0, 0.0, 1.0],
     ]));
-    let teapot_obj = SceneObject::PolyMesh(teapot.with_material(teapot_mat_id));
+    let teapot_obj = SceneObject::PolyMesh(teapot);
     scene.add_object(teapot_obj);
 }
 

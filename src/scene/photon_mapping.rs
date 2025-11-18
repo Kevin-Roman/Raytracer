@@ -11,12 +11,12 @@ use crate::{
         Colour, Hit, Vector, Vertex,
     },
     sampling::{traits::Sampler, MultiJitterSampler},
-    shading::{traits::Shader, MaterialStorage},
-    Light, MaterialId, Raytracer, SceneBuilder, SceneMaterial, SceneObject,
+    shading::traits::Shader,
+    Light, Material, Raytracer, SceneBuilder, SceneObject,
 };
 
 #[cfg(feature = "debugging")]
-use crate::objects::sphere_object::Sphere;
+use crate::geometry::sphere::Sphere;
 
 pub type PhotonMap = KdTree<Photon>;
 
@@ -30,7 +30,7 @@ impl PhotonMaps {
         &self,
         viewer: &Vector,
         hit: &Hit,
-        material: &SceneMaterial,
+        material: &Material,
         photon_types: &HashSet<PhotonType>,
         photon_search_radius: f32,
     ) -> Colour {
@@ -48,7 +48,7 @@ impl PhotonMaps {
         &self,
         viewer: &Vector,
         hit: &Hit,
-        material: &SceneMaterial,
+        material: &Material,
         photon_types: &HashSet<PhotonType>,
         photon_search_radius: f32,
     ) -> Colour {
@@ -66,7 +66,7 @@ impl PhotonMaps {
         &self,
         viewer: &Vector,
         hit: &Hit,
-        material: &SceneMaterial,
+        material: &Material,
         photon_types: &HashSet<PhotonType>,
         photon_map: &PhotonMap,
         photon_search_radius: f32,
@@ -130,7 +130,6 @@ fn russian_roulette(is_specular: bool, is_transparent: bool) -> (PhotonOutcome, 
 pub struct PhotonScene<'a> {
     pub objects: Vec<SceneObject>,
     pub lights: Vec<Light>,
-    pub materials: MaterialStorage,
     pub photon_maps: PhotonMaps,
     pub config: &'a RaytracerConfig,
 }
@@ -140,7 +139,6 @@ impl<'a> PhotonScene<'a> {
         Self {
             objects: Vec::new(),
             lights: Vec::new(),
-            materials: MaterialStorage::new(),
             photon_maps: PhotonMaps {
                 global: KdTree::default(),
                 caustic: KdTree::default(),
@@ -150,14 +148,14 @@ impl<'a> PhotonScene<'a> {
     }
 
     /// Trace and determine the nearest ray's hit in front of the camera.
-    /// Returns the hit and the material ID.
-    fn find_hit(&self, ray: &Ray) -> Option<(Hit, MaterialId)> {
-        let mut nearest_hit: Option<(Hit, MaterialId)> = None;
+    /// Returns the hit and a reference to the material.
+    fn find_hit(&self, ray: &Ray) -> Option<(Hit, &Material)> {
+        let mut nearest_hit: Option<(Hit, &Material)> = None;
 
         for object in &self.objects {
             if let Some(hit) = object.first_hit(ray) {
                 if nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance {
-                    nearest_hit = Some((hit, object.material_id()));
+                    nearest_hit = Some((hit, object.material()));
                 }
             }
         }
@@ -174,7 +172,7 @@ impl<'a> PhotonScene<'a> {
         photon_outcome: Option<PhotonOutcome>,
         recurse: u8,
     ) {
-        let mut nearest_hit: Option<(Hit, MaterialId)> = None;
+        let mut nearest_hit: Option<(Hit, &Material)> = None;
 
         for object in &self.objects {
             if let Some(hit) = object.first_hit(ray) {
@@ -185,7 +183,7 @@ impl<'a> PhotonScene<'a> {
                         && photon_outcome.unwrap() == PhotonOutcome::Transmit))
                     && (nearest_hit.is_none() || hit.distance < nearest_hit.unwrap().0.distance)
                 {
-                    nearest_hit = Some((hit, object.material_id()));
+                    nearest_hit = Some((hit, object.material()));
                 }
             }
         }
@@ -194,7 +192,7 @@ impl<'a> PhotonScene<'a> {
             return;
         }
 
-        let (hit, material_id) = nearest_hit.unwrap();
+        let (hit, material) = nearest_hit.unwrap();
 
         photon_map.push(Photon::new(
             hit.position,
@@ -207,57 +205,55 @@ impl<'a> PhotonScene<'a> {
             return;
         }
 
-        if let Some(material) = self.materials.get(material_id.0) {
-            let (photon_outcome, probability) =
-                russian_roulette(material.is_specular(), material.is_transparent());
-            match photon_outcome {
-                PhotonOutcome::Reflect => {
-                    let reflection_direction = ray.direction.reflection(hit.normal).normalise();
-                    let reflected_ray = Ray::new(
-                        hit.position + self.config.objects.rounding_error * reflection_direction,
-                        reflection_direction,
-                    );
+        let (photon_outcome, probability) =
+            russian_roulette(material.is_specular(), material.is_transparent());
+        match photon_outcome {
+            PhotonOutcome::Reflect => {
+                let reflection_direction = ray.direction.reflection(hit.normal).normalise();
+                let reflected_ray = Ray::new(
+                    hit.position + self.config.objects.rounding_error * reflection_direction,
+                    reflection_direction,
+                );
+                self.photon_trace(
+                    photon_map,
+                    &reflected_ray,
+                    PhotonType::IndirectIllumination,
+                    photon_intensity / probability,
+                    Some(PhotonOutcome::Reflect),
+                    recurse - 1,
+                );
+            }
+            PhotonOutcome::Absorb => {
+                let absorbed_ray = Ray::new(
+                    hit.position + self.config.objects.rounding_error * ray.direction,
+                    ray.direction,
+                );
+                self.photon_trace(
+                    photon_map,
+                    &absorbed_ray,
+                    PhotonType::ShadowPhoton,
+                    photon_intensity / probability,
+                    Some(PhotonOutcome::Absorb),
+                    recurse - 1,
+                );
+            }
+            PhotonOutcome::Transmit => {
+                if let Some(index_of_refraction) = material.index_of_refraction() {
+                    let mut transmitted_ray = Ray::default();
+                    transmitted_ray.direction = ray
+                        .direction
+                        .refraction(hit.normal, index_of_refraction)
+                        .normalise();
+                    transmitted_ray.position = hit.position
+                        + self.config.objects.rounding_error * transmitted_ray.direction;
                     self.photon_trace(
                         photon_map,
-                        &reflected_ray,
+                        &transmitted_ray,
                         PhotonType::IndirectIllumination,
                         photon_intensity / probability,
-                        Some(PhotonOutcome::Reflect),
+                        Some(PhotonOutcome::Transmit),
                         recurse - 1,
                     );
-                }
-                PhotonOutcome::Absorb => {
-                    let absorbed_ray = Ray::new(
-                        hit.position + self.config.objects.rounding_error * ray.direction,
-                        ray.direction,
-                    );
-                    self.photon_trace(
-                        photon_map,
-                        &absorbed_ray,
-                        PhotonType::ShadowPhoton,
-                        photon_intensity / probability,
-                        Some(PhotonOutcome::Absorb),
-                        recurse - 1,
-                    );
-                }
-                PhotonOutcome::Transmit => {
-                    if let Some(index_of_refraction) = material.index_of_refraction() {
-                        let mut transmitted_ray = Ray::default();
-                        transmitted_ray.direction = ray
-                            .direction
-                            .refraction(hit.normal, index_of_refraction)
-                            .normalise();
-                        transmitted_ray.position = hit.position
-                            + self.config.objects.rounding_error * transmitted_ray.direction;
-                        self.photon_trace(
-                            photon_map,
-                            &transmitted_ray,
-                            PhotonType::IndirectIllumination,
-                            photon_intensity / probability,
-                            Some(PhotonOutcome::Transmit),
-                            recurse - 1,
-                        );
-                    }
                 }
             }
         }
@@ -323,7 +319,7 @@ impl<'a> PhotonScene<'a> {
     }
 
     /// Compute contribution of all lights to the hit point.
-    fn compute_lighting(&self, hit: &Hit, material: &SceneMaterial) -> Colour {
+    fn compute_lighting(&self, hit: &Hit, material: &Material) -> Colour {
         let mut colour = Colour::default();
 
         for light in &self.lights {
@@ -349,7 +345,7 @@ impl<'a> PhotonScene<'a> {
         &self,
         viewer: &Vector,
         hit: &Hit,
-        material: &SceneMaterial,
+        material: &Material,
     ) -> Colour {
         self.photon_maps.global_radiance_estimate(
             viewer,
@@ -360,7 +356,7 @@ impl<'a> PhotonScene<'a> {
         )
     }
 
-    fn estimate_caustics(&self, viewer: &Vector, hit: &Hit, material: &SceneMaterial) -> Colour {
+    fn estimate_caustics(&self, viewer: &Vector, hit: &Hit, material: &Material) -> Colour {
         self.photon_maps.caustic_radiance_estimate(
             viewer,
             hit,
@@ -375,19 +371,19 @@ impl<'a> PhotonScene<'a> {
         // Testing purposes
         for photon in photon_map {
             let mat_id = match photon.photon_type {
-                PhotonType::DirectionIllumination => self.add_material(SceneMaterial::phong(
+                PhotonType::DirectionIllumination => self.add_material(Material::phong(
                     Colour::new(0.0, 1.0, 0.0, 1.0),
                     Colour::default(),
                     Colour::default(),
                     1.0,
                 )),
-                PhotonType::ShadowPhoton => self.add_material(SceneMaterial::phong(
+                PhotonType::ShadowPhoton => self.add_material(Material::phong(
                     Colour::new(0.0, 0.0, 1.0, 1.0),
                     Colour::default(),
                     Colour::default(),
                     1.0,
                 )),
-                PhotonType::IndirectIllumination => self.add_material(SceneMaterial::phong(
+                PhotonType::IndirectIllumination => self.add_material(Material::phong(
                     Colour::new(1.0, 0.0, 0.0, 1.0),
                     Colour::default(),
                     Colour::default(),
@@ -441,11 +437,8 @@ impl<'a> PhotonScene<'a> {
 
                 // Create caustic map.
                 for object in &self.objects {
-                    if let Some(material) = self.materials.get(object.material_id().0) {
-                        if !material.is_specular() {
-                            continue;
-                        }
-                    } else {
+                    let material = object.material();
+                    if !material.is_specular() {
                         continue;
                     }
 
@@ -501,23 +494,21 @@ impl<'a> Raytracer for PhotonScene<'a> {
         let mut colour = Colour::default();
         let mut depth = 0.0;
 
-        if let Some((hit, material_id)) = self.find_hit(ray) {
+        if let Some((hit, material)) = self.find_hit(ray) {
             depth = hit.distance;
 
-            if let Some(material) = self.materials.get(material_id.0) {
-                // Compute direct material contribution (ambient/emission/reflection/refraction).
-                colour += material.shade_ambient(self, ray, &hit, recurse_depth);
+            // Compute direct material contribution (ambient/emission/reflection/refraction).
+            colour += material.shade_ambient(self, ray, &hit, recurse_depth);
 
-                // Always compute direct lighting from light sources
-                colour += self.compute_lighting(&hit, material);
+            // Always compute direct lighting from light sources
+            colour += self.compute_lighting(&hit, material);
 
-                // Add photon contributions for global illumination effects
-                if recurse_depth <= self.config.photon_mapping.recurse_approximate_threshold {
-                    // At shallow depths, add photon-based indirect illumination and caustics
-                    let viewer = &ray.direction.negate();
-                    colour += self.estimate_indirect_illumination(viewer, &hit, material);
-                    colour += self.estimate_caustics(viewer, &hit, material);
-                }
+            // Add photon contributions for global illumination effects
+            if recurse_depth <= self.config.photon_mapping.recurse_approximate_threshold {
+                // At shallow depths, add photon-based indirect illumination and caustics
+                let viewer = &ray.direction.negate();
+                colour += self.estimate_indirect_illumination(viewer, &hit, material);
+                colour += self.estimate_caustics(viewer, &hit, material);
             }
         }
 
@@ -548,10 +539,6 @@ impl<'a> SceneBuilder for PhotonScene<'a> {
 
     fn add_light(&mut self, light: Light) {
         self.lights.push(light);
-    }
-
-    fn add_material(&mut self, material: SceneMaterial) -> MaterialId {
-        self.materials.add(material)
     }
 
     fn config(&self) -> &RaytracerConfig {
@@ -596,7 +583,13 @@ mod tests {
         let config = test_config();
         let mut scene = PhotonScene::new(&config);
 
-        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        let material = Material::phong(
+            Colour::new(0.1, 0.1, 0.1, 1.0),
+            Colour::new(0.8, 0.8, 0.8, 1.0),
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            32.0,
+        );
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0, material);
         scene.add_object(SceneObject::from(sphere));
 
         let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));
@@ -610,7 +603,13 @@ mod tests {
         let config = test_config();
         let mut scene = PhotonScene::new(&config);
 
-        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0);
+        let material = Material::phong(
+            Colour::new(0.1, 0.1, 0.1, 1.0),
+            Colour::new(0.8, 0.8, 0.8, 1.0),
+            Colour::new(1.0, 1.0, 1.0, 1.0),
+            32.0,
+        );
+        let sphere = Sphere::new(Vertex::new(0.0, 0.0, 5.0, 1.0), 1.0, material);
         scene.add_object(SceneObject::from(sphere));
 
         let ray = Ray::new(Vertex::new(0.0, 0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));

@@ -6,7 +6,6 @@ use super::Vector;
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
     pub vector: Vector,
-    /// Weight.
     pub w: f32,
 }
 

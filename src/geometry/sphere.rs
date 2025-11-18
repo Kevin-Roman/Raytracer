@@ -1,7 +1,7 @@
 use crate::{
     geometry::traits::{Bounded, HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Hit, Transform, Vertex},
-    shading::scene_material::MaterialId,
+    shading::Material,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -69,20 +69,15 @@ impl Bounded for SphereGeometry {
 #[derive(Debug)]
 pub struct Sphere {
     pub geometry: SphereGeometry,
-    pub material_id: MaterialId,
+    pub material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vertex, radius: f32) -> Self {
+    pub fn new(center: Vertex, radius: f32, material: Material) -> Self {
         Self {
             geometry: SphereGeometry::new(center, radius),
-            material_id: MaterialId::default(),
+            material,
         }
-    }
-
-    pub fn with_material(mut self, material_id: MaterialId) -> Self {
-        self.material_id = material_id;
-        self
     }
 }
 

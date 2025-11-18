@@ -1,7 +1,5 @@
 use crate::primitives::{Colour, Vector, Vertex};
 
-/// Enum-based light type for zero-cost static dispatch.
-/// This replaces Box<dyn Light> for better performance.
 #[derive(Clone)]
 pub enum Light {
     Directional {
@@ -15,7 +13,6 @@ pub enum Light {
 }
 
 impl Light {
-    /// Create a new directional light
     pub fn new_directional(direction: Vector, intensity: Colour) -> Self {
         Self::Directional {
             direction: direction.normalise(),
@@ -23,7 +20,6 @@ impl Light {
         }
     }
 
-    /// Create a new point light
     pub fn new_point(position: Vertex, intensity: Colour) -> Self {
         Self::Point {
             position,
@@ -31,7 +27,6 @@ impl Light {
         }
     }
 
-    /// Get the position and direction of the light to the surface, and whether the surface is lit by the light.
     pub fn get_direction(&self, surface: Vertex) -> (Option<Vertex>, Vector, bool) {
         match self {
             Light::Directional { direction, .. } => (None, *direction, true),

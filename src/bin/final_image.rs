@@ -4,39 +4,40 @@ use raytracer::{
     primitives::{Colour, Transform, Vector, Vertex},
     rendering::{cameras::sampling::SamplingCamera, Camera, FrameBuffer},
     scene::{PhotonScene, SceneBuilder},
-    shading::SceneMaterial,
+    shading::Material,
     utilities::cornell_box::setup_cornell_box,
 };
 
 fn build_scene<S: SceneBuilder>(scene: &mut S) {
-    // Setup cornell box using new idiomatic utility
     setup_cornell_box(scene);
 
     let config = scene.config();
     let length = config.cornell_box.length;
 
-    let glass_material = SceneMaterial::global(
+    let glass_material = Material::global(
         Colour::new(1.0, 1.0, 1.0, 1.0),
         Colour::new(1.0, 1.0, 1.0, 1.0),
         1.52,
     );
-    let glass_mat_id = scene.add_material(glass_material);
 
-    let sphere =
-        Sphere::new(Vertex::new(-20.0, 20.0, length * 0.7, 1.0), 10.0).with_material(glass_mat_id);
+    let sphere = Sphere::new(
+        Vertex::new(-20.0, 20.0, length * 0.7, 1.0),
+        10.0,
+        glass_material,
+    );
     scene.add_object(SceneObject::from(sphere));
 
     // Create reflective teapot
-    let teapot_material = SceneMaterial::global(
+    let teapot_material = Material::global(
         Colour::new(0.5, 0.5, 0.5, 1.0),
         Colour::new(0.5, 0.5, 0.5, 1.0),
         0.0,
     );
-    let teapot_mat_id = scene.add_material(teapot_material);
 
     let mut teapot = match PolyMesh::new(
         "D:/Other Documents/Programming/Raytracer/src/assets/teapot.obj",
         true,
+        teapot_material,
     ) {
         Ok(mesh) => mesh,
         Err(e) => {
@@ -52,32 +53,30 @@ fn build_scene<S: SceneBuilder>(scene: &mut S) {
         [0.0, 0.0, 0.0, 1.0],
     ]));
 
-    let teapot = teapot.with_material(teapot_mat_id);
     scene.add_object(SceneObject::from(teapot));
 
-    // let tree_material = SceneMaterial::ambient_occlusion(Colour::new(0.0, 0.6, 0.0, 1.0), 16, 0.2);
-    // let tree_mat_id = scene.add_material(tree_material);
+    let tree_material = Material::ambient_occlusion(Colour::new(0.0, 0.6, 0.0, 1.0), 16, 0.2);
 
-    // let mut tree = match PolyMesh::new(
-    //     "D:/Other Documents/Programming/Raytracer/src/assets/tree.obj",
-    //     false,
-    // ) {
-    //     Ok(mesh) => mesh,
-    //     Err(e) => {
-    //         eprintln!("Error reading tree mesh: {}", e);
-    //         return;
-    //     }
-    // };
+    let mut tree = match PolyMesh::new(
+        "D:/Other Documents/Programming/Raytracer/src/assets/tree.obj",
+        false,
+        tree_material,
+    ) {
+        Ok(mesh) => mesh,
+        Err(e) => {
+            eprintln!("Error reading tree mesh: {}", e);
+            return;
+        }
+    };
 
-    // tree.geometry.transform(&Transform::new([
-    //     [6.0, 0.0, 0.0, 10.0],
-    //     [0.0, 6.0, 0.0, 0.0],
-    //     [0.0, 0.0, 6.0, length * 0.65],
-    //     [0.0, 0.0, 0.0, 1.0],
-    // ]));
+    tree.geometry.transform(&Transform::new([
+        [6.0, 0.0, 0.0, 10.0],
+        [0.0, 6.0, 0.0, 0.0],
+        [0.0, 0.0, 6.0, length * 0.65],
+        [0.0, 0.0, 0.0, 1.0],
+    ]));
 
-    // let tree = tree.with_material(tree_mat_id);
-    // scene.add_object(SceneObject::from(tree));
+    scene.add_object(SceneObject::from(tree));
 }
 
 fn main() {

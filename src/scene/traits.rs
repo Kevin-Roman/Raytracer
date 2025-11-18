@@ -1,4 +1,4 @@
-use crate::{config::RaytracerConfig, Light, MaterialId, SceneMaterial, SceneObject};
+use crate::{config::RaytracerConfig, Light, SceneObject};
 
 pub trait SceneBuilder {
     /// Add an object to the scene
@@ -6,9 +6,6 @@ pub trait SceneBuilder {
 
     /// Add a light to the scene
     fn add_light(&mut self, light: Light);
-
-    /// Add a material to the scene and get its ID
-    fn add_material(&mut self, material: SceneMaterial) -> MaterialId;
 
     /// Get a reference to the raytracer configuration
     fn config(&self) -> &RaytracerConfig;

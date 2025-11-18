@@ -4,20 +4,17 @@ use raytracer::{
     primitives::{Colour, Vector, Vertex},
     rendering::{cameras::full::FullCamera, Camera, FrameBuffer, Light},
     scene::Scene,
-    shading::SceneMaterial,
+    shading::Material,
     SceneBuilder,
 };
 
 fn build_scene(scene: &mut Scene) {
-    let floor_material = SceneMaterial::ambient_occlusion(Colour::new(1.0, 1.0, 1.0, 1.0), 64, 0.1);
-    let floor_mat_id = scene.add_material(floor_material);
-    let floor = Plane::new(0.0, 1.0, 0.0, 3.0).with_material(floor_mat_id);
+    let floor_material = Material::ambient_occlusion(Colour::new(1.0, 1.0, 1.0, 1.0), 64, 0.1);
+    let floor = Plane::new(0.0, 1.0, 0.0, 3.0, floor_material);
     scene.add_object(SceneObject::Plane(floor));
 
-    let sphere_material =
-        SceneMaterial::ambient_occlusion(Colour::new(1.0, 1.0, 0.0, 1.0), 64, 0.1);
-    let sphere_mat_id = scene.add_material(sphere_material);
-    let sphere = Sphere::new(Vertex::new(0.0, 0.0, 10.0, 1.0), 3.0).with_material(sphere_mat_id);
+    let sphere_material = Material::ambient_occlusion(Colour::new(1.0, 1.0, 0.0, 1.0), 64, 0.1);
+    let sphere = Sphere::new(Vertex::new(0.0, 0.0, 10.0, 1.0), 3.0, sphere_material);
     scene.add_object(SceneObject::Sphere(sphere));
 
     scene.add_light(Light::new_directional(

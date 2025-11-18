@@ -1,7 +1,7 @@
 use crate::{
     geometry::traits::{HitPool, Intersection, Transformable},
     primitives::{ray::Ray, Hit, Transform, Vector, Vertex},
-    shading::scene_material::MaterialId,
+    shading::Material,
 };
 
 /// Coefficients for a quadratic surface: ax² + 2bxy + 2cxz + 2dx + ey² + 2fyz + 2gy + hz² + 2iz + j = 0
@@ -151,20 +151,15 @@ impl Transformable for QuadraticGeometry {
 #[derive(Debug)]
 pub struct Quadratic {
     pub geometry: QuadraticGeometry,
-    pub material_id: MaterialId,
+    pub material: Material,
 }
 
 impl Quadratic {
-    pub fn new(coefficients: QuadraticCoefficients) -> Self {
+    pub fn new(coefficients: QuadraticCoefficients, material: Material) -> Self {
         Self {
             geometry: QuadraticGeometry::new(coefficients),
-            material_id: MaterialId::default(),
+            material,
         }
-    }
-
-    pub fn with_material(mut self, material_id: MaterialId) -> Self {
-        self.material_id = material_id;
-        self
     }
 }
 
